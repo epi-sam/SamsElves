@@ -65,34 +65,3 @@ children_of_parents <- function(
   return(child_TF)
 
 }
-
-# testing
-children_of_parents(parent_loc_ids = parents,
-                    path_to_parent_string = test_col,
-                    include_parent = F)
-
-dfa <- hier %>%
-  mutate(test = children_of_parents(parent_loc_ids = c(32,31),
-                                        path_to_parent_string = path_to_top_parent,
-                                    include_parent = T)) %>%
-  filter(test)
-
-tmp <- hier[, test := children_of_parents(parent_loc_ids = c(6, 31), path_to_parent_string = path_to_top_parent)]
-tmp <- tmp[which(test),]
-
-# development
-any(parents %in% as.numeric(unlist(strsplit(hier$path_to_top_parent[1:20],","))))
-
-test_col <- hier$path_to_top_parent[1:20]
-
-any(parents %in% as.numeric(unlist(strsplit(test_col[20], ","))))
-
-parents <- c(32, 42)
-
-tmp <- c()
-
-for(i in 1:length(test_col)){
-  tmp[i] <-
-    any(parents %in% as.numeric(unlist(strsplit(test_col[i], ","))))
-
-}
