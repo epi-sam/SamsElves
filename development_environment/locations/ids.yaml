@@ -1,0 +1,16 @@
+covariate_with_aggregates:
+  location_set_id: 115
+  location_set_version_id: 1021
+fh_small_area:
+  location_set_id: 120
+  location_set_version_id: 986
+gbd_analysis:
+  location_set_id:
+  - 111.0
+  - 35.0
+  location_set_version_id:
+  - 1020.0
+  - 964.0
+modeling:
+  location_set_id: 111
+  location_set_version_id: 1020
