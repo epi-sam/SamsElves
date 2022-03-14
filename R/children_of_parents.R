@@ -1,23 +1,15 @@
-#' children_of_parents
+#' Get child locations given parent IDs from IHME hierarchies
 #'
-#' For use with IHME Hierarchies.
-#'
-#' From a hierarchy, which children are have a given parent ID in the
-#' path_to_top_parent column?  Returns logical T/F vector.
-#'
-#' Accepts a vector of parents, and requires user to define a vector name of
-#' path_to_top_parent strings, formatted "1,2,3".
-#'
-#' Allows the user to exclude the parent (FALSE) from the output vector.
-#' Default is to include parents, since exclusion could falsely exclude
-#' locations if input parent location_ids are nested (e.g. 32 is nested in 31).
+#' \code{children_of_parents()} finds children from IHME Hierarchies, given a
+#' vector of location_ids.v From a hierarchy, which children are have a given
+#' parent ID in the path_to_top_parent column?  Returns logical T/F vector.
 #'
 #' @param parent_loc_ids Numeric vector of parent location_ids
-#' @param path_to_parent_string Vector of strings, formatted "1,2,3".
-#' What is the path_to_top_parent string vector?
-#' @param include_parent Logical T/F
-#' Do you want parents included with children?
-#' If FALSE, be careful if the parent location_ids are nested inside each other.
+#' @param path_to_parent_string Vector of strings, formatted "1,2,3". What is
+#'   the path_to_top_parent string vector?
+#' @param include_parent Logical T/F Do you want parents included with children?
+#'   If FALSE, be careful if the parent location_ids are nested inside each
+#'   other.
 #'
 #' @return Logical T/F vector
 #' @export
@@ -28,10 +20,10 @@
 #' parents <- c(6, 32) # China, Central Asia
 #'
 #' children_of_parents(parent_loc_ids = parents, path_to_parent_string = paths, include_parent = T)
-#' [1] TRUE  TRUE  TRUE
+#' # [1] TRUE  TRUE  TRUE
 #'
 #' children_of_parents(parent_loc_ids = parents, path_to_parent_string = paths, include_parent = F)
-#' [1] FALSE  TRUE FALSE
+#' # [1] FALSE  TRUE FALSE
 #'
 children_of_parents <- function(
     parent_loc_ids, # vector of parent location_ids
