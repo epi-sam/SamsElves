@@ -1,3 +1,41 @@
+# preflight_checks -------------------
+rm(list=ls(all.names = T))
+# --- packages ---
+
+library(data.table)
+library(dplyr)
+library(tidyr)
+library(glue)
+
+# --- paths ---
+
+PATHS <- list(
+  ROOT = "",
+  SCRIPTS = "R",
+  DATA = "data",
+  ARCHIVE = "archive"
+)
+
+# --- data ---
+
+HIER <- lapply(list.files("data", full.names = T), function(x) as_tibble(get(load(x, verbose = T))))
+names(HIER) <- strsplit(list.files("data"), ".Rdata")
+
+h_covid <- HIER$modeling_hierarchy
+h_gbd <- HIER$gbd_analysis_hierarchy
+h_fh <- HIER$fh_small_area_hierarchy
+h_covar <- HIER$covariate_with_aggregates_hierarchy
+
+# --- sandbox ---
+
+# two equal dataframes for testing
+Equal1 <- h_covid %>% select(location_id, location_name, path_to_top_parent, most_detailed)
+Equal2 <- copy(equal1)
+
+# two unequal datasets
+Diff1 <- h_covid %>% select(location_id, location_name, path_to_top_parent, most_detailed, location_name)
+Diff2 <- h_gbd %>% select(location_id, location_name, path_to_top_parent, most_detailed, lancet_label)
+
 # get_children_from_parent ---------------
 
 # packages -
