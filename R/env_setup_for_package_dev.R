@@ -30,7 +30,7 @@ h_covar <- HIER$covariate_with_aggregates_hierarchy
 
 # two equal dataframes for testing
 Equal1 <- h_covid %>% select(location_id, location_name, path_to_top_parent, most_detailed)
-Equal2 <- copy(equal1)
+Equal2 <- copy(Equal1)
 
 # two unequal datasets
 Diff1 <- h_covid %>% select(location_id, location_name, path_to_top_parent, most_detailed, location_name)
