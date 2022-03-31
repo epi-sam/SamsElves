@@ -5,7 +5,7 @@
 #   - [ ]
 
 # - [x] Allow for column renaming
-# - [ ] Limit hier2data comparisons to unique values in each
+# - [x] Limit hier2data comparisons to unique values in each
 # - [x] Allow for filtering as well as column selection
 #   - [x] Can I allow for multiple filters?
 # - [x] Add a top-level function to select, rename and filter data.frames
@@ -14,7 +14,9 @@
 # - [ ] Decide how to functionalize 'verbose' argument in the code
 # - [X] Add 'stop' argument
 # - [x] Incorporate switch() for 'method' argument
-# - [ ] Write the "stop" chunk as a generalizable function
+# - [x] Write the "stop" chunk as a generalizable function
+#   - [x] main chunk
+#   - [x] needs a stop-condition argument, or else it stops every time
 
 # Later
 # - [ ] look into tryCatch()
@@ -38,6 +40,9 @@ source("R/env_setup_for_package_dev.R")
 
 # FUNCTION BODY ------
 #' Compare reference vectors or data.frames using Tidyverse grammar
+#'
+#' Returns a list of diagnostic information.  I recommend saving this output
+#' to an object with a name that is diagnostically helpful if you set STOP=FALSE
 #'
 #' 'X' is intended as the left-side, 'reference' data - that which is your gold standard to compare against
 #' 'Y' is intended as the rigth-side 'comparison' data - that which you want to validate AGAINST X
@@ -68,15 +73,15 @@ source("R/env_setup_for_package_dev.R")
 #' @param X Left-hand input vector or data.frame (depending on desired check method)
 #' @param Y Right-hand input vector or data.frame (depending on desired check method)
 #' @param method method of comparison to be made:
-#' all_equal = compare two vectors or data.frames for total equality, and receive verbose output if not.  WARNING: no selecting or filtering applied
-#' hier2data = compares a hierarchy to incoming raw_data or full_data, and checks for common UNIQUE values in columns between data.frames
+#' all_equal = compare two vectors or data.frames for total equality, and receive verbose output if not.  WARNING: no selecting or filtering applied.  STOPS if all.equal is not TRUE.
+#' hier2data = compares a hierarchy to incoming raw_data or full_data, and checks for common UNIQUE values in columns between data.frames. STOPS if nrow(setdiff(distinct(X), disctinct(Y)))>0.
 #' @param verbose
 #' @param colsX Vector of column names in "reference" vector or data.frame - keep column order consistent!
 #' @param colsY Vector of column names in the "comparison" vector or data.frame - WARNING: MAKE SURE column order matches that of colsX
 #' @param filter_statement # all your desired filtering arguments, as a single, quoted, character string.
 #' Use column names from colsX, as filtering occurs after column selection
 #' e.g. "location_id > 100 & most_detailed==0"
-#' @param STOP Do you want to stop your script if there is an error?
+#' @param STOP Do you want to stop your script if there is a mismatch?
 #'
 #' @return
 #' @export
@@ -90,7 +95,15 @@ source("R/env_setup_for_package_dev.R")
 #' Diff2 <- get_location_metadata(location_set_id = 35, release_id = 9)
 #'
 #' # you may tidy-select columns in the function call
-#'preflight_checks(Diff1, Diff2, method = "all_equal", STOP = T, colsX = Diff1 %>% select(contains("location")) %>% names)
+#' preflight_checks(Diff1, Diff2, method = "all_equal", STOP = T, colsX = Diff1 %>% select(contains("location")) %>% names)
+#'
+#' When comparing a hierarchy to data/populations/shapefiles, I recommend
+#' selecting columns that would create a distinct match (e.g. location_id), and
+#' using method = "hier2data"
+#'
+#' When comparing two hierarchies, I recommend selecting a set of
+#' columns that should ALL be the same (e.g. c("location_id",
+#' "path_to_top_parent")), and using method = "all_equal"
 #'
 preflight_checks <- function(
     X, # first dataframe
@@ -99,7 +112,7 @@ preflight_checks <- function(
     colsX = c("location_id", "location_name", "path_to_top_parent", "most_detailed"), # which columns to check from X?
     colsY = NULL, # which columns to check from Y? (if column names differ from X)
     filter_statement = NULL,
-    STOP = T,
+    STOP = TRUE,
     verbose # how do I want to functionalize this?
 ) {
 
@@ -110,11 +123,13 @@ preflight_checks <- function(
   mutate <- dplyr::mutate
   setname <- dplyr::rename
 
-  # allows colsX to serve for both data.frames
-
-  if (is.null(colsY)){
+  # allows colsX to serve for both data.frames, with a check for presence of necessary columns
+  if (is.null(colsY) & all(colsX %in% names(Y))){
     colsY <- colsX
+  } else {
+    stop("Not all columns in X are present in Y, and you have not specified 'colsY' ")
   }
+
 
   # Prep data for X and Y by selecting columns, renaming columns, filtering rows
   prep_dataX <- function(X = X, colsX = colsX){
@@ -133,26 +148,30 @@ preflight_checks <- function(
     return(Y)
   }
 
-  # Prepare data for check functions
-  X <- prep_dataX(X = X, colsX = colsX)
-  Y <- prep_dataY(Y = Y, colsY = colsY)
 
   # After this, colsX and colsY should be equal, and will only refer to colsX for clarity
 
   # function to stop parent script and give outputs, or allow parent script to continue running
-  stop_or_continue <- function(STOP = STOP, method = method, Out_list = Out_list, helpful_message){
+  stop_or_continue <- function(STOP = STOP, method = method, Out_list = Out_list, helpful_message, stop_condition){
     if(STOP){ # print output, assign output to global env for inspection, stop the parent script
       print(Out_list)
       assign(paste0("ERRORS_", method), Out_list, envir = .GlobalEnv) # TODO this may be dangerous
-      stop(helpful_message,  paste0(": ERRORS_", method, " is saved to .GlobalEnv"))
-    } else {
-      print(Out_list)
-      warning(helpful_message)
+      if(stop_condition){
+        stop(helpful_message,  paste0(": ERRORS_", method, " is saved to .GlobalEnv"))
+      } else {
+        print(Out_list)
+        warning(helpful_message)
+      }
     }
   }
 
   # Method 1 : all_equal ------------------
+  # Check for exact equality between two objects with stringent stop behavior
   check_all_equal <- function(X, Y, colsX){
+
+    # Prepare data for check functions
+    X <- prep_dataX(X = X, colsX = colsX)
+    Y <- prep_dataY(Y = Y, colsY = colsY)
 
     message("Method is 'all_equal' ")
     # TODO experiment with trycatch here
@@ -163,35 +182,51 @@ preflight_checks <- function(
       Out_list <- list(
         "all_equal" <- all.equal(X,Y),
         "in_X_not_Y" <- setdiff(X[,colsX],Y[,colsX]),
-        "in_Y_not_X" <- setdiff(Y[,colsX],X[,colsX])
+        "in_Y_not_X" <- setdiff(Y[,colsX],X[,colsX]),
+        "cols_X_not_Y" = setdiff(names(X), names(Y)),
+        "cols_Y_not_X" = setdiff(names(Y), names(X))
       )
 
-      stop_or_continue(STOP = STOP, method = method, Out_list = Out_list, helpful_message ="Dataframes are not all equal, see above.")
-
-      # if(STOP){ # print output, assign output to global env for inspection, stop the parent script
-      #   print(Out_list)
-      #   # TODO this may be dangerous
-      #   assign("ERRORS_all_equal", Out_list, envir = .GlobalEnv)
-      #   stop("Dataframes are not all equal, see above.  ERRORS_all_equal is saved to .GlobalEnv")
-      # }
+      stop_or_continue(STOP = STOP, method = method, Out_list = Out_list,
+                       stop_condition = !isTRUE(all.equal(X,Y)), # must be added for each method
+                       helpful_message ="Dataframes are not all equal, see above.")
     }
   }
 
-
   # Method 2 : hier2data ----------------------------
+  # Broad comparison of a hierarchy to a dataset across many dimensions
+  # Stops if
   check_hier2data <- function(X, Y, colsX){
+
+    # Prepare data for check functions
+    X <- prep_dataX(X = X, colsX = colsX)
+    Y <- prep_dataY(Y = Y, colsY = colsY)
+
     message("Method is 'hier2data' ")
     message("Columns in X: ", paste(names(X), collapse = ", "))
     message("Columns in Y: ", paste(names(Y), collapse = ", "))
 
     Out_list <- list(
+      "dim_X" = dim(X),
+      "dim_Y" = dim(Y),
       "in_X_not_Y" = setdiff(X,Y),
       "in_Y_not_X" = setdiff(Y,X),
-      "cols_X_not_Y" = setdiff(names(X), names(Y)),
-      "cols_Y_not_X" = setdiff(names(Y), names(X))
+      "distinct_X" = X %>% distinct(),
+      "distinct_Y" = Y %>% distinct()
     )
+
+    stop_or_continue(STOP = STOP, method = method, Out_list = Out_list,
+                     stop_condition = nrow(setdiff(distinct(X), disctinct(Y)))>0,
+                     helpful_message = "There is a difference between data.frames")
+
     return(Out_list)
   }
+
+  # Method 3 : compare_locs ----------------------------
+  # Compare location_ids and path_to_top_parent
+
+  # Method 4 : compare_cols ----------------------------
+  # Look for only misaligned column names
 
   # call different check functions depending on method required
   switch (method,
@@ -207,6 +242,11 @@ preflight_checks <- function(
 # Checks ------------
 
 # PRE-WORKFLOW
+
+# early column mismatch
+preflight_checks(X = Diff2,
+                 Y = Diff1,
+                 colsX = c("location_id", "location_name"))
 
 # all_equal
 # naive, no method specified
