@@ -30,12 +30,12 @@ full_data <- DFS$full_data_unscaled
 # --- sandbox ---
 
 # two equal dataframes for testing
-Equal1 <- h_covid %>% select(location_id, location_name, path_to_top_parent, most_detailed)
+Equal1 <- hier_covid %>% select(location_id, location_name, path_to_top_parent, most_detailed)
 Equal2 <- copy(Equal1)
 
 # two unequal datasets
-Diff1 <- h_covid %>% select(location_id, location_name, path_to_top_parent, most_detailed, location_name)
-Diff2 <- h_gbd %>% select(location_id, location_name, path_to_top_parent, most_detailed, lancet_label)
+Diff1 <- hier_covid %>% select(location_id, location_name, path_to_top_parent, most_detailed, location_name)
+Diff2 <- hier_gbd %>% select(location_id, location_name, path_to_top_parent, most_detailed, lancet_label)
 
 # get_children_from_parent ---------------
 
