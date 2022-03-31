@@ -77,11 +77,14 @@ source("R/env_setup_for_package_dev.R")
 #' @param X Left-hand input vector or data.frame (depending on desired check method)
 #' @param Y Right-hand input vector or data.frame (depending on desired check method)
 #' @param method method of comparison to be made:
-#' all_equal = compare two vectors or data.frames for total equality, and receive verbose output if not.  WARNING: no selecting or filtering applied.  STOPS if all.equal is not TRUE.
-#' data2data = compares a hierarchy to incoming raw_data or full_data, and checks for common UNIQUE values in columns between data.frames. STOPS if nrow(setdiff(distinct(X), disctinct(Y)))>0.
+#' all_equal = compare two vectors or data.frames for total equality, and receive verbose output if not.  WARNING: no selecting or filtering applied.  stop_condition all.equal is not TRUE.
+#' data2data = compares two generic data.frames and checks for common UNIQUE values in columns between data.frames. stop_condition if nrow(setdiff(distinct(X), disctinct(Y))) > 0.
+#' hier2data = compares a data frome on the right against a gold-standard heirarchy on the left. stop_condition = length(setdiff(X$location_id, Y$location_id)) > 0
+#' hier2hier = compares two hierarchies for exact equivalence across c("location_id", "location_name", "path_to_top_parent", "most_detailed"). stop_condition is any differences.
+#' compare_cols = compares data.frames for same column names
 #' @param verbose
-#' @param colsX Vector of column names in "reference" vector or data.frame - keep column order consistent!
-#' @param colsY Vector of column names in the "comparison" vector or data.frame - WARNING: MAKE SURE column order matches that of colsX
+#' @param colsX Only for '___2data' methods. Vector of column names in "reference" vector or data.frame - keep column order consistent!
+#' @param colsY Only for '___2data' methods. Vector of column names in the "comparison" vector or data.frame - WARNING: MAKE SURE column order matches that of colsX
 #' @param filter_statement # all your desired filtering arguments, as a single, quoted, character string.
 #' Use column names from colsX, as filtering occurs after column selection.
 #' It's less cumbersome to filter ahead, but this exists in case.
@@ -117,14 +120,15 @@ preflight_checks <- function(
     colsX = c("location_id"), # which columns to check from X?
     colsY = NULL, # which columns to check from Y? (if column names differ from X)
     filter_statement = NULL,
-    STOP = FALSE
+    STOP = FALSE,
+    verbose = FALSE
 ) {
 
   # what method?
   message("method is ", "'", method, "'")
 
   # Defined Tidyverse functions
-  `%>%` <- magrittr::`%>%`
+  `%>%` <- dplyr::`%>%`
   select <- dplyr::select
   filter <- dplyr::filter
   mutate <- dplyr::mutate
@@ -164,41 +168,47 @@ preflight_checks <- function(
 
   # function to stop parent script and give outputs, or allow parent script to continue running
   stop_or_continue <- function(STOP = STOP, method = method, Out_list = Out_list, helpful_message, stop_condition){
-    if(STOP & stop_condition){ # print output, assign output to global env for inspection, stop the parent script
+
+    if(stop_condition & STOP){ # print output, assign output to global env for inspection, stop the parent script
       assign(paste0("ERRORS_", method), Out_list, envir = .GlobalEnv) # TODO this may be dangerous
       stop(helpful_message,  paste0(": ERRORS_", method, " is saved to .GlobalEnv"))
 
-    } else if(!STOP & stop_condition){
+    } else if(stop_condition & !STOP){
       warning("WARNING: Stop condition met, but STOP set to FALSE, showing differences above.")
       print(Out_list)
 
-    } else {
+    } else if (!stop_condition & verbose) {
       # print(Out_list)
       message("Passed the stop condition - continuing script.")
+      return(Out_list) # return verbose to console and for assignment
+
+    } else if (!stop_condition & !verbose) {
+      message("Passed the stop condition - continuing script.")
+      invisible(Out_list) # return invisibly for assignment
+
+    } else {
+      stop("Something went wrong - debug the stop_or_continue function if you see this message")
     }
   }
 
 
   # Method 1 : all_equal ------------------
-  # Check for exact equality between two objects with stringent stop behavior
+  # Check for equality between two objects with stringent stop behavior
 
   check_all_equal <- function(X, Y, colsX){
 
-    # Prepare data for check functions
-    X <- prep_dataX(X = X, colsX = colsX, filter_statement = filter_statement)
-    Y <- prep_dataY(Y = Y, colsY = colsY, filter_statement = filter_statement)
-
     # TODO experiment with trycatch here
+
     if (isTRUE(all.equal(X,Y))) { # 1.1 first check equality (requires isTRUE wrapper - does not return FALSE otherwise)
-      Out_list <- message("Both dataframes are equal!") # if both equal, end here
+      message("Both dataframes are equal!")
 
     } else { # 1.2 if not all_equal, print verbose output, and STOP
       Out_list <- list(
-        "all_equal" <- all.equal(X,Y),
-        "in_X_not_Y" <- setdiff(X[,colsX],Y[,colsX]),
-        "in_Y_not_X" <- setdiff(Y[,colsX],X[,colsX]),
-        "cols_X_not_Y" = setdiff(names(X), names(Y)),
-        "cols_Y_not_X" = setdiff(names(Y), names(X))
+        "all_equal" = all.equal(X,Y),
+        "in_X_not_Y" = setdiff(X[,colsX],Y[,colsX]),
+        "in_Y_not_X" = setdiff(Y[,colsX],X[,colsX]),
+        "cols_in_X_not_Y" = setdiff(names(X), names(Y)),
+        "cols_in_Y_not_X" = setdiff(names(Y), names(X))
       )
 
       stop_or_continue(STOP = STOP, method = method, Out_list = Out_list,
@@ -229,10 +239,10 @@ preflight_checks <- function(
     )
 
     stop_or_continue(STOP = STOP, method = method, Out_list = Out_list,
-                     stop_condition = nrow(setdiff(distinct(X), distinct(Y)))>0,
+                     stop_condition = nrow(setdiff(distinct(X), distinct(Y))) > 0,
                      helpful_message = "There is a difference between data.frames")
 
-    return(Out_list)
+    # return(Out_list)
   }
 
   # Method 3 : hier2data  ----------------------------
@@ -252,37 +262,99 @@ preflight_checks <- function(
     )
 
     stop_or_continue(STOP = STOP, method = method, Out_list = Out_list,
-                     stop_condition = length(setdiff(X$location_id, Y$location_id))>0,
+                     stop_condition = length(setdiff(X$location_id, Y$location_id)) > 0,
                      helpful_message = "Not all locations in X are present in Y")
 
-    return(Out_list)
+    # return(Out_list)
 
   }
 
   # Method 4 : hier2hier ----------------------------
   # compare hierarchies for equivalence on important columns
 
-  check_hier2hier <- function()
+  check_hier2hier <- function(X = Xraw, Y = Yraw){
+    # Bypassing normal data-prep to choose important hierarchy variables
+    hier_cols <- c("location_id", "location_name", "path_to_top_parent", "most_detailed")
+    X <- X %>% select(all_of(hier_cols))
+    Y <- Y %>% select(all_of(hier_cols))
 
+    path_vars <- c("location_id", "path_to_top_parent") # for finding path_to_top_parent diffs
+    Xpath <- X %>% select(path_vars)
+    Ypath <- Y %>% select(path_vars)
 
+    det_vars <- c("location_id", "most_detailed")
+    Xdet <- X %>% select(path_vars)
+    Ydet <- Y %>% select(path_vars)
 
+    Out_list <- list(
+      "in_X_not_Y" = setdiff(X,Y),
+      "in_Y_not_X" = setdiff(Y,X),
+      "names_in_X_not_in_Y" = X %>% filter(location_id %in% setdiff(X$location_id, Y$location_id)) %>% select(location_id, location_name),
+      "names_in_Y_not_in_X" = Y %>% filter(location_id %in% setdiff(Y$location_id, X$location_id)) %>% select(location_id, location_name),
+      "locs_in_X_not_in_Y" = setdiff(X$location_id, Y$location_id),
+      "locs_in_Y_not_in_X" = setdiff(Y$location_id, X$location_id),
+      "all_mismatch_path_to_top_parent" = setdiff(union(Xpath,Ypath), intersect(Xpath,Ypath)),
+      "all_mismatch_most_detailed" = setdiff(union(Xdet,Ydet), intersect(Xdet,Ydet))
+    )
+
+    stop_or_continue(STOP = STOP, method = method, Out_list = Out_list,
+                     stop_condition = (sum(unlist(sapply(Out_list, nrow))) > 0 | sum(unlist(sapply(Out_list, length))) > 0),
+                     helpful_message = c("Hierarchies are unequal somewhere in these variables, please check output: ", paste(hier_cols, collapse = ", ")))
+
+    # return(Out_list)
+
+  }
   # Method 5 : compare_cols ----------------------------
   # Look for only misaligned column names
 
+  check_compare_cols <- function(X,Y){
+    # Bypassing all data-prep
+  Out_list <- list(
+    "cols_in_X_not_Y" = setdiff(names(X), names(Y)),
+    "cols_in_Y_not_X" = setdiff(names(Y), names(X)),
+    "all_mismatch_columns" = setdiff( union( names(X), names(Y)), intersect(names(X), names(Y)) )
+  )
+
+  stop_or_continue(STOP = STOP, method = method, Out_list = Out_list,
+                   stop_condition = (sum(unlist(sapply(Out_list, nrow))) > 0 | sum(unlist(sapply(Out_list, length))) > 0),
+                   helpful_message = c("Columns are unequal somewhere, please check output."))
+
+  }
+
   # call the different check functions depending on method required
   switch (method,
-          "all_equal" = check_all_equal(X = X, Y = Y, colsX = colsX),
-          "data2data" = check_data2data(X = X, Y = Y, colsX = colsX),
-          "hier2data" = check_hier2data(X = X, Y = Y, colsX = colsX),
-          "hier2hier" = check_hier2hier(X = X, Y = Y, colsX = colsX)
+          "all_equal"    = check_all_equal(X = X, Y = Y, colsX = colsX),
+          "data2data"    = check_data2data(X = X, Y = Y, colsX = colsX),
+          "hier2data"    = check_hier2data(X = X, Y = Y, colsX = colsX),
+          "hier2hier"    = check_hier2hier(X = X, Y = Y),
+          "compare_cols" = check_compare_cols(X = X, Y = Y)
   )
 
 }
 
 
 # SANDBOX -----------------
+X <- hier_covid
+Y <- copy(X)
+Y <- hier_gbd
+thing1 <- hier_covid %>% select(location_id, path_to_top_parent)
+thing2 <- hier_covar %>% select(location_id, path_to_top_parent)
+setdiff(union(thing1, thing2), intersect(thing1, thing2))
+# setdiff(thing1, thing2)
+# setdiff(thing2, thing1)
+X %>% left_join(Y, by = c("location_id", "path_to_top_parent"))
+
+# compare_cols
+preflight_checks(Equal1, Equal2, method = "compare_cols")
+preflight_checks(Equal1, Equal2, method = "compare_cols", STOP = T)
+preflight_checks(Diff1, Diff2, method = "compare_cols", STOP = F)
+preflight_checks(Diff1, Diff2, method = "compare_cols", STOP = T)
+
+#hier2hier
+preflight_checks(hier_covid, hier_covid, method = "hier2hier")
 
 # hier2data
+
 preflight_checks(hier_covid, full_data, method = "hier2data", STOP = F)
 preflight_checks(hier_covid, hier_covid, method = "hier2data", STOP = F)
 hier_covid %>% filter(location_id %in% setdiff(hier_covid$location_id, full_data$location_id) ) %>%  select(location_id, location_name)
@@ -325,7 +397,7 @@ preflight_checks(X = Diff2,
                  colsX = c("location_id", "lancet_label")) # should stop
 preflight_checks(X = Diff2,
                  Y = Diff1,
-                 colsX = c("location_id", "location_name")) # should continue with error
+                 colsX = c("location_id", "location_name")) # should continue with warning
 
 
 # --- test some things ---
