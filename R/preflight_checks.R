@@ -76,6 +76,7 @@ source("R/env_setup_for_package_dev.R")
 #' @param filter_statement # all your desired filtering arguments, as a single, quoted, character string.
 #' Use column names from colsX, as filtering occurs after column selection
 #' e.g. "location_id > 100 & most_detailed==0"
+#' @param STOP Do you want to stop your script if there is an error?
 #'
 #' @return
 #' @export
@@ -84,7 +85,7 @@ source("R/env_setup_for_package_dev.R")
 preflight_checks <- function(
     X, # first dataframe
     Y, # second dataframe
-    method = c("all_equal", "hier2data"), # 2 hierarchies, 2 datasets, 1 hierarchy & 1 dataset, etc.
+    method = c("all_equal"), # "all_eqal" "hier2data"
     colsX = c("location_id", "location_name", "path_to_top_parent", "most_detailed"), # which columns to check from X?
     colsY = NULL, # which columns to check from Y? (if column names differ from X)
     filter_statement = NULL,
@@ -135,10 +136,14 @@ preflight_checks <- function(
       Out_list <- message("Both dataframes are equal!") # if both equal, end here
 
     } else { # 1.2 if not all_equal, print verbose output, and STOP
-      Out_list <- list()
-      Out_list[["all_equal"]] <- all.equal(X,Y)
-      Out_list[["in_X_not_Y"]] <- setdiff(X[,colsX],Y[,colsX])
-      Out_list[["in_Y_not_X"]] <- setdiff(Y[,colsX],X[,colsX])
+      Out_list <- list(
+        "all_equal" <- all.equal(X,Y),
+        "in_X_not_Y" <- setdiff(X[,colsX],Y[,colsX]),
+        "in_Y_not_X" <- setdiff(Y[,colsX],X[,colsX])
+      )
+      # Out_list[["all_equal"]] <- all.equal(X,Y)
+      # Out_list[["in_X_not_Y"]] <- setdiff(X[,colsX],Y[,colsX])
+      # Out_list[["in_Y_not_X"]] <- setdiff(Y[,colsX],X[,colsX])
 
       if(STOP){ # print output, assign output to global env for inspection, stop the parent script
         print(Out_list)
@@ -149,59 +154,25 @@ preflight_checks <- function(
 
     }
   }
-#
-#   if (method == "all_equal"){ # 1. compare two vectors or data.frames for total equality, and receive verbose output if not.  WARNING: no selecting or filtering applied
-#
-#     # message("Method is 'all_equal' ")
-#
-#     # TODO experiment with trycatch here
-#
-#     if (isTRUE(all.equal(X,Y))) { # 1.1 first check equality (requires isTRUE wrapper - does not return FALSE otherwise)
-#
-#       Out_list <- message("Both dataframes are equal!") # if both equal, end here
-#
-#     } else { # 1.2 if not all_equal, print verbose output, and STOP
-#       Out_list <- list()
-#       Out_list[["all_equal"]] <- all.equal(X,Y)
-#       Out_list[["in_X_not_Y"]] <- setdiff(X[,colsX],Y[,colsX])
-#       Out_list[["in_Y_not_X"]] <- setdiff(Y[,colsX],X[,colsX])
-#
-#       if(STOP){ # print output, assign output to global env for inspection, stop the parent script
-#         print(Out_list)
-#         # TODO this may be dangerous
-#         assign("ERRORS_all_equal", Out_list, envir = .GlobalEnv)
-#         stop("Dataframes are not all equal, see above.  ERRORS_all_equal is saved to .GlobalEnv")
-#       }
-#     }
 
-  } else if (method == "hier2data") { # 2. compares a hierarchy to incoming raw_data or full_data, and checks for common UNIQUE values in columns between data.frames
-
+  check_hier2data <- function(X, Y, colsX){
     message("Method is 'hier2data' ")
-
-    # select columns from both data.frames according to X, unless column names for Y are specified explicitly
-    # TODO omit once sorted above
-    # X <- X %>% select(all_of(colsX))
-    # if (is.null(colsY)){
-    #   Y <- Y %>% select(all_of(colsX))
-    # } else {
-    #   Y <- Y %>% select(all_of(colsY))
-    # }
-
     message("Columns in X: ", paste(names(X), collapse = ", "))
     message("Columns in Y: ", paste(names(Y), collapse = ", "))
 
-
-    message("There are set differences - check output list!")
-
     Out_list <- list(
-      "X_not_Y" = setdiff(X,Y),
-      "Y_not_X" = setdiff(Y,X)
+      "in_X_not_Y" = setdiff(X,Y),
+      "in_Y_not_X" = setdiff(Y,X)
     )
+
+    return(Out_list)
 
   }
 
-  return(Out_list)
-
+  switch (method,
+    "all_equal" = check_all_equal(X = X, Y = Y, colsX = colsX),
+    "hier2data" = check_hier2data(X = X, Y = Y, colsX = colsX)
+  )
 }
 
 
