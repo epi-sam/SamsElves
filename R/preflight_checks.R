@@ -10,17 +10,19 @@
 #   - [x] Can I allow for multiple filters?
 # - [x] Add a top-level function to select, rename and filter data.frames
 # - [x] define tidyverse functions to avoid require() or library()
-# - [ ] read through all steps and align documentation notes with actual processes
 # - [X] Add 'stop' argument
 # - [x] Incorporate switch() for 'method' argument
 # - [x] Write the "stop" chunk as a generalizable function
 #   - [x] main chunk
 #   - [x] needs a stop-condition argument, or else it stops every time
+# - [ ] read through all steps and align documentation notes with actual processes
+# - [ ] more toture testing, especially for stop_conditions
 
 # This is still a bit too cumbersome
 # - [x] rename 'data2data' as a more generic function, which it is
-# - [ ] create a true heirarchy to dataset function, with assumed inputs (pretty safe)
-# - [ ] keep the
+# - [x] create a true heirarchy to dataset function, with assumed inputs (pretty safe)
+# - [x] hier2hier function
+# - [x] column check function
 
 # Later
 # - [ ] look into tryCatch()
