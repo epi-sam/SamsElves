@@ -13,7 +13,7 @@
 # - [ ] read through all steps and align documentation notes with actual processes
 # - [ ] Decide how to functionalize 'verbose' argument in the code
 # - [X] Add 'stop' argument
-# - [ ] Incorporate switch() for 'method' argument
+# - [x] Incorporate switch() for 'method' argument
 # - [ ] Write the "stop" chunk as a generalizable function
 
 # Later
@@ -71,8 +71,8 @@ source("R/env_setup_for_package_dev.R")
 #' all_equal = compare two vectors or data.frames for total equality, and receive verbose output if not.  WARNING: no selecting or filtering applied
 #' hier2data = compares a hierarchy to incoming raw_data or full_data, and checks for common UNIQUE values in columns between data.frames
 #' @param verbose
-#' @param colsX Column names in "reference" vector or data.frame - keep column order consistent!
-#' @param colsY Column names in the "comparison" vector or data.frame - WARNING: MAKE SURE column order matches that of colsX
+#' @param colsX Vector of column names in "reference" vector or data.frame - keep column order consistent!
+#' @param colsY Vector of column names in the "comparison" vector or data.frame - WARNING: MAKE SURE column order matches that of colsX
 #' @param filter_statement # all your desired filtering arguments, as a single, quoted, character string.
 #' Use column names from colsX, as filtering occurs after column selection
 #' e.g. "location_id > 100 & most_detailed==0"
@@ -82,6 +82,16 @@ source("R/env_setup_for_package_dev.R")
 #' @export
 #'
 #' @examples
+#'
+#' library(dplyr)
+#' source("/ihme/cc_resources/libraries/current/r/get_location_metadata.R")
+#'
+#' Diff1 <- get_location_metadata(location_set_id = 111, location_set_version_id = 1020, release_id = 9)
+#' Diff2 <- get_location_metadata(location_set_id = 35, release_id = 9)
+#'
+#' # you may tidy-select columns in the function call
+#'preflight_checks(Diff1, Diff2, method = "all_equal", STOP = T, colsX = Diff1 %>% select(contains("location")) %>% names)
+#'
 preflight_checks <- function(
     X, # first dataframe
     Y, # second dataframe
@@ -101,6 +111,7 @@ preflight_checks <- function(
   setname <- dplyr::rename
 
   # allows colsX to serve for both data.frames
+
   if (is.null(colsY)){
     colsY <- colsX
   }
@@ -108,7 +119,7 @@ preflight_checks <- function(
   # Prep data for X and Y by selecting columns, renaming columns, filtering rows
   prep_dataX <- function(X = X, colsX = colsX){
     X <- X %>%
-      select(colsX) %>%
+      select(all_of(colsX)) %>%
       # if a filter statement exists, use it, otherwise include all rows
       filter(ifelse(!is.null(filter_statement), eval(parse(text = filter_statement)), all_of(colsX[1] %in% colsX[1])))
     return(X)
@@ -122,12 +133,25 @@ preflight_checks <- function(
     return(Y)
   }
 
-  # Prepare variables for check functions
+  # Prepare data for check functions
   X <- prep_dataX(X = X, colsX = colsX)
   Y <- prep_dataY(Y = Y, colsY = colsY)
 
   # After this, colsX and colsY should be equal, and will only refer to colsX for clarity
 
+  # function to stop parent script and give outputs, or allow parent script to continue running
+  stop_or_continue <- function(STOP = STOP, method = method, Out_list = Out_list, helpful_message){
+    if(STOP){ # print output, assign output to global env for inspection, stop the parent script
+      print(Out_list)
+      assign(paste0("ERRORS_", method), Out_list, envir = .GlobalEnv) # TODO this may be dangerous
+      stop(helpful_message,  paste0(": ERRORS_", method, " is saved to .GlobalEnv"))
+    } else {
+      print(Out_list)
+      warning(helpful_message)
+    }
+  }
+
+  # Method 1 : all_equal ------------------
   check_all_equal <- function(X, Y, colsX){
 
     message("Method is 'all_equal' ")
@@ -141,20 +165,20 @@ preflight_checks <- function(
         "in_X_not_Y" <- setdiff(X[,colsX],Y[,colsX]),
         "in_Y_not_X" <- setdiff(Y[,colsX],X[,colsX])
       )
-      # Out_list[["all_equal"]] <- all.equal(X,Y)
-      # Out_list[["in_X_not_Y"]] <- setdiff(X[,colsX],Y[,colsX])
-      # Out_list[["in_Y_not_X"]] <- setdiff(Y[,colsX],X[,colsX])
 
-      if(STOP){ # print output, assign output to global env for inspection, stop the parent script
-        print(Out_list)
-        # TODO this may be dangerous
-        assign("ERRORS_all_equal", Out_list, envir = .GlobalEnv)
-        stop("Dataframes are not all equal, see above.  ERRORS_all_equal is saved to .GlobalEnv")
-      }
+      stop_or_continue(STOP = STOP, method = method, Out_list = Out_list, helpful_message ="Dataframes are not all equal, see above.")
 
+      # if(STOP){ # print output, assign output to global env for inspection, stop the parent script
+      #   print(Out_list)
+      #   # TODO this may be dangerous
+      #   assign("ERRORS_all_equal", Out_list, envir = .GlobalEnv)
+      #   stop("Dataframes are not all equal, see above.  ERRORS_all_equal is saved to .GlobalEnv")
+      # }
     }
   }
 
+
+  # Method 2 : hier2data ----------------------------
   check_hier2data <- function(X, Y, colsX){
     message("Method is 'hier2data' ")
     message("Columns in X: ", paste(names(X), collapse = ", "))
@@ -162,33 +186,23 @@ preflight_checks <- function(
 
     Out_list <- list(
       "in_X_not_Y" = setdiff(X,Y),
-      "in_Y_not_X" = setdiff(Y,X)
+      "in_Y_not_X" = setdiff(Y,X),
+      "cols_X_not_Y" = setdiff(names(X), names(Y)),
+      "cols_Y_not_X" = setdiff(names(Y), names(X))
     )
-
     return(Out_list)
-
   }
 
+  # call different check functions depending on method required
   switch (method,
-    "all_equal" = check_all_equal(X = X, Y = Y, colsX = colsX),
-    "hier2data" = check_hier2data(X = X, Y = Y, colsX = colsX)
+          "all_equal" = check_all_equal(X = X, Y = Y, colsX = colsX),
+          "hier2data" = check_hier2data(X = X, Y = Y, colsX = colsX)
   )
+
 }
 
 
 # SANDBOX -----------------
-
-# --- test some things ---
-
-# lots of output, maybe too much
-all.equal(HIER$covariate_with_aggregates_hierarchy$location_id, HIER$gbd_analysis_hierarchy$location_id)
-# output if equal?
-all.equal(equal1, equal2) #TRUE
-
-setdiff(names(HIER$covariate_with_aggregates_hierarchy), names(HIER$gbd_analysis_hierarchy))
-setdiff(names(HIER$gbd_analysis_hierarchy), names(HIER$covariate_with_aggregates_hierarchy))
-setdiff(names(h_covid), names(h_gbd))
-setdiff(names(h_gbd), names(h_covid))
 
 # Checks ------------
 
@@ -210,3 +224,19 @@ preflight_checks(Diff1, Diff2, method = "hier2data", colsX = "location_id")
 preflight_checks(Diff1, Diff2, method = "hier2data", colsX = c("location_id", "path_to_top_parent"))
 
 preflight_checks(Equal1, Equal2, method = "hier2data", colsX = c("location_id", "path_to_top_parent"))
+
+
+
+
+
+# --- test some things ---
+
+# lots of output, maybe too much
+all.equal(HIER$covariate_with_aggregates_hierarchy$location_id, HIER$gbd_analysis_hierarchy$location_id)
+# output if equal?
+all.equal(equal1, equal2) #TRUE
+
+setdiff(names(HIER$covariate_with_aggregates_hierarchy), names(HIER$gbd_analysis_hierarchy))
+setdiff(names(HIER$gbd_analysis_hierarchy), names(HIER$covariate_with_aggregates_hierarchy))
+setdiff(names(h_covid), names(h_gbd))
+setdiff(names(h_gbd), names(h_covid))
