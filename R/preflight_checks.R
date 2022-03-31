@@ -112,7 +112,7 @@ preflight_checks <- function(
     colsX = c("location_id", "location_name", "path_to_top_parent", "most_detailed"), # which columns to check from X?
     colsY = NULL, # which columns to check from Y? (if column names differ from X)
     filter_statement = NULL,
-    STOP = TRUE,
+    STOP = FALSE,
     verbose # how do I want to functionalize this?
 ) {
 
@@ -122,6 +122,7 @@ preflight_checks <- function(
   filter <- dplyr::filter
   mutate <- dplyr::mutate
   setname <- dplyr::rename
+  distinct <- dplyr::distinct
 
   # allows colsX to serve for both data.frames, with a check for presence of necessary columns
   if (is.null(colsY) & all(colsX %in% names(Y))){
@@ -132,7 +133,7 @@ preflight_checks <- function(
 
 
   # Prep data for X and Y by selecting columns, renaming columns, filtering rows
-  prep_dataX <- function(X = X, colsX = colsX){
+  prep_dataX <- function(X = X, colsX = colsX, filter_statement = filter_statement){
     X <- X %>%
       select(all_of(colsX)) %>%
       # if a filter statement exists, use it, otherwise include all rows
@@ -140,7 +141,7 @@ preflight_checks <- function(
     return(X)
   }
 
-  prep_dataY <- function(Y = Y, colsY = colsY){
+  prep_dataY <- function(Y = Y, colsY = colsY, filter_statement = filter_statement){
     Y <- Y %>%
       select(all_of(colsY)) %>%
       setNames(colsX) %>% # rename columns
@@ -170,8 +171,8 @@ preflight_checks <- function(
   check_all_equal <- function(X, Y, colsX){
 
     # Prepare data for check functions
-    X <- prep_dataX(X = X, colsX = colsX)
-    Y <- prep_dataY(Y = Y, colsY = colsY)
+    X <- prep_dataX(X = X, colsX = colsX, filter_statement = filter_statement)
+    Y <- prep_dataY(Y = Y, colsY = colsY, filter_statement = filter_statement)
 
     message("Method is 'all_equal' ")
     # TODO experiment with trycatch here
@@ -199,8 +200,8 @@ preflight_checks <- function(
   check_hier2data <- function(X, Y, colsX){
 
     # Prepare data for check functions
-    X <- prep_dataX(X = X, colsX = colsX)
-    Y <- prep_dataY(Y = Y, colsY = colsY)
+    X <- prep_dataX(X = X, colsX = colsX, filter_statement = filter_statement)
+    Y <- prep_dataY(Y = Y, colsY = colsY, filter_statement = filter_statement)
 
     message("Method is 'hier2data' ")
     message("Columns in X: ", paste(names(X), collapse = ", "))
@@ -216,7 +217,7 @@ preflight_checks <- function(
     )
 
     stop_or_continue(STOP = STOP, method = method, Out_list = Out_list,
-                     stop_condition = nrow(setdiff(distinct(X), disctinct(Y)))>0,
+                     stop_condition = nrow(setdiff(distinct(X), distinct(Y)))>0,
                      helpful_message = "There is a difference between data.frames")
 
     return(Out_list)
@@ -265,9 +266,14 @@ preflight_checks(Diff1, Diff2, method = "hier2data", colsX = c("location_id", "p
 
 preflight_checks(Equal1, Equal2, method = "hier2data", colsX = c("location_id", "path_to_top_parent"))
 
+hier_check <- hier_covid %>% filter(most_detailed==1)
+check270 <- preflight_checks(hier_check, full_data, method = 'hier2data', colsX = c("location_id"), STOP = F)
+xlocs <- ERRORS_hier2data$in_X_not_Y
+ylocs <- ERRORS_hier2data$in_Y_not_X
+hier_check %>% filter(location_id %in% xlocs$location_id)
+ylocsnames <- full_data %>% filter(location_id %in% ylocs$location_id) %>% distinct(location_id, location_name)
 
-
-
+# still a bit cumbersome to use...
 
 # --- test some things ---
 
