@@ -16,15 +16,6 @@
 "covariate_with_aggregates_hierarchy"
 
 
-#' fh_small_area_hierarchy
-#'
-#' Example hierarchy for function development
-#'
-#' @format A data.frame with 305 rows and 29 variables:
-#'
-'fh_small_area_hierarchy'
-
-
 #' gbd_analysis_hierarchy"
 #'
 #' Example hierarchy for function development

@@ -2,67 +2,81 @@
 % Please edit documentation in R/preflight_checks.R
 \name{preflight_checks}
 \alias{preflight_checks}
-\title{Compare reference vectors or data.frames using Tidyverse grammar}
+\title{Compare hierarchies or data sets against a reference}
 \usage{
 preflight_checks(
   X,
   Y,
   method = c("all_equal"),
+  STOP = FALSE,
+  verbose = FALSE,
   colsX = c("location_id"),
   colsY = NULL,
-  filter_statement = NULL,
-  STOP = FALSE,
-  verbose = FALSE
+  filter_statement = NULL
 )
 }
 \arguments{
-\item{X}{Left-hand input vector or data.frame (gold standard to compare against)}
+\item{X}{Left-hand input vector or data.frame (gold standard to compare
+against)}
 
-\item{Y}{Right-hand input vector or data.frame (compared AGAINST your gold standard, by 'method')}
+\item{Y}{Right-hand input vector or data.frame (compared AGAINST your gold
+standard, by 'method')}
 
 \item{method}{method of comparison to be made:
-all_equal = compare two vectors or data.frames for total equality.  WARNING: no selecting or filtering applied.  stop_condition all.equal is not TRUE.
-data2data = compares two generic data.frames and checks for common UNIQUE values in columns between data.frames. stop_condition if nrow(setdiff(distinct(X), disctinct(Y))) > 0.
-hier2data = compares a data frome on the right against a gold-standard heirarchy on the left. stop_condition = length(setdiff(X$location_id, Y$location_id)) > 0
-hier2hier = compares two hierarchies for exact equivalence across c("location_id", "location_name", "path_to_top_parent", "most_detailed"). stop_condition is any differences.
-compare_cols = compares data.frames for same column names. stop_condition is any differences.}
+\itemize{
+ \item{\code{"all_equal"} : compare two vectors or \code{data.frames} for total equality.  WARNING: no selecting or filtering applied.  Stop_condition \code{all.equal} is not TRUE.}
+ \item{\code{"data2data"} : compare two generic \code{data.frames} and checks for common UNIQUE values in columns between data.frames. Stop_condition if \code{nrow(setdiff(distinct(X), distinct(Y))) > 0}.}
+ \item{\code{"hier2data"} : compare a data from on the right against a gold-standard heirarchy on the left. Stop_condition = \code{length(setdiff(X$location_id, Y$location_id)) > 0}}
+ \item{\code{"hier2hier"} : compare two hierarchies for exact equivalence across \code{c("location_id", "location_name", "path_to_top_parent", "most_detailed")}. Stop_condition is any differences.}
+ \item{\code{"compare_cols"} : compares \code{data.frames} for all same column names. stop_condition is any differences.}
+}}
 
-\item{colsX}{Only for '___2data' methods. Vector of column names in "reference" vector or data.frame - keep column order consistent!}
+\item{STOP}{Do you want to STOP your script if there is a mismatch, or allow
+to continue with a WARNING message?}
 
-\item{colsY}{Only for '___2data' methods. Vector of column names in the "comparison" vector or data.frame - WARNING: MAKE SURE column order matches that of colsX}
+\item{verbose}{Do you want verbose console output, or invisible() return of
+the output_list for assignment to a variable?}
 
-\item{filter_statement}{# Only for '___2data' methods. All your desired filtering arguments, as a single, quoted, character string.
-e.g. "location_id > 100 & most_detailed==0"
-Use column names from colsX, because filtering occurs after column selection.
-It's less cumbersome to filter before using preflight_checks, but this option
-exists in case.}
+\item{colsX}{Only for '___2data' methods. Vector of column names in
+"reference" vector or data.frame - keep column order consistent!}
 
-\item{STOP}{Do you want to stop your script if there is a mismatch, or allow to continue with a WARNING message?}
+\item{colsY}{Only for '___2data' methods. Vector of column names in the
+"comparison" vector or data.frame - WARNING: MAKE SURE column order matches
+that of \code{colsX}}
 
-\item{verbose}{Do you want verbose console output, or invisible() return of the output_list for assignment to a variable?}
+\item{filter_statement}{Only for '___2data' methods. All your desired
+  filtering arguments, as a single, quoted, character string. e.g.
+  \code{"location_id > 100 & most_detailed==0"}.
+\itemize{
+ \item{Use column names from \code{colsX}, because filtering occurs after
+ column selection. Use column names from \code{colsX}, because filtering
+ occurs after column selection. It's less cumbersome to filter before using
+ \code{preflight_checks}, but this option exists in case.}
+}}
 }
 \value{
-Output_list
+Output_list of diagnostics that may be assigned, or printed to console (\code{verbose = TRUE})
 }
 \description{
-Returns a list of diagnostic information.  I recommend saving this output to
-an object with a name that is diagnostically helpful if you set STOP=FALSE.
-'X' is intended as the left-side, 'reference' data - that which is your gold
-standard to compare against 'Y' is intended as the rigth-side 'comparison'
-data - that which you want to validate AGAINST X This function may STOP a
-script if specified. Many 'methods' of comparison are available - check
-function arguments. Suppose your pipeline depends on having data for all
-locations in a given hierarchy. Suppose you need to compare two hierarchies
-directly for equality across a range of columns (c("location_id",
-"location_name", "path_to_top_parent", "most_detailed") are defaults). This
-functions takes a left (X) and right (Y) vector or data.frame as input, then
-compares them according to a desired comparison method. If you need to
-compare data.frame columns with the same content but different column names,
-enter those names in the same order in colsX and colsY arguments, and the
-function will use colsX (left-hand data.frame) to rename all columnn, and
-output will return those names. Filtering occurs AFTER column selection.
-Format all filters according to colsX names. Order of operations: select(),
-setNames(), filter()
+Returns a \code{list()} of diagnostic information, quietly or verbose, and
+STOPS or continues based on user preference.  I recommend saving this output
+to an object with a name that is diagnostically helpful if you set \code{STOP
+or verbose = FALSE.} \code{'X'} is intended as the left-side, 'reference'
+data - that which is your gold standard to compare against, and \code{'Y'} is
+intended as the right-side 'comparison' data - that which you want to
+validate AGAINST \code{X}.
+}
+\details{
+This function may STOP a script if specified. Many 'methods' of comparison
+are available - check function arguments. Suppose your pipeline depends on
+having data for all locations in a given hierarchy. Suppose you need to
+compare two hierarchies directly for equality. If you need to compare
+data.frame columns with the same content but different column names, enter
+those names in the same order in \code{colsX} and \code{colsY} arguments, and
+the function will use \code{colsX} (left-hand data.frame) to rename all
+columns, and output will return those names. Filtering occurs AFTER column
+selection. Format all filters according to \code{colsX} names. Order of
+operations: \code{select()}, \code{setNames()}, then \code{filter()}.
 }
 \examples{
 
@@ -123,7 +137,7 @@ preflight_checks(full_data, full_formatted, "compare_cols")
 
 
 # Shapefiles ---------------------------
-# No built-in method yet, but it won't be hard, and ther
+# No built-in method yet, coming soon, and you can compare with a little prep work.
 shp_main <- rgdal::readOGR("/ihme/covid-19/shapefiles/covid_simp_2.shp")
 shp_locs <- data.frame(location_id = shp_main$loc_id) # \%>\% mutate(location_id = as.integer(location_id)) # better, but unnecessary
 class(shp_locs$location_id)
