@@ -76,24 +76,25 @@ source("R/env_setup_for_package_dev.R")
 #' setNames()
 #' filter()
 #'
-#' @param X Left-hand input vector or data.frame (depending on desired check method)
-#' @param Y Right-hand input vector or data.frame (depending on desired check method)
+#' @param X Left-hand input vector or data.frame (gold standard to compare against)
+#' @param Y Right-hand input vector or data.frame (compared AGAINST your gold standard, by 'method')
 #' @param method method of comparison to be made:
-#' all_equal = compare two vectors or data.frames for total equality, and receive verbose output if not.  WARNING: no selecting or filtering applied.  stop_condition all.equal is not TRUE.
+#' all_equal = compare two vectors or data.frames for total equality.  WARNING: no selecting or filtering applied.  stop_condition all.equal is not TRUE.
 #' data2data = compares two generic data.frames and checks for common UNIQUE values in columns between data.frames. stop_condition if nrow(setdiff(distinct(X), disctinct(Y))) > 0.
 #' hier2data = compares a data frome on the right against a gold-standard heirarchy on the left. stop_condition = length(setdiff(X$location_id, Y$location_id)) > 0
 #' hier2hier = compares two hierarchies for exact equivalence across c("location_id", "location_name", "path_to_top_parent", "most_detailed"). stop_condition is any differences.
-#' compare_cols = compares data.frames for same column names
-#' @param verbose
+#' compare_cols = compares data.frames for same column names. stop_condition is any differences.
+#' @param verbose Do you want verbose console output, or invisible() return of the output_list for assignment to a variable?
 #' @param colsX Only for '___2data' methods. Vector of column names in "reference" vector or data.frame - keep column order consistent!
 #' @param colsY Only for '___2data' methods. Vector of column names in the "comparison" vector or data.frame - WARNING: MAKE SURE column order matches that of colsX
-#' @param filter_statement # all your desired filtering arguments, as a single, quoted, character string.
-#' Use column names from colsX, as filtering occurs after column selection.
-#' It's less cumbersome to filter ahead, but this exists in case.
+#' @param filter_statement # Only for '___2data' methods. All your desired filtering arguments, as a single, quoted, character string.
 #' e.g. "location_id > 100 & most_detailed==0"
-#' @param STOP Do you want to stop your script if there is a mismatch?
+#' Use column names from colsX, because filtering occurs after column selection.
+#' It's less cumbersome to filter before using preflight_checks, but this option
+#' exists in case.
+#' @param STOP Do you want to stop your script if there is a mismatch, or allow to continue with a WARNING message?
 #'
-#' @return
+#' @return Output_list
 #' @export
 #'
 #' @examples
@@ -118,12 +119,12 @@ source("R/env_setup_for_package_dev.R")
 preflight_checks <- function(
     X, # first 'gold standard' dataframe
     Y, # second 'to compare' dataframe
-    method = c("all_equal"), # "all_eqal" "data2data" "hier2data"
-    colsX = c("location_id"), # which columns to check from X?
+    method = c("all_equal"), # c("all_equal", "data2data", "hier2data", "hier2hier", "compare_cols")
+    colsX = c("location_id"), # which columns to check from X (left-side gold stanard)?
     colsY = NULL, # which columns to check from Y? (if column names differ from X)
-    filter_statement = NULL,
-    STOP = FALSE,
-    verbose = FALSE
+    filter_statement = NULL, #e.g. "location_id > 100 & most_detailed==0"
+    STOP = FALSE, # should an error stop your script?
+    verbose = FALSE # would you like console or invisible() output?
 ) {
 
   # what method?
@@ -336,6 +337,14 @@ preflight_checks <- function(
 
 
 # SANDBOX -----------------
+
+# MREs -----------------------------
+
+source("/ihme/cc_resources/libraries/current/r/get_location_metadata.R")
+hier_covid_771 <- getloc
+
+
+# Vetting -----------------------
 X <- hier_covid
 Y <- copy(X)
 Y <- hier_gbd
