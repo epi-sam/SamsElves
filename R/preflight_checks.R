@@ -102,19 +102,65 @@ source("R/env_setup_for_package_dev.R")
 #' library(dplyr)
 #' source("/ihme/cc_resources/libraries/current/r/get_location_metadata.R")
 #'
-#' Diff1 <- get_location_metadata(location_set_id = 111, location_set_version_id = 1020, release_id = 9)
-#' Diff2 <- get_location_metadata(location_set_id = 35, release_id = 9)
+#'MREs -----------------
+#'source("/ihme/cc_resources/libraries/current/r/get_location_metadata.R")
 #'
-#' # you may tidy-select columns in the function call
-#' preflight_checks(Diff1, Diff2, method = "all_equal", STOP = T, colsX = Diff1 %>% select(contains("location")) %>% names)
+#'# HIERARCHIES
 #'
-#' When comparing a hierarchy to data/populations/shapefiles, I recommend
-#' selecting columns that would create a distinct match (e.g. location_id), and
-#' using method = "hier2data"
+#'# covid
+#'hier_covid_771 <- get_location_metadata(111, 771, release_id = 9)
+#'hier_covid_1020 <- get_location_metadata(111, 1020, release_id = 9)
+#'hier_covid_mi <- fread('/mnt/share/covid-19/model-inputs/2022_03_30.01/locations/modeling_hierarchy.csv')
 #'
-#' When comparing two hierarchies, I recommend selecting a set of
-#' columns that should ALL be the same (e.g. c("location_id",
-#' "path_to_top_parent")), and using method = "all_equal"
+#'# Real data --------------------
+#'
+#'# full_data
+#'full_data <- fread('/mnt/share/covid-19/model-inputs/2022_03_30.01/full_data_unscaled.csv')
+#'full_data_prev <- fread('/mnt/share/covid-19/model-inputs/2022_03_29.01/full_data_unscaled.csv')
+#'full_formatted <- fread('/mnt/share/covid-19/model-inputs/2022_03_30.01/full_data_unscaled_formatted_dates.csv')
+#'
+#'# methods ---------
+#'
+#'## all_equal ---------------
+#'
+#'# simple, naive check for equality
+#'preflight_checks(X = hier_covid_1020, Y = hier_covid_1020, method = "all_equal") # pass (OK)
+#'preflight_checks(hier_covid_1020, hier_covid_mi) # error - not equivalent (desired behavior)
+#'# equivalent
+#' preflight_checks(hier_covid_1020, hier_covid_1020) # pass (O)
+#' # check LSVIDs against each other, using current as 'left side'
+#' preflight_checks(hier_covid_1020, hier_covid_771) # fail (OK)
+#' preflight_checks(hier_covid_1020, hier_covid_771, verbose = T) # prints warning, continues
+#' preflight_checks(hier_covid_1020, hier_covid_771, STOP = T, verbose = T) # stops, saves errors to .GlobalEnv
+#' preflight_checks(hier_covid_1020, hier_covid_1020, STOP = T, verbose = T) # keep going, see receipt of passing
+#'
+#' ## hier2hier -------------------
+#' # save your output for inspection if not verbose
+#' output_pass <- preflight_checks(hier_covid_1020, hier_covid_1020, "hier2hier")
+#' output_pass$names_in_X_not_in_Y
+#' output_fail <- preflight_checks(hier_covid_1020, hier_covid_771, "hier2hier")
+#' output_fail$names_in_X_not_in_Y
+#'
+#' ## data2data -----------------
+#' preflight_checks(full_data, full_data, "data2data")
+#' preflight_checks(full_data, full_formatted, "data2data") # why does this pass? (OK)
+#' preflight_checks(full_data, full_formatted, "data2data", colsX = c("location_id", "Date_formatted")) # pass (OK)
+#' # is full_data equivalent to formatted date data?
+#' preflight_checks(full_data, full_formatted, "data2data", colsX = names(full_data)) # pass (ok)
+#' # compare to yesterday's data?
+#' preflight_checks(full_data, full_data_prev, "data2data", colsX = names(full_data)) # fail (ok)
+#'
+#' ## compare_cols -----------------
+#' preflight_checks(hier_covid_1020, hier_covid_771, "compare_cols")
+#' preflight_checks(full_data, full_formatted, "compare_cols")
+#'
+#'
+#' # Shapefiles ---------------------------
+#' # No built-in method yet, but it won't be hard, and ther
+#' shp_main <- rgdal::readOGR("/ihme/covid-19/shapefiles/covid_simp_2.shp")
+#' shp_locs <- data.frame(location_id = shp_main$loc_id) # %>% mutate(location_id = as.integer(location_id)) # better, but unnecessary
+#' class(shp_locs$location_id)
+#' preflight_checks(hier_covid_1020, shp_locs, "hier2data") # remember, defaults to 'location_id' only
 #'
 preflight_checks <- function(
     X, # first 'gold standard' dataframe
@@ -137,6 +183,7 @@ preflight_checks <- function(
   mutate <- dplyr::mutate
   setname <- dplyr::rename
   distinct <- dplyr::distinct
+  all_of <- dplyr::all_of
 
   # allows colsX to serve for both data.frames, with a check for presence of necessary columns
   if (is.null(colsY) & all(colsX %in% names(Y))){
@@ -176,9 +223,13 @@ preflight_checks <- function(
       assign(paste0("ERRORS_", method), Out_list, envir = .GlobalEnv) # TODO this may be dangerous
       stop(helpful_message,  paste0(": ERRORS_", method, " is saved to .GlobalEnv"))
 
-    } else if(stop_condition & !STOP){
+    } else if(stop_condition & !STOP & verbose){
       warning("WARNING: Stop condition met, but STOP set to FALSE, showing differences above.")
       print(Out_list)
+
+    } else if (stop_condition & !STOP & !verbose){
+      warning("WARNING: Stop condition met, but STOP set to FALSE, showing differences above.")
+      invisible(Out_list)
 
     } else if (!stop_condition & verbose) {
       # print(Out_list)
@@ -198,26 +249,22 @@ preflight_checks <- function(
   # Method 1 : all_equal ------------------
   # Check for equality between two objects with stringent stop behavior
 
-  check_all_equal <- function(X, Y, colsX){
+  check_all_equal <- function(X, Y){
 
     # TODO experiment with trycatch here
 
-    if (isTRUE(all.equal(X,Y))) { # 1.1 first check equality (requires isTRUE wrapper - does not return FALSE otherwise)
-      message("Both dataframes are equal!")
+    Out_list <- list(
+      "all_equal" = all.equal(X,Y),
+      "in_X_not_Y" = setdiff(X,Y),
+      "in_Y_not_X" = setdiff(Y,X),
+      "cols_in_X_not_Y" = setdiff(names(X), names(Y)),
+      "cols_in_Y_not_X" = setdiff(names(Y), names(X))
+    )
 
-    } else { # 1.2 if not all_equal, print verbose output, and STOP
-      Out_list <- list(
-        "all_equal" = all.equal(X,Y),
-        "in_X_not_Y" = setdiff(X[,colsX],Y[,colsX]),
-        "in_Y_not_X" = setdiff(Y[,colsX],X[,colsX]),
-        "cols_in_X_not_Y" = setdiff(names(X), names(Y)),
-        "cols_in_Y_not_X" = setdiff(names(Y), names(X))
-      )
-
-      stop_or_continue(STOP = STOP, method = method, Out_list = Out_list,
-                       stop_condition = !isTRUE(all.equal(X,Y)), # must be added for each method
-                       helpful_message ="Dataframes are not all equal, see above.")
-    }
+    stop_or_continue(STOP = STOP, method = method, Out_list = Out_list,
+                     stop_condition = !isTRUE(all.equal(X,Y)), # must be added for each method
+                     helpful_message ="Dataframes are not all equal, see above.")
+    # }
   }
 
   # Method 2 : data2data ----------------------------
@@ -301,7 +348,8 @@ preflight_checks <- function(
     )
 
     stop_or_continue(STOP = STOP, method = method, Out_list = Out_list,
-                     stop_condition = (sum(unlist(sapply(Out_list, nrow))) > 0 | sum(unlist(sapply(Out_list, length))) > 0),
+                     stop_condition = !all(sapply(Out_list, function(x){(class(x) %in% c("data.table", "tibble", "data.frame") &&
+                                                                                 nrow(x) == 0) | (class(x) %in% c("character", "numeric", "integer") && length(x) == 0)})),
                      helpful_message = c("Hierarchies are unequal somewhere in these variables, please check output: ", paste(hier_cols, collapse = ", ")))
 
     # return(Out_list)
@@ -312,21 +360,23 @@ preflight_checks <- function(
 
   check_compare_cols <- function(X,Y){
     # Bypassing all data-prep
-  Out_list <- list(
-    "cols_in_X_not_Y" = setdiff(names(X), names(Y)),
-    "cols_in_Y_not_X" = setdiff(names(Y), names(X)),
-    "all_mismatch_columns" = setdiff( union( names(X), names(Y)), intersect(names(X), names(Y)) )
-  )
+    Out_list <- list(
+      "cols_in_X_not_Y" = setdiff(names(X), names(Y)),
+      "cols_in_Y_not_X" = setdiff(names(Y), names(X)),
+      "all_mismatch_columns" = setdiff( union( names(X), names(Y)), intersect(names(X), names(Y)) )
+    )
 
-  stop_or_continue(STOP = STOP, method = method, Out_list = Out_list,
-                   stop_condition = (sum(unlist(sapply(Out_list, nrow))) > 0 | sum(unlist(sapply(Out_list, length))) > 0),
-                   helpful_message = c("Columns are unequal somewhere, please check output."))
+    stop_or_continue(STOP = STOP, method = method, Out_list = Out_list,
+                     stop_condition = !all(sapply(Out_list, function(x){(class(x) %in% c("data.table", "tibble", "data.frame") &&
+                                                                                 nrow(x) == 0) | (class(x) %in% c("character", "numeric", "integer") && length(x) == 0)})),
+                     helpful_message = c("Columns are unequal somewhere, please check output."))
 
   }
 
+  # Switch --------------
   # call the different check functions depending on method required
   switch (method,
-          "all_equal"    = check_all_equal(X = X, Y = Y, colsX = colsX),
+          "all_equal"    = check_all_equal(X = X, Y = Y),
           "data2data"    = check_data2data(X = X, Y = Y, colsX = colsX),
           "hier2data"    = check_hier2data(X = X, Y = Y, colsX = colsX),
           "hier2hier"    = check_hier2hier(X = X, Y = Y),
@@ -405,9 +455,11 @@ preflight_checks(Diff1, Diff2, method = "all_equal", STOP = T)
 # early column mismatch
 preflight_checks(X = Diff2,
                  Y = Diff1,
+                 method = "data2data",
                  colsX = c("location_id", "lancet_label")) # should stop
 preflight_checks(X = Diff2,
                  Y = Diff1,
+                 method = "data2data",
                  colsX = c("location_id", "location_name")) # should continue with warning
 
 
