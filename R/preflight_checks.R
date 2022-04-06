@@ -130,8 +130,22 @@ preflight_checks <- function(
 
 ) {
 
-  # what method?
-  message("method is ", "'", method, "'")
+  # Pre-run validation -------------
+  # what method? Valid?
+  method_vec <- c("all_equal", "data2data", "hier2data", "hier2hier", "compare_cols")
+
+  if(method %in% method_vec){
+    message("method is ", "'", method, "'")
+  } else {
+    stop("Invalid method type. Choose: ", paste(method_vec, collapse = ", "))
+  }
+
+  # allows colsX to serve for both data.frames, validates for presence of necessary columns
+  if (is.null(colsY) & all(colsX %in% names(Y))){
+    colsY <- colsX
+  } else {
+    stop("Not all columns in X are present in Y, and you have not specified 'colsY' ")
+  }
 
   # Defined Tidyverse functions
   `%>%` <- dplyr::`%>%`
@@ -141,13 +155,6 @@ preflight_checks <- function(
   setname <- dplyr::rename
   distinct <- dplyr::distinct
   all_of <- dplyr::all_of
-
-  # allows colsX to serve for both data.frames, with a check for presence of necessary columns
-  if (is.null(colsY) & all(colsX %in% names(Y))){
-    colsY <- colsX
-  } else {
-    stop("Not all columns in X are present in Y, and you have not specified 'colsY' ")
-  }
 
   # keep copies of raw data before prepping for later Out_list info (e.g. location names)
   Xraw <- copy(X)
