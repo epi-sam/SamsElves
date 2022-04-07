@@ -277,7 +277,8 @@ preflight_checks <- function(
     Out_list <- list(
       "locs_in_X_not_in_Y" = setdiff(X$location_id, Y$location_id),
       "locs_in_Y_not_in_X" = setdiff(Y$location_id, X$location_id),
-      "names_in_X_not_in_Y" = Xraw %>% filter(location_id %in% setdiff(X$location_id, Y$location_id)) %>% select(location_id, location_name)
+      "names_in_X_not_in_Y" = Xraw %>% filter(location_id %in% setdiff(X$location_id, Y$location_id)) %>% select(location_id, location_name),
+      "names_in_Y_not_in_X" = Yraw %>% filter(location_id %in% setdiff(Y$location_id, X$location_id)) %>% select(location_id, location_name)
     )
 
     stop_or_continue(STOP = STOP, method = method, Out_list = Out_list,
