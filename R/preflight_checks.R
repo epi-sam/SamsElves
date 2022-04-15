@@ -135,9 +135,9 @@ preflight_checks <- function(
   method_vec <- c("all_equal", "data2data", "hier2data", "hier2hier", "compare_cols")
 
   if(method %in% method_vec){
-    message("<preflight_checks> method is ", "'", method, "'")
-    message("X: ", substitute(X))
-    message("Y: ", substitute(Y))
+    message("<preflight_checks> method is: ", method)
+    message("X (left-side): ", substitute(X))
+    message("Y (right-side): ", substitute(Y))
   } else {
     stop("<preflight_checks> Invalid method type. Choose: ", paste(method_vec, collapse = ", "))
   }
