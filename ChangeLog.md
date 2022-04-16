@@ -7,13 +7,19 @@ ChangeLog for SamsElves Package
 # preflight_checks
 - convert the following
   - deprecate:
-    - hier2hier
-    - hier2data
+    - all_equal
+    - filter statement
   - rename
-    - 'data2data' -> 'DFs' (generalized dataframes -second method)
-    - 'compare_cols' -> 'Columns'
-  - remove
-    - 'All_equal' as default method - have none (but keep the method as last option)
+    - 'compare_cols' -> 'col_names'
+    'ERRORS' to "PREFLIGHT_CHECKS_ERRORS"
   - add
-    - 'Vecs' method (generalized vectors - first method)
+    - 'vec2vec' method (generalized vectors - first method)
+  - double check - where is this already used?
+    - all_plots for sure 
+    - any others?
     
+  - cleaned up:
+    - stop_or_continue behavior
+    - output (now using dplyr::setdiff and others)
+    - output warning messages
+    - reordered output messages to appear in one block, below printed Output_list

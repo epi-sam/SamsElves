@@ -134,11 +134,7 @@ preflight_checks <- function(
   # what method? Valid?
   method_vec <- c("all_equal", "data2data", "hier2data", "hier2hier", "compare_cols")
 
-  if(method %in% method_vec){
-    message("<preflight_checks> method is: ", method)
-    message("X (left-side): ", substitute(X))
-    message("Y (right-side): ", substitute(Y))
-  } else {
+  if(!(method %in% method_vec)){
     stop("<preflight_checks> Invalid method type. Choose: ", paste(method_vec, collapse = ", "))
   }
 
@@ -160,11 +156,17 @@ preflight_checks <- function(
   setname <- dplyr::rename
   distinct <- dplyr::distinct
   all_of <- dplyr::all_of
+  arrange <- dplyr::arrange
+  setdiff <- dplyr::setdiff
+  union <- dplyr::union
+  intersect <- dplyr::intersect
   copy <- data.table::copy
 
   # keep copies of raw data before prepping for later Out_list info (e.g. location names)
   Xraw <- copy(X)
   Yraw <- copy(Y)
+  X_name <- substitute(X) # passing name of 'X' through nested environments for later message/warning
+  Y_name <- substitute(Y)
 
   # Prep data for X and Y by selecting columns, renaming columns, filtering rows
   prep_dataX <- function(X = X, colsX = colsX, filter_statement = filter_statement){
@@ -188,30 +190,53 @@ preflight_checks <- function(
   # After this, colsX and colsY should be equal, and will only refer to colsX for clarity
 
   # function to stop parent script and give outputs, or allow parent script to continue running
-  stop_or_continue <- function(STOP = STOP, method = method, Out_list = Out_list, helpful_message, stop_condition){
+  stop_or_continue <- function(Xname = X_name, Yname = Y_name,
+                               STOP = STOP, method = method, Out_list = Out_list,
+                               helpful_message, stop_condition){
 
     if(stop_condition & STOP){ # print output, assign output to global env for inspection, stop the parent script
-      assign(paste0("ERRORS_", method), Out_list, envir = .GlobalEnv) # TODO this may be dangerous
-      stop(helpful_message,  paste0(": ERRORS_", method, " is saved to .GlobalEnv"))
+      assign(paste0("PREFLIGHT_CHECK_ERRORS_", method), Out_list, envir = .GlobalEnv) # TODO this may be dangerous
+      warning("<preflight_checks>: Stop condition met")
+      warning(helpful_message, call. = F)
+      warning("method is: ", method, call. = F)
+      warning("X (left-side): ", Xname, call. = F)
+      warning("Y (right-side): ", Yname, call. = F)
+      stop("PREFLIGHT_CHECK_ERRORS is saved to .GlobalEnv", call. = F)
+    }
+
 
     } else if(stop_condition & !STOP & verbose){
-      warning("WARNING: Stop condition met, but STOP set to FALSE, showing differences above.")
-      print(Out_list)
+      warning("<preflight_checks>: Stop condition met, but STOP set to FALSE, showing differences above.", call. = F)
+      warning(helpful_message, call. = F)
+      warning("method is: ", method, call. = F)
+      warning("X (left-side): ", Xname, call. = F)
+      warning("Y (right-side): ", Yname, call. = F)
+      return(Out_list)
 
     } else if (stop_condition & !STOP & !verbose){
-      warning("WARNING: Stop condition met, but STOP set to FALSE, showing differences above.")
+      warning("<preflight_checks>: Stop condition met, but STOP set to FALSE, showing differences above.", call. = F)
+      warning(helpful_message, call. = F)
+      warning("method is: ", method, call. = F)
+      warning("X (left-side): ", Xname, call. = F)
+      warning("Y (right-side): ", Yname, call. = F)
       invisible(Out_list)
 
     } else if (!stop_condition & verbose) {
-      # print(Out_list)
+      message("<preflight_checks> method is: ", method)
+      message("X (left-side): ", Xname)
+      message("Y (right-side): ", Yname)
       message("Passed the stop condition - continuing script.")
       return(Out_list) # return verbose to console and for assignment
+
     } else if (!stop_condition & !verbose) {
+      message("<preflight_checks> method is: ", method)
+      message("X (left-side): ", Xname)
+      message("Y (right-side): ", Yname)
       message("Passed the stop condition - continuing script.")
       invisible(Out_list) # return invisibly for assignment
 
     } else {
-      stop("Something went wrong - debug the stop_or_continue function if you see this message")
+      stop("<preflight_checks> Something went wrong - debug the stop_or_continue function if you see this message")
     }
   }
 
@@ -253,14 +278,12 @@ preflight_checks <- function(
       "dim_X" = dim(X),
       "dim_Y" = dim(Y),
       "in_X_not_Y" = setdiff(X,Y),
-      "in_Y_not_X" = setdiff(Y,X),
-      "distinct_X" = X %>% distinct(),
-      "distinct_Y" = Y %>% distinct()
+      "in_Y_not_X" = setdiff(Y,X)
     )
 
     stop_or_continue(STOP = STOP, method = method, Out_list = Out_list,
                      stop_condition = nrow(setdiff(distinct(X), distinct(Y))) > 0,
-                     helpful_message = "There is a difference between data.frames")
+                     helpful_message = "There is a difference between data.frames. See above.")
 
   }
 
@@ -282,7 +305,8 @@ preflight_checks <- function(
 
     stop_or_continue(STOP = STOP, method = method, Out_list = Out_list,
                      stop_condition = length(setdiff(X$location_id, Y$location_id)) > 0,
-                     helpful_message = "Not all locations in X are present in Y")
+                     helpful_message = c("Not all locations in X are present in Y: ",
+                                         paste0(setdiff(X$location_id, Y$location_id), collapse = ", ")))
 
   }
 
@@ -296,12 +320,12 @@ preflight_checks <- function(
     Y <- Y %>% select(all_of(hier_cols))
 
     path_vars <- c("location_id", "path_to_top_parent") # for finding path_to_top_parent diffs
-    Xpath <- X %>% select(path_vars)
-    Ypath <- Y %>% select(path_vars)
+    Xpath <- X %>% select(all_of(path_vars))
+    Ypath <- Y %>% select(all_of(path_vars))
 
     det_vars <- c("location_id", "most_detailed")
-    Xdet <- X %>% select(path_vars)
-    Ydet <- Y %>% select(path_vars)
+    Xdet <- X %>% select(all_of(det_vars))
+    Ydet <- Y %>% select(all_of(det_vars))
 
     Out_list <- list(
       "in_X_not_Y" = setdiff(X,Y),
@@ -310,18 +334,26 @@ preflight_checks <- function(
       "names_in_Y_not_in_X" = Y %>% filter(location_id %in% setdiff(Y$location_id, X$location_id)) %>% select(location_id, location_name),
       "locs_in_X_not_in_Y" = setdiff(X$location_id, Y$location_id),
       "locs_in_Y_not_in_X" = setdiff(Y$location_id, X$location_id),
-      "all_mismatch_path_to_top_parent" = setdiff(union(Xpath,Ypath), intersect(Xpath,Ypath)),
-      "all_mismatch_most_detailed" = setdiff(union(Xdet,Ydet), intersect(Xdet,Ydet))
+      "all_mismatch_path_to_top_parent" = setdiff(union(Xpath,Ypath), intersect(Xpath,Ypath)) %>% arrange(location_id),
+      "all_mismatch_most_detailed" = setdiff(union(Xdet,Ydet), intersect(Xdet,Ydet)) %>% arrange(location_id)
     )
 
     stop_or_continue(STOP = STOP, method = method, Out_list = Out_list,
-                     stop_condition = !all(sapply(Out_list, function(x){(class(x) %in% c("data.table", "tibble", "data.frame") &&
-                                                                                 nrow(x) == 0) | (class(x) %in% c("character", "numeric", "integer") && length(x) == 0)})),
-                     helpful_message = c("Hierarchies are unequal somewhere in these variables, please check output: ", paste(hier_cols, collapse = ", ")))
-
-    # return(Out_list)
+                     stop_condition =
+                       !all(
+                         sapply(
+                           Out_list,
+                           function(x) {
+                             (is.data.frame(x) && nrow(x) == 0) | # are list data.frames empty?
+                               (is.vector(x) && length(x) == 0) # are list vectors empty?
+                           }
+                         )
+                       ),
+                     helpful_message = c("Hierarchies are unequal somewhere in these variables: ",
+                                         paste(hier_cols, collapse = ", ")))
 
   }
+
   # Method 5 : compare_cols ----------------------------
   # Look for only misaligned column names
 
@@ -334,9 +366,17 @@ preflight_checks <- function(
     )
 
     stop_or_continue(STOP = STOP, method = method, Out_list = Out_list,
-                     stop_condition = !all(sapply(Out_list, function(x){(class(x) %in% c("data.table", "tibble", "data.frame") &&
-                                                                                 nrow(x) == 0) | (class(x) %in% c("character", "numeric", "integer") && length(x) == 0)})),
-                     helpful_message = c("Columns are unequal somewhere, please check output."))
+                     stop_condition =
+                       !all(
+                         sapply(
+                           Out_list,
+                           function(x) {
+                             (is.data.frame(x) && nrow(x) == 0) | # are list data.frames empty?
+                               (is.vector(x) && length(x) == 0) # are list vectors empty?
+                           }
+                         )
+                       ),
+                     helpful_message = c("Columns are unequal somewhere: ", paste0(names(X), collapse = ", ")))
 
   }
 
