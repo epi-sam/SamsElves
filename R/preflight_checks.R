@@ -191,7 +191,8 @@ preflight_checks <- function(
 
   # function to stop parent script and give outputs, or allow parent script to continue running
   stop_or_continue <- function(Xname = X_name, Yname = Y_name,
-                               STOP = STOP, method = method, Out_list = Out_list,
+                               STOP = STOP, verbose = verbose,
+                               method = method, Out_list = Out_list,
                                helpful_message, stop_condition){
 
     if(stop_condition & STOP){ # print output, assign output to global env for inspection, stop the parent script
@@ -256,7 +257,8 @@ preflight_checks <- function(
       "cols_in_Y_not_X" = setdiff(names(Y), names(X))
     )
 
-    stop_or_continue(STOP = STOP, method = method, Out_list = Out_list,
+    stop_or_continue(STOP = STOP, verbose = verbose,
+                     method = method, Out_list = Out_list,
                      stop_condition = !isTRUE(all.equal(X,Y)), # must be added for each method
                      helpful_message ="Dataframes are not all equal, see above.")
 
@@ -281,7 +283,8 @@ preflight_checks <- function(
       "in_Y_not_X" = setdiff(Y,X)
     )
 
-    stop_or_continue(STOP = STOP, method = method, Out_list = Out_list,
+    stop_or_continue(STOP = STOP, verbose = verbose,
+                     method = method, Out_list = Out_list,
                      stop_condition = nrow(setdiff(distinct(X), distinct(Y))) > 0,
                      helpful_message = "There is a difference between data.frames. See above.")
 
@@ -303,7 +306,8 @@ preflight_checks <- function(
       "names_in_X_not_in_Y" = Xraw %>% filter(location_id %in% setdiff(X$location_id, Y$location_id)) %>% select(location_id, location_name)
     )
 
-    stop_or_continue(STOP = STOP, method = method, Out_list = Out_list,
+    stop_or_continue(STOP = STOP, verbose = verbose,
+                     method = method, Out_list = Out_list,
                      stop_condition = length(setdiff(X$location_id, Y$location_id)) > 0,
                      helpful_message = c("Not all locations in X are present in Y: ",
                                          paste0(setdiff(X$location_id, Y$location_id), collapse = ", ")))
@@ -338,7 +342,8 @@ preflight_checks <- function(
       "all_mismatch_most_detailed" = setdiff(union(Xdet,Ydet), intersect(Xdet,Ydet)) %>% arrange(location_id)
     )
 
-    stop_or_continue(STOP = STOP, method = method, Out_list = Out_list,
+    stop_or_continue(STOP = STOP, verbose = verbose,
+                     method = method, Out_list = Out_list,
                      stop_condition =
                        !all(
                          sapply(
@@ -365,7 +370,8 @@ preflight_checks <- function(
       "all_mismatch_columns" = setdiff( union( names(X), names(Y)), intersect(names(X), names(Y)) )
     )
 
-    stop_or_continue(STOP = STOP, method = method, Out_list = Out_list,
+    stop_or_continue(STOP = STOP, verbose = verbose,
+                     method = method, Out_list = Out_list,
                      stop_condition =
                        !all(
                          sapply(
