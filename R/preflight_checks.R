@@ -125,8 +125,10 @@ preflight_checks <- function(
 ) {
 
   # Pre-run validation -------------
+
   # what method? Valid?
-  method_vec <- c("vec2vec", "hier2data", "hier2hier", "data2data", "col_names", "all_equal")
+  method_vec <- c("vec2vec", "hier2data", "hier2hier", "data2data", "col_names", "all_equal",
+                  "anyNAvec")
 
   if(!(method %in% method_vec)){
     stop("<preflight_checks> Invalid method type. Choose: ", paste(method_vec, collapse = ", "))
@@ -167,7 +169,11 @@ preflight_checks <- function(
   Xraw <- copy(X)
   Yraw <- copy(Y)
   X_name <- substitute(X) # passing name of 'X' through nested environments for later message/warning
-  Y_name <- substitute(Y)
+  if(!is.null(Y)) {
+    Y_name <- substitute(Y)
+  } else {
+    Y_name <- "NULL"
+  }
 
   # Prep data for X and Y by selecting columns, renaming columns
   prep_dataX <- function(X = X, colsX = colsX){
@@ -429,6 +435,37 @@ preflight_checks <- function(
 
   }
 
+  # Method 7 : anyNAvec ----------------------------
+  # Are any missing values in a vector?
+
+  check_anyNAvec <- function(X){
+
+    Out_list <- list(
+      "NA_indexes"  = which(is.na(X))
+    )
+
+    stop_or_continue(STOP = STOP, verbose = verbose,
+                     method = method, Out_list = Out_list,
+                     stop_condition = anyNA(X),
+                     helpful_message = "There are missing values in your vector. See above.")
+  }
+
+  # Method 8 : anyNAdata ----------------------------
+  # Are any missing values in some columns?
+
+  # chech_anyNAdata <- function(X, colsX)
+
+  # Method 9 : allNAvec ----------------------------
+  # Are all values missing in a vector?
+
+  # Method 10 : allNAdata ----------------------------
+  # Are all values missing in some columns?
+
+
+
+
+
+
 
 
   # Switch --------------
@@ -439,7 +476,8 @@ preflight_checks <- function(
           "hier2data"    = check_hier2data(X = X, Y = Y, colsX = colsX),
           "hier2hier"    = check_hier2hier(X = X, Y = Y),
           "col_names"    = check_col_names(X = X, Y = Y),
-          "vec2vec"      = check_vec2vec  (X = X, Y = Y)
+          "vec2vec"      = check_vec2vec  (X = X, Y = Y),
+          "anyNAvec"     = check_anyNAvec (X = X)
   )
 
 }

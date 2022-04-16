@@ -19,18 +19,22 @@ ChangeLog for SamsElves Package
       - [ ] reorder MREs so this comes first, gives a clear example
     - [ ] 'anyNAvec'
       - [ ] add to switch
+      - [ ] add to validation pre-check
       - [ ] test it out
       - [ ] document
     - [ ] 'allNAvec'
       - [ ] add to switch
+      - [ ] add to validation pre-check
       - [ ] test it out
       - [ ] document
-    - [ ] 'anyNAdf' - many cols
+    - [ ] 'anyNAdata' - many cols
       - [ ] add to switch
+      - [ ] add to validation pre-check
       - [ ] test it out
       - [ ] document
-    - [ ] 'allNAdf' - many cols
+    - [ ] 'allNAdata' - many cols
       - [ ] add to switch
+      - [ ] add to validation pre-check
       - [ ] test it out
       - [ ] document
   - [ ] double check; where is preflight_checks already used?
