@@ -1,12 +1,12 @@
 #' Compare hierarchies or data sets against a reference
 #'
 #' Returns a \code{list()} of diagnostic information, quietly or verbose, and
-#' STOPS or continues based on user preference.  I recommend saving this output
-#' to an object with a name that is diagnostically helpful if you set \code{STOP
-#' or verbose = FALSE.} \code{'X'} is intended as the left-side, 'reference'
-#' data - that which is your gold standard to compare against, and \code{'Y'} is
-#' intended as the right-side 'comparison' data - that which you want to
-#' validate AGAINST \code{X}.
+#' STOPS or continues a script based on user preference.  I recommend saving
+#' this output to an object with a name that is diagnostically helpful if you
+#' set \code{STOP or verbose = FALSE.} \code{'X'} is intended as the left-side,
+#' 'reference' data - that which is your gold standard to compare against, and
+#' \code{'Y'} is intended as the right-side 'comparison' data - that which you
+#' want to validate AGAINST \code{X}.
 #'
 #' This function may STOP a script if specified. Many 'methods' of comparison
 #' are available - check function arguments. Suppose your pipeline depends on
@@ -15,9 +15,8 @@
 #' data.frame columns with the same content but different column names, enter
 #' those names in the same order in \code{colsX} and \code{colsY} arguments, and
 #' the function will use \code{colsX} (left-hand data.frame) to rename all
-#' columns, and output will return those names. Filtering occurs AFTER column
-#' selection. Format all filters according to \code{colsX} names. Order of
-#' operations: \code{select()}, \code{setNames()}, then \code{filter()}.
+#' columns, and output will return those names. Order of
+#' operations: \code{select()}, \code{setNames()}.
 #'
 #' @param X Left-hand input vector or data.frame (gold standard to compare
 #'   against)
@@ -25,11 +24,11 @@
 #'   standard, by 'method')
 #' @param method method of comparison to be made:
 ##' \itemize{
-##'  \item{\code{"all_equal"} : compare two vectors or \code{data.frames} for total equality.  WARNING: no selecting or filtering applied.  Stop_condition \code{all.equal} is not TRUE.}
-##'  \item{\code{"data2data"} : compare two generic \code{data.frames} and checks for common UNIQUE values in columns between data.frames. Stop_condition if \code{nrow(setdiff(distinct(X), distinct(Y))) > 0}.}
 ##'  \item{\code{"hier2data"} : compare a data from on the right against a gold-standard heirarchy on the left. Stop_condition = \code{length(setdiff(X$location_id, Y$location_id)) > 0}}
 ##'  \item{\code{"hier2hier"} : compare two hierarchies for exact equivalence across \code{c("location_id", "location_name", "path_to_top_parent", "most_detailed")}. Stop_condition is any differences.}
+##'  \item{\code{"data2data"} : compare two generic \code{data.frames} and checks for common UNIQUE values in columns between data.frames. Stop_condition if \code{nrow(setdiff(distinct(X), distinct(Y))) > 0}.}
 ##'  \item{\code{"compare_cols"} : compares \code{data.frames} for all same column names. stop_condition is any differences.}
+##'  \item{\code{"all_equal"} : compare two vectors or \code{data.frames} for total equality.  WARNING: no selecting.  Stop_condition \code{all.equal} is not TRUE.}
 ##' }
 #' @param verbose Do you want verbose console output, or invisible() return of
 #'   the output_list for assignment to a variable?
@@ -38,15 +37,6 @@
 #' @param colsY Only for '___2data' methods. Vector of column names in the
 #'   "comparison" vector or data.frame - WARNING: MAKE SURE column order matches
 #'   that of \code{colsX}
-#' @param filter_statement Only for '___2data' methods. All your desired
-#'   filtering arguments, as a single, quoted, character string. e.g.
-#'   \code{"location_id > 100 & most_detailed==0"}.
-##' \itemize{
-##'  \item{Use column names from \code{colsX}, because filtering occurs after
-##'  column selection. Use column names from \code{colsX}, because filtering
-##'  occurs after column selection. It's less cumbersome to filter before using
-##'  \code{preflight_checks}, but this option exists in case.}
-##'}
 #' @param STOP Do you want to STOP your script if there is a mismatch, or allow
 #'   to continue with a WARNING message?
 #'
@@ -83,12 +73,15 @@
 #'preflight_checks(X = hier_covid_1020, Y = hier_covid_1020, method = "all_equal") # pass (OK)
 #'preflight_checks(hier_covid_1020, hier_covid_mi) # error - not equivalent (desired behavior)
 #'# equivalent
-#' preflight_checks(hier_covid_1020, hier_covid_1020) # pass (O)
+#' preflight_checks(hier_covid_1020, hier_covid_1020) # pass (OK)
 #' # check LSVIDs against each other, using current as 'left side'
 #' preflight_checks(hier_covid_1020, hier_covid_771) # fail (OK)
 #' preflight_checks(hier_covid_1020, hier_covid_771, verbose = T) # prints warning, continues
 #' preflight_checks(hier_covid_1020, hier_covid_771, STOP = T, verbose = T) # stops, saves errors to .GlobalEnv
 #' preflight_checks(hier_covid_1020, hier_covid_1020, STOP = T, verbose = T) # keep going, see receipt of passing
+#'
+#' ## hier2data -------------------
+#'
 #'
 #' ## hier2hier -------------------
 #' # save your output for inspection if not verbose
@@ -110,7 +103,6 @@
 #' preflight_checks(hier_covid_1020, hier_covid_771, "compare_cols")
 #' preflight_checks(full_data, full_formatted, "compare_cols")
 #'
-#'
 #' # Shapefiles ---------------------------
 #' # No built-in method yet, coming soon, and you can compare with a little prep work.
 #' shp_main <- rgdal::readOGR("/ihme/covid-19/shapefiles/covid_simp_2.shp")
@@ -124,9 +116,8 @@ preflight_checks <- function(
     method = c("all_equal"), # c("all_equal", "data2data", "hier2data", "hier2hier", "compare_cols")
     STOP = FALSE, # should an error stop your script?
     verbose = FALSE, # would you like console or invisible() output?
-    colsX = c("location_id"), # which columns to check from X (left-side gold stanard)?
-    colsY = NULL, # which columns to check from Y? (if column names differ from X)
-    filter_statement = NULL #e.g. "location_id > 100 & most_detailed==0"
+    colsX = c("location_id"), # which columns to check from X (left-side gold standard)?
+    colsY = NULL # which columns to check from Y? (if column names differ from X)
 
 ) {
 
@@ -168,21 +159,18 @@ preflight_checks <- function(
   X_name <- substitute(X) # passing name of 'X' through nested environments for later message/warning
   Y_name <- substitute(Y)
 
-  # Prep data for X and Y by selecting columns, renaming columns, filtering rows
-  prep_dataX <- function(X = X, colsX = colsX, filter_statement = filter_statement){
+  # Prep data for X and Y by selecting columns, renaming columns
+  prep_dataX <- function(X = X, colsX = colsX){
     X <- X %>%
       select(all_of(colsX)) %>%
-      # if a filter statement exists, use it, otherwise include all rows
-      filter(ifelse(!is.null(filter_statement), eval(parse(text = filter_statement)), all_of(colsX[1] %in% colsX[1])))
     return(X)
 
   }
 
-  prep_dataY <- function(Y = Y, colsY = colsY, filter_statement = filter_statement){
+  prep_dataY <- function(Y = Y, colsY = colsY){
     Y <- Y %>%
       select(all_of(colsY)) %>%
       setNames(colsX) %>% # rename columns
-      filter(ifelse(!is.null(filter_statement), eval(parse(text = filter_statement)), all_of(colsX[1] %in% colsX[1])))
     return(Y)
   }
 
@@ -297,8 +285,8 @@ preflight_checks <- function(
   check_data2data <- function(X, Y, colsX){
 
     # Prepare data for check functions
-    X <- prep_dataX(X = X, colsX = colsX, filter_statement = filter_statement)
-    Y <- prep_dataY(Y = Y, colsY = colsY, filter_statement = filter_statement)
+    X <- prep_dataX(X = X, colsX = colsX)
+    Y <- prep_dataY(Y = Y, colsY = colsY)
     message("Columns in X: ", paste(names(X), collapse = ", "))
     message("Columns in Y: ", paste(names(Y), collapse = ", "))
 
@@ -321,8 +309,8 @@ preflight_checks <- function(
 
   check_hier2data <- function(X, Y, colsX){
     # Prepare data for check functions
-    X <- prep_dataX(X = X, colsX = colsX, filter_statement = filter_statement)
-    Y <- prep_dataY(Y = Y, colsY = colsY, filter_statement = filter_statement)
+    X <- prep_dataX(X = X, colsX = colsX)
+    Y <- prep_dataY(Y = Y, colsY = colsY)
     message("Columns in X: ", paste(names(X), collapse = ", "))
     message("Columns in Y: ", paste(names(Y), collapse = ", "))
 
