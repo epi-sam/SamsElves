@@ -8,12 +8,32 @@ ChangeLog for SamsElves Package
 - [ ] convert the following
   - [x] deprecate:
     - [x] filter statement
-  - [ ] rename
-    - [ ] 'compare_cols' -> 'col_names'
+  - [x] rename
+    - [x] 'compare_cols' -> 'col_names'
     - [x] 'ERRORS' to "PREFLIGHT_CHECKS_ERRORS"
   - [ ] add
-    - [ ] 'vec2vec' method (generalized vectors - [ ] first method)
-  - [ ] double check; where is this already used?
+    - [x] 'vec2vec' method (generalized vectors; first method)
+      - [x] add to switch
+      - [x] test it out
+      - [x] document
+      - [ ] reorder MREs so this comes first, gives a clear example
+    - [ ] 'anyNAvec'
+      - [ ] add to switch
+      - [ ] test it out
+      - [ ] document
+    - [ ] 'allNAvec'
+      - [ ] add to switch
+      - [ ] test it out
+      - [ ] document
+    - [ ] 'anyNAdf' - many cols
+      - [ ] add to switch
+      - [ ] test it out
+      - [ ] document
+    - [ ] 'allNAdf' - many cols
+      - [ ] add to switch
+      - [ ] test it out
+      - [ ] document
+  - [ ] double check; where is preflight_checks already used?
     - [ ] all_plots for sure 
     - [ ] any others?
     
@@ -27,4 +47,5 @@ ChangeLog for SamsElves Package
     - [x] reordered output messages to appear in one block, below printed Output_list
     
     - [ ] Documentation
+      - [ ] vec2vec MREs (replace all_equal)
       - [ ] hier2data MREs

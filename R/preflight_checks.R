@@ -24,10 +24,11 @@
 #'   standard, by 'method')
 #' @param method method of comparison to be made:
 ##' \itemize{
-##'  \item{\code{"hier2data"} : compare a data from on the right against a gold-standard heirarchy on the left. Stop_condition = \code{length(setdiff(X$location_id, Y$location_id)) > 0}}
-##'  \item{\code{"hier2hier"} : compare two hierarchies for exact equivalence across \code{c("location_id", "location_name", "path_to_top_parent", "most_detailed")}. Stop_condition is any differences.}
+##'  \item{\code{"vec2vec"}   : compare two vectors for UNIQUE values. Stop_condition = \code{length(setdiff(X,Y)) > 0}}
+##'  \item{\code{"hier2data"} : compare a data from on the right against a gold-standard hierarchy on the left. Stop_condition = \code{length(setdiff(X$location_id, Y$location_id)) > 0}}
+##'  \item{\code{"hier2hier"} : compare two hierarchies for equivalence across \code{c("location_id", "location_name", "path_to_top_parent", "most_detailed")}. Stop_condition is any differences.}
 ##'  \item{\code{"data2data"} : compare two generic \code{data.frames} and checks for common UNIQUE values in columns between data.frames. Stop_condition if \code{nrow(setdiff(distinct(X), distinct(Y))) > 0}.}
-##'  \item{\code{"col_names"} : compares \code{data.frames} for all same column names. stop_condition is any differences.}
+##'  \item{\code{"col_names"} : compare \code{data.frames} for all same column names. stop_condition is any differences.}
 ##'  \item{\code{"all_equal"} : compare two vectors or \code{data.frames} for total equality.  WARNING: no selecting.  Stop_condition \code{all.equal} is not TRUE.}
 ##' }
 #' @param verbose Do you want verbose console output, or invisible() return of
@@ -83,6 +84,9 @@
 #' ## hier2data -------------------
 #'
 #'
+#' ## vec2vec ----------------------
+#'
+#'
 #' ## hier2hier -------------------
 #' # save your output for inspection if not verbose
 #' output_pass <- preflight_checks(hier_covid_1020, hier_covid_1020, "hier2hier")
@@ -111,22 +115,28 @@
 #' preflight_checks(hier_covid_1020, shp_locs, "hier2data") # remember, defaults to 'location_id' only
 #'
 preflight_checks <- function(
-    X, # first 'gold standard' dataframe
-    Y, # second 'to compare' dataframe
+    X, # first 'gold standard' vector or dataframe
+    Y=NULL, # second 'to compare' vector or dataframe
     method = c("all_equal"), # c("all_equal", "data2data", "hier2data", "hier2hier", "col_names")
     STOP = FALSE, # should an error stop your script?
     verbose = FALSE, # would you like console or invisible() output?
     colsX = c("location_id"), # which columns to check from X (left-side gold standard)?
     colsY = NULL # which columns to check from Y? (if column names differ from X)
-
 ) {
 
   # Pre-run validation -------------
   # what method? Valid?
-  method_vec <- c("all_equal", "data2data", "hier2data", "hier2hier", "col_names")
+  method_vec <- c("vec2vec", "hier2data", "hier2hier", "data2data", "col_names", "all_equal")
 
   if(!(method %in% method_vec)){
     stop("<preflight_checks> Invalid method type. Choose: ", paste(method_vec, collapse = ", "))
+  }
+
+  # is Y required by the method?
+  Y_req <- c("vec2vec", "hier2data", "hier2hier", "data2data", "col_names", "all_equal")
+
+  if(is.null(Y) & method %in% Y_req){
+    stop("<preflight_checks> Y (right side) is required for methods: ", paste(Y_req, collapse = ", "))
   }
 
   # allows colsX to serve for both data.frames, validates for presence of necessary columns
@@ -265,8 +275,8 @@ preflight_checks <- function(
 
     Out_list <- list(
       "all_equal" = all.equal(X,Y),
-      "in_X_not_Y" = setdiff(X,Y),
-      "in_Y_not_X" = setdiff(Y,X),
+      "in_X_not_Y_(unique)" = setdiff(X,Y),
+      "in_Y_not_X_(unique)" = setdiff(Y,X),
       "cols_in_X_not_Y" = setdiff(names(X), names(Y)),
       "cols_in_Y_not_X" = setdiff(names(Y), names(X))
     )
@@ -293,8 +303,8 @@ preflight_checks <- function(
     Out_list <- list(
       "dim_X" = dim(X),
       "dim_Y" = dim(Y),
-      "in_X_not_Y" = setdiff(X,Y),
-      "in_Y_not_X" = setdiff(Y,X)
+      "in_X_not_Y_(unique)" = setdiff(X,Y),
+      "in_Y_not_X_(unique)" = setdiff(Y,X)
     )
 
     stop_or_continue(STOP = STOP, verbose = verbose,
@@ -346,8 +356,8 @@ preflight_checks <- function(
     Ydet <- Y %>% select(all_of(det_vars))
 
     Out_list <- list(
-      "in_X_not_Y" = setdiff(X,Y),
-      "in_Y_not_X" = setdiff(Y,X),
+      "in_X_not_Y_(unique)" = setdiff(X,Y),
+      "in_Y_not_X_(unique)" = setdiff(Y,X),
       "names_in_X_not_in_Y" = X %>% filter(location_id %in% setdiff(X$location_id, Y$location_id)) %>% select(location_id, location_name),
       "names_in_Y_not_in_X" = Y %>% filter(location_id %in% setdiff(Y$location_id, X$location_id)) %>% select(location_id, location_name),
       "locs_in_X_not_in_Y" = setdiff(X$location_id, Y$location_id),
@@ -400,6 +410,27 @@ preflight_checks <- function(
 
   }
 
+  # Method 6 : vec2vec ----------------------------
+  # Most general - compare two vectors for equality
+
+  check_vec2vec <- function (X,Y) {
+
+    Out_list <- list(
+      "length_X"   = length(X),
+      "length_Y"   = length(Y),
+      "unique_in_X_not_Y" = setdiff(X,Y),
+      "unique_in_Y_not_X" = setdiff(Y,X)
+    )
+
+    stop_or_continue(STOP = STOP, verbose = verbose,
+                     method = method, Out_list = Out_list,
+                     stop_condition = length(setdiff(X,Y)) > 0,
+                     helpful_message = "There is a difference between unique vector values. See above.")
+
+  }
+
+
+
   # Switch --------------
   # call the different check functions depending on method required
   switch (method,
@@ -407,7 +438,8 @@ preflight_checks <- function(
           "data2data"    = check_data2data(X = X, Y = Y, colsX = colsX),
           "hier2data"    = check_hier2data(X = X, Y = Y, colsX = colsX),
           "hier2hier"    = check_hier2hier(X = X, Y = Y),
-          "col_names"    = check_col_names(X = X, Y = Y)
+          "col_names"    = check_col_names(X = X, Y = Y),
+          "vec2vec"      = check_vec2vec  (X = X, Y = Y)
   )
 
 }
