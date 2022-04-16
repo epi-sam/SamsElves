@@ -197,13 +197,13 @@ preflight_checks <- function(
 
     if(stop_condition & STOP){ # print output, assign output to global env for inspection, stop the parent script
       assign(paste0("PREFLIGHT_CHECK_ERRORS_", method), Out_list, envir = .GlobalEnv) # TODO this may be dangerous
-      warning("<preflight_checks>: Stop condition met")
+      warning("<preflight_checks>: Stop condition met", call. = F)
       warning(helpful_message, call. = F)
       warning("method is: ", method, call. = F)
       warning("X (left-side): ", Xname, call. = F)
       warning("Y (right-side): ", Yname, call. = F)
-      stop("PREFLIGHT_CHECK_ERRORS is saved to .GlobalEnv", call. = F)
-    }
+      warning(helpful_message, call. = F) # dummy warning so all warnings print correctly to console
+      stop(paste0("PREFLIGHT_CHECK_ERRORS_", method), " is saved to .GlobalEnv", call. = F)
 
 
     } else if(stop_condition & !STOP & verbose){
@@ -239,6 +239,7 @@ preflight_checks <- function(
     } else {
       stop("<preflight_checks> Something went wrong - debug the stop_or_continue function if you see this message")
     }
+  }
 
 
   # Method 1 : all_equal ------------------
