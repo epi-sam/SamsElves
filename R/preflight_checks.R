@@ -196,6 +196,7 @@ preflight_checks <- function(
                                helpful_message, stop_condition){
 
     if(stop_condition & STOP){ # print output, assign output to global env for inspection, stop the parent script
+
       assign(paste0("PREFLIGHT_CHECK_ERRORS_", method), Out_list, envir = .GlobalEnv) # TODO this may be dangerous
       warning("<preflight_checks>: Stop condition met:", "\n",
                   helpful_message, "\n",
@@ -208,11 +209,12 @@ preflight_checks <- function(
 
 
     } else if(stop_condition & !STOP & verbose){
-      # warning("<preflight_checks>: Stop condition met, but STOP set to FALSE, showing differences above.", call. = F)
-      # warning(helpful_message, call. = F)
-      # warning("method is: ", method, call. = F)
-      # warning("X (left-side): ", Xname, call. = F)
-      # warning("Y (right-side): ", Yname, call. = F)
+
+      message("INLINE <preflight_checks>: Stop condition met, but STOP set to FALSE, showing differences above:", "\n",
+              helpful_message, "\n",
+              "method is: ", method, "\n",
+              "X (left-side): ", Xname, "\n",
+              "Y (right-side): ", Yname, "\n")
 
       warning("<preflight_checks>: Stop condition met, but STOP set to FALSE, showing differences above:", "\n",
               helpful_message, "\n",
@@ -225,11 +227,12 @@ preflight_checks <- function(
       invisible(Out_list)
 
     } else if (stop_condition & !STOP & !verbose){
-      # warning("<preflight_checks>: Stop condition met, but STOP set to FALSE, showing differences above.", call. = F)
-      # warning(helpful_message, call. = F)
-      # warning("method is: ", method, call. = F)
-      # warning("X (left-side): ", Xname, call. = F)
-      # warning("Y (right-side): ", Yname, call. = F)
+
+      message("INLINE <preflight_checks>: Stop condition met, but STOP set to FALSE, showing differences above:", "\n",
+              helpful_message, "\n",
+              "method is: ", method, "\n",
+              "X (left-side): ", Xname, "\n",
+              "Y (right-side): ", Yname, "\n")
 
       warning("<preflight_checks>: Stop condition met, but STOP set to FALSE, showing differences above:", "\n",
               helpful_message, "\n",
@@ -241,31 +244,21 @@ preflight_checks <- function(
       invisible(Out_list) # return invisibly for assignment
 
     } else if (!stop_condition & verbose) {
-      # message("<preflight_checks> method is: ", method)
-      # message("X (left-side): ", Xname)
-      # message("Y (right-side): ", Yname)
-      # message("Passed the stop condition - continuing script.")
 
-      warning("<preflight_checks> method is: ", method, "\n",
+      message("INLINE <preflight_checks> method is: ", method, "\n",
               "X (left-side): ", Xname, "\n",
               "Y (right-side): ", Yname, "\n",
-              "Passed the stop condition - continuing script.", "\n",
-              call. = F)
+              "Passed the stop condition - continuing script.", "\n")
 
       print(Out_list) # need both to print to console if sourcing or running line-by-line
       invisible(Out_list)
 
     } else if (!stop_condition & !verbose) {
-      # message("<preflight_checks> method is: ", method)
-      # message("X (left-side): ", Xname)
-      # message("Y (right-side): ", Yname)
-      # message("Passed the stop condition - continuing script.")
 
-      warning("<preflight_checks> method is: ", method, "\n",
+      message("INLINE <preflight_checks> method is: ", method, "\n",
               "X (left-side): ", Xname, "\n",
               "Y (right-side): ", Yname, "\n",
-              "Passed the stop condition - continuing script.", "\n",
-              call. = F)
+              "Passed the stop condition - continuing script.", "\n")
 
       invisible(Out_list) # return invisibly for assignment
 
