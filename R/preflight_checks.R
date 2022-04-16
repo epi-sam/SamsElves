@@ -116,13 +116,13 @@
 #' preflight_checks(hier_covid_1020, shp_locs, "hier2data") # remember, defaults to 'location_id' only
 #'
 preflight_checks <- function(
-    X, # first 'gold standard' vector or dataframe
-    Y=NULL, # second 'to compare' vector or dataframe
-    method = c("all_equal"), # c("all_equal", "data2data", "hier2data", "hier2hier", "col_names")
-    STOP = FALSE, # should an error stop your script?
-    verbose = FALSE, # would you like console or invisible() output?
-    colsX = c("location_id"), # which columns to check from X (left-side gold standard)?
-    colsY = NULL # which columns to check from Y? (if column names differ from X)
+  X, # first 'gold standard' vector or dataframe
+  Y=NULL, # second 'to compare' vector or dataframe
+  method = c("all_equal"), # c("all_equal", "data2data", "hier2data", "hier2hier", "col_names")
+  STOP = FALSE, # should an error stop your script?
+  verbose = FALSE, # would you like console or invisible() output?
+  colsX = c("location_id"), # which columns to check from X (left-side gold standard)?
+  colsY = NULL # which columns to check from Y? (if column names differ from X)
 ) {
 
   # Pre-run validation -------------
@@ -130,7 +130,8 @@ preflight_checks <- function(
   # what method? Valid?
   method_vec <- c("vec2vec", "hier2data", "hier2hier", "data2data",
                   "col_names", "all_equal",
-                  "anyNAvec", "anyNAdata", "allNAvec", "allNAdata")
+                  "anyNAvec", "anyNAdata", "allNAvec", "allNAdata",
+                  "all0vec")
 
   if(!(method %in% method_vec)){
     stop("<preflight_checks> Invalid method type. Choose: ", paste(method_vec, collapse = ", "))
@@ -181,7 +182,7 @@ preflight_checks <- function(
   prep_dataX <- function(X = X, colsX = colsX){
     X <- X %>%
       select(all_of(colsX)) %>%
-    return(X)
+      return(X)
 
   }
 
@@ -189,7 +190,7 @@ preflight_checks <- function(
     Y <- Y %>%
       select(all_of(colsY)) %>%
       setNames(colsX) %>% # rename columns
-    return(Y)
+      return(Y)
   }
 
 
@@ -205,10 +206,10 @@ preflight_checks <- function(
 
       assign(paste0("PREFLIGHT_CHECK_ERRORS_", method), Out_list, envir = .GlobalEnv) # TODO this may be dangerous
       warning("<preflight_checks>: Stop condition met:", "\n",
-                  helpful_message, "\n",
-                  "method is: ", method, "\n",
-                  "X (left-side): ", Xname, "\n",
-                  "Y (right-side): ", Yname, "\n",
+              helpful_message, "\n",
+              "method is: ", method, "\n",
+              "X (left-side): ", Xname, "\n",
+              "Y (right-side): ", Yname, "\n",
               call. = F)
       warning(helpful_message, call. = F) # dummy warning so all warnings print correctly to console
       stop(paste0("PREFLIGHT_CHECK_ERRORS_", method), " is saved to .GlobalEnv", call. = F)
@@ -510,26 +511,45 @@ preflight_checks <- function(
   # Method 10 : allNAdata ----------------------------
   # Are ANY columns ALL missing/infinite?
 
-check_allNAdata <- function(X, colsX){
+  check_allNAdata <- function(X, colsX){
 
-  if(!is.data.frame(X)){
-    stop("X is not a data.frame, consider method = 'allNAvec'")
+    if(!is.data.frame(X)){
+      stop("X is not a data.frame, consider method = 'allNAvec'")
+    }
+
+    X <- X %>% select(colsX) # select cols for checking
+
+    Out_list <- list()
+    for (i in colsX){
+      Out_list[[i]] <- all(is.na(X[,i]) | is.infinite(X[,i]))
+    }
+
+    stop_or_continue(STOP = STOP, verbose = verbose,
+                     method = method, Out_list = Out_list,
+                     stop_condition = sum(unlist(Out_list)) > 0,
+                     helpful_message = "Some columns are entirely NA/Inf (TRUE in output). See above.")
+
+
   }
 
-  X <- X %>% select(colsX) # select cols for checking
+  # Method 11 : all0vec ----------------------------
+  # # Are all values 0 in a vector?
 
-  Out_list <- list()
-  for (i in colsX){
-    Out_list[[i]] <- all(is.na(X[,i]) | is.infinite(X[,i]))
+  check_all0vec <- function(X){
+    if(!is.vector(X)){
+      stop("X is not a vector, consider method = 'allNAdata'")
+    }
+
+    Out_list <- list(
+      "Vec_value"  = unique(X)
+    )
+
+    stop_or_continue(STOP = STOP, verbose = verbose,
+                     method = method, Out_list = Out_list,
+                     stop_condition = (all(X==0)),
+                     helpful_message = "Vector is all 0. See above.")
+
   }
-
-  stop_or_continue(STOP = STOP, verbose = verbose,
-                   method = method, Out_list = Out_list,
-                   stop_condition = sum(unlist(Out_list)) > 0,
-                   helpful_message = "Some columns are entirely NA/Inf (TRUE in output). See above.")
-
-
-}
 
 
   # Switch --------------
@@ -544,7 +564,8 @@ check_allNAdata <- function(X, colsX){
           "anyNAvec"     = check_anyNAvec (X = X),
           "anyNAdata"    = check_anyNAdata(X = X, colsX = colsX),
           "allNAvec"     = check_allNAvec (X = X),
-          "allNAdata"    = check_allNAdata(X = X, colsX = colsX)
+          "allNAdata"    = check_allNAdata(X = X, colsX = colsX),
+          "all0vec"      = check_all0vec  (X = X)
   )
 
 }
