@@ -195,6 +195,8 @@ preflight_checks <- function(
                                method = method, Out_list = Out_list,
                                helpful_message, stop_condition){
 
+    stop_signal <- FALSE # unless user calls STOP explicitly, and stop_condition is TRUE
+
     if(stop_condition & STOP){ # print output, assign output to global env for inspection, stop the parent script
       assign(paste0("PREFLIGHT_CHECK_ERRORS_", method), Out_list, envir = .GlobalEnv) # TODO this may be dangerous
       warning("<preflight_checks>: Stop condition met")
@@ -202,9 +204,8 @@ preflight_checks <- function(
       warning("method is: ", method, call. = F)
       warning("X (left-side): ", Xname, call. = F)
       warning("Y (right-side): ", Yname, call. = F)
-      stop("PREFLIGHT_CHECK_ERRORS is saved to .GlobalEnv", call. = F)
-    }
-
+      stop_signal <- TRUE
+      return(stop_signal)
 
     } else if(stop_condition & !STOP & verbose){
       warning("<preflight_checks>: Stop condition met, but STOP set to FALSE, showing differences above.", call. = F)
@@ -239,6 +240,7 @@ preflight_checks <- function(
     } else {
       stop("<preflight_checks> Something went wrong - debug the stop_or_continue function if you see this message")
     }
+
   }
 
 
@@ -395,5 +397,10 @@ preflight_checks <- function(
           "hier2hier"    = check_hier2hier(X = X, Y = Y),
           "compare_cols" = check_compare_cols(X = X, Y = Y)
   )
+
+  # stop your script if stop condition is met and triggered by user (argument:  STOP = T)
+  if(exists("stop_signal", inherits = F)) {
+    stop(paste0("PREFLIGHT_CHECK_ERRORS_", method), "is saved to .GlobalEnv", call. = F)
+  }
 
 }
