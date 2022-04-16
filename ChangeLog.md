@@ -6,8 +6,8 @@ ChangeLog for SamsElves Package
 
 # preflight_checks
 - [ ] convert the following
-  - [ ] deprecate:
-    - [ ] filter statement
+  - [x] deprecate:
+    - [x] filter statement
   - [ ] rename
     - [ ] 'compare_cols' -> 'col_names'
     - [x] 'ERRORS' to "PREFLIGHT_CHECKS_ERRORS"

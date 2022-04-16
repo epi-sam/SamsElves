@@ -27,7 +27,7 @@
 ##'  \item{\code{"hier2data"} : compare a data from on the right against a gold-standard heirarchy on the left. Stop_condition = \code{length(setdiff(X$location_id, Y$location_id)) > 0}}
 ##'  \item{\code{"hier2hier"} : compare two hierarchies for exact equivalence across \code{c("location_id", "location_name", "path_to_top_parent", "most_detailed")}. Stop_condition is any differences.}
 ##'  \item{\code{"data2data"} : compare two generic \code{data.frames} and checks for common UNIQUE values in columns between data.frames. Stop_condition if \code{nrow(setdiff(distinct(X), distinct(Y))) > 0}.}
-##'  \item{\code{"compare_cols"} : compares \code{data.frames} for all same column names. stop_condition is any differences.}
+##'  \item{\code{"col_names"} : compares \code{data.frames} for all same column names. stop_condition is any differences.}
 ##'  \item{\code{"all_equal"} : compare two vectors or \code{data.frames} for total equality.  WARNING: no selecting.  Stop_condition \code{all.equal} is not TRUE.}
 ##' }
 #' @param verbose Do you want verbose console output, or invisible() return of
@@ -99,9 +99,9 @@
 #' # compare to yesterday's data?
 #' preflight_checks(full_data, full_data_prev, "data2data", colsX = names(full_data)) # fail (ok)
 #'
-#' ## compare_cols -----------------
-#' preflight_checks(hier_covid_1020, hier_covid_771, "compare_cols")
-#' preflight_checks(full_data, full_formatted, "compare_cols")
+#' ## col_names -----------------
+#' preflight_checks(hier_covid_1020, hier_covid_771, "col_names")
+#' preflight_checks(full_data, full_formatted, "col_names")
 #'
 #' # Shapefiles ---------------------------
 #' # No built-in method yet, coming soon, and you can compare with a little prep work.
@@ -113,7 +113,7 @@
 preflight_checks <- function(
     X, # first 'gold standard' dataframe
     Y, # second 'to compare' dataframe
-    method = c("all_equal"), # c("all_equal", "data2data", "hier2data", "hier2hier", "compare_cols")
+    method = c("all_equal"), # c("all_equal", "data2data", "hier2data", "hier2hier", "col_names")
     STOP = FALSE, # should an error stop your script?
     verbose = FALSE, # would you like console or invisible() output?
     colsX = c("location_id"), # which columns to check from X (left-side gold standard)?
@@ -123,7 +123,7 @@ preflight_checks <- function(
 
   # Pre-run validation -------------
   # what method? Valid?
-  method_vec <- c("all_equal", "data2data", "hier2data", "hier2hier", "compare_cols")
+  method_vec <- c("all_equal", "data2data", "hier2data", "hier2hier", "col_names")
 
   if(!(method %in% method_vec)){
     stop("<preflight_checks> Invalid method type. Choose: ", paste(method_vec, collapse = ", "))
@@ -373,10 +373,10 @@ preflight_checks <- function(
 
   }
 
-  # Method 5 : compare_cols ----------------------------
+  # Method 5 : col_names ----------------------------
   # Look for only misaligned column names
 
-  check_compare_cols <- function(X,Y){
+  check_col_names <- function(X,Y){
     # Bypassing all data-prep
     Out_list <- list(
       "cols_in_X_not_Y" = setdiff(names(X), names(Y)),
@@ -407,7 +407,7 @@ preflight_checks <- function(
           "data2data"    = check_data2data(X = X, Y = Y, colsX = colsX),
           "hier2data"    = check_hier2data(X = X, Y = Y, colsX = colsX),
           "hier2hier"    = check_hier2hier(X = X, Y = Y),
-          "compare_cols" = check_compare_cols(X = X, Y = Y)
+          "col_names"    = check_col_names(X = X, Y = Y)
   )
 
 }
