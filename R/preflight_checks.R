@@ -128,7 +128,7 @@ preflight_checks <- function(
 
   # what method? Valid?
   method_vec <- c("vec2vec", "hier2data", "hier2hier", "data2data", "col_names", "all_equal",
-                  "anyNAvec")
+                  "anyNAvec", "anyNAdata", "allNAvec")
 
   if(!(method %in% method_vec)){
     stop("<preflight_checks> Invalid method type. Choose: ", paste(method_vec, collapse = ", "))
@@ -440,28 +440,84 @@ preflight_checks <- function(
 
   check_anyNAvec <- function(X){
 
+    if(!is.vector(X)){
+      stop("X is not a vector, consider method = 'anyNAdata'")
+    }
+
     Out_list <- list(
-      "NA_indexes"  = which(is.na(X))
+      "NA_indexes"  = which(is.na(X)),
+      "Inf_indexes" = which(is.infinite(X))
     )
 
     stop_or_continue(STOP = STOP, verbose = verbose,
                      method = method, Out_list = Out_list,
-                     stop_condition = anyNA(X),
-                     helpful_message = "There are missing values in your vector. See above.")
+                     stop_condition = (anyNA(X) | any(is.infinite(X))),
+                     helpful_message = "There are missing/Inf values in your vector. See above.")
   }
 
   # Method 8 : anyNAdata ----------------------------
   # Are any missing values in some columns?
 
-  # chech_anyNAdata <- function(X, colsX)
+  check_anyNAdata <- function(X, colsX) {
+
+    if(!is.data.frame(X)){
+      stop("X is not a data.frame, consider method = 'anyNAvec'")
+    }
+
+    X <- X %>% select(colsX) # select cols for checking
+
+    tmp_NA <- vector('list', length=length(colsX))
+    names(tmp_NA) <- paste0(names(X), "_NA_indexes")
+    for(i in 1:ncol(X)) {tmp_NA[[i]] <- which(is.na(X[,i]))}
+
+    tmp_Inf <- vector('list', length=length(colsX))
+    names(tmp_Inf) <- paste0(names(X), "_Inf_indexes")
+    for(i in 1:ncol(X)) {tmp_Inf[[i]] <- which(is.infinite(X[,i]))}
+
+    Out_list <- list(tmp_NA, tmp_Inf)
+    names(Out_list) <- c("NA", "Inf")
+
+    stop_or_continue(STOP = STOP, verbose = verbose,
+                     method = method, Out_list = Out_list,
+                     stop_condition = (anyNA(X) |
+                                         any(sapply(X, FUN = function(col) any(is.infinite(col))))),
+                     helpful_message = "There are missing/Inf values in your data. NA indexes by column listed above.")
+
+  }
 
   # Method 9 : allNAvec ----------------------------
   # Are all values missing in a vector?
 
+  check_allNAvec <- function(X){
+    if(!is.vector(X)){
+      stop("X is not a vector, consider method = 'allNAdata'")
+    }
+
+    Out_list <- list(
+      "Vec_value"  = unique(X)
+    )
+
+    stop_or_continue(STOP = STOP, verbose = verbose,
+                     method = method, Out_list = Out_list,
+                     stop_condition = (all(is.na(X)) | all(is.infinite(X))),
+                     helpful_message = "Vector is entirely NA/Inf. See above.")
+
+  }
+
   # Method 10 : allNAdata ----------------------------
-  # Are all values missing in some columns?
+  # Are ANY columns ALL missing/infinite?
 
+check_allNAdata <- function(X, colsX){
 
+  if(!is.data.frame(X)){
+    stop("X is not a data.frame, consider method = 'allNAvec'")
+  }
+
+  Out_list <- vector('list', length=length(colsX))
+  names(Out_list) <- paste0(names(X), "_NA_indexes")
+  for(i in 1:ncol(X)) {tmp_NA[[i]] <- which(is.na(X[,i]))}
+
+}
 
 
 
@@ -477,7 +533,9 @@ preflight_checks <- function(
           "hier2hier"    = check_hier2hier(X = X, Y = Y),
           "col_names"    = check_col_names(X = X, Y = Y),
           "vec2vec"      = check_vec2vec  (X = X, Y = Y),
-          "anyNAvec"     = check_anyNAvec (X = X)
+          "anyNAvec"     = check_anyNAvec (X = X),
+          "anyNAdata"    = check_anyNAdata(X = X, colsX = colsX),
+          "allNAvec"     = check_allNAvec (X = X)
   )
 
 }
