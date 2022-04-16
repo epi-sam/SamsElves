@@ -30,6 +30,7 @@
 ##'  \item{\code{"data2data"} : compare two generic \code{data.frames} and checks for common UNIQUE values in columns between data.frames. Stop_condition if \code{nrow(setdiff(distinct(X), distinct(Y))) > 0}.}
 ##'  \item{\code{"col_names"} : compare \code{data.frames} for all same column names. stop_condition is any differences.}
 ##'  \item{\code{"all_equal"} : compare two vectors or \code{data.frames} for total equality.  WARNING: no selecting.  Stop_condition \code{all.equal} is not TRUE.}
+##'  \item{\code{"all_equal"} : compare two vectors or \code{data.frames} for total equality.  WARNING: no selecting.  Stop_condition \code{all.equal} is not TRUE.}
 ##' }
 #' @param verbose Do you want verbose console output, or invisible() return of
 #'   the output_list for assignment to a variable?
@@ -127,8 +128,9 @@ preflight_checks <- function(
   # Pre-run validation -------------
 
   # what method? Valid?
-  method_vec <- c("vec2vec", "hier2data", "hier2hier", "data2data", "col_names", "all_equal",
-                  "anyNAvec", "anyNAdata", "allNAvec")
+  method_vec <- c("vec2vec", "hier2data", "hier2hier", "data2data",
+                  "col_names", "all_equal",
+                  "anyNAvec", "anyNAdata", "allNAvec", "allNAdata")
 
   if(!(method %in% method_vec)){
     stop("<preflight_checks> Invalid method type. Choose: ", paste(method_vec, collapse = ", "))
@@ -272,25 +274,23 @@ preflight_checks <- function(
   }
 
 
-  # Method 1 : all_equal ------------------
-  # Check for equality between two objects with stringent stop behavior
 
-  check_all_equal <- function(X, Y){
+  # Method 1 : vec2vec ----------------------------
+  # Most general - compare two vectors for equality
 
-    # TODO experiment with trycatch here
+  check_vec2vec <- function (X,Y) {
 
     Out_list <- list(
-      "all_equal" = all.equal(X,Y),
-      "in_X_not_Y_(unique)" = setdiff(X,Y),
-      "in_Y_not_X_(unique)" = setdiff(Y,X),
-      "cols_in_X_not_Y" = setdiff(names(X), names(Y)),
-      "cols_in_Y_not_X" = setdiff(names(Y), names(X))
+      "length_X"   = length(X),
+      "length_Y"   = length(Y),
+      "unique_in_X_not_Y" = setdiff(X,Y),
+      "unique_in_Y_not_X" = setdiff(Y,X)
     )
 
     stop_or_continue(STOP = STOP, verbose = verbose,
                      method = method, Out_list = Out_list,
-                     stop_condition = !isTRUE(all.equal(X,Y)), # must be added for each method
-                     helpful_message ="Dataframes are not all equal, see above.")
+                     stop_condition = length(setdiff(X,Y)) > 0,
+                     helpful_message = "There is a difference between unique vector values. See above.")
 
   }
 
@@ -416,22 +416,25 @@ preflight_checks <- function(
 
   }
 
-  # Method 6 : vec2vec ----------------------------
-  # Most general - compare two vectors for equality
+  # Method 6 : all_equal ------------------
+  # Check for equality between two objects with stringent stop behavior
 
-  check_vec2vec <- function (X,Y) {
+  check_all_equal <- function(X, Y){
+
+    # TODO experiment with trycatch here
 
     Out_list <- list(
-      "length_X"   = length(X),
-      "length_Y"   = length(Y),
-      "unique_in_X_not_Y" = setdiff(X,Y),
-      "unique_in_Y_not_X" = setdiff(Y,X)
+      "all_equal" = all.equal(X,Y),
+      "in_X_not_Y_(unique)" = setdiff(X,Y),
+      "in_Y_not_X_(unique)" = setdiff(Y,X),
+      "cols_in_X_not_Y" = setdiff(names(X), names(Y)),
+      "cols_in_Y_not_X" = setdiff(names(Y), names(X))
     )
 
     stop_or_continue(STOP = STOP, verbose = verbose,
                      method = method, Out_list = Out_list,
-                     stop_condition = length(setdiff(X,Y)) > 0,
-                     helpful_message = "There is a difference between unique vector values. See above.")
+                     stop_condition = !isTRUE(all.equal(X,Y)), # must be added for each method
+                     helpful_message ="Dataframes are not all equal, see above.")
 
   }
 
@@ -466,11 +469,11 @@ preflight_checks <- function(
 
     X <- X %>% select(colsX) # select cols for checking
 
-    tmp_NA <- vector('list', length=length(colsX))
+    tmp_NA <- vector('list', length = length(colsX))
     names(tmp_NA) <- paste0(names(X), "_NA_indexes")
     for(i in 1:ncol(X)) {tmp_NA[[i]] <- which(is.na(X[,i]))}
 
-    tmp_Inf <- vector('list', length=length(colsX))
+    tmp_Inf <- vector('list', length = length(colsX))
     names(tmp_Inf) <- paste0(names(X), "_Inf_indexes")
     for(i in 1:ncol(X)) {tmp_Inf[[i]] <- which(is.infinite(X[,i]))}
 
@@ -513,29 +516,35 @@ check_allNAdata <- function(X, colsX){
     stop("X is not a data.frame, consider method = 'allNAvec'")
   }
 
-  Out_list <- vector('list', length=length(colsX))
-  names(Out_list) <- paste0(names(X), "_NA_indexes")
-  for(i in 1:ncol(X)) {tmp_NA[[i]] <- which(is.na(X[,i]))}
+  X <- X %>% select(colsX) # select cols for checking
+
+  Out_list <- list()
+  for (i in colsX){
+    Out_list[[i]] <- all(is.na(X[,i]) | is.infinite(X[,i]))
+  }
+
+  stop_or_continue(STOP = STOP, verbose = verbose,
+                   method = method, Out_list = Out_list,
+                   stop_condition = sum(unlist(Out_list)) > 0,
+                   helpful_message = "Some columns are entirely NA/Inf (TRUE in output). See above.")
+
 
 }
-
-
-
-
 
 
   # Switch --------------
   # call the different check functions depending on method required
   switch (method,
-          "all_equal"    = check_all_equal(X = X, Y = Y),
           "data2data"    = check_data2data(X = X, Y = Y, colsX = colsX),
           "hier2data"    = check_hier2data(X = X, Y = Y, colsX = colsX),
           "hier2hier"    = check_hier2hier(X = X, Y = Y),
           "col_names"    = check_col_names(X = X, Y = Y),
+          "all_equal"    = check_all_equal(X = X, Y = Y),
           "vec2vec"      = check_vec2vec  (X = X, Y = Y),
           "anyNAvec"     = check_anyNAvec (X = X),
           "anyNAdata"    = check_anyNAdata(X = X, colsX = colsX),
-          "allNAvec"     = check_allNAvec (X = X)
+          "allNAvec"     = check_allNAvec (X = X),
+          "allNAdata"    = check_allNAdata(X = X, colsX = colsX)
   )
 
 }
