@@ -131,7 +131,7 @@ preflight_checks <- function(
   method_vec <- c("vec2vec", "hier2data", "hier2hier", "data2data",
                   "col_names", "all_equal",
                   "anyNAvec", "anyNAdata", "allNAvec", "allNAdata",
-                  "all0vec")
+                  "all0vec", "all0data")
 
   if(!(method %in% method_vec)){
     stop("<preflight_checks> Invalid method type. Choose: ", paste(method_vec, collapse = ", "))
@@ -526,18 +526,18 @@ preflight_checks <- function(
 
     stop_or_continue(STOP = STOP, verbose = verbose,
                      method = method, Out_list = Out_list,
-                     stop_condition = sum(unlist(Out_list)) > 0,
+                     stop_condition = sum(unlist(Out_list), na.rm = T) > 0,
                      helpful_message = "Some columns are entirely NA/Inf (TRUE in output). See above.")
 
 
   }
 
   # Method 11 : all0vec ----------------------------
-  # # Are all values 0 in a vector?
+  # Are all values 0 in a vector?
 
   check_all0vec <- function(X){
     if(!is.vector(X)){
-      stop("X is not a vector, consider method = 'allNAdata'")
+      stop("X is not a vector, consider method = 'all0data' ")
     }
 
     Out_list <- list(
@@ -549,6 +549,28 @@ preflight_checks <- function(
                      stop_condition = (all(X==0)),
                      helpful_message = "Vector is all 0. See above.")
 
+  }
+
+  # Method 12 : all0data ----------------------------
+  # Are ANY columns ALL 0?
+
+  check_all0data <- function(X, colsX){
+
+    if(!is.data.frame(X)){
+      stop("X is not a data.frame, consider method = 'all0vec' ")
+    }
+
+    X <- X %>% select(colsX) # select cols for checking
+
+    Out_list <- list()
+    for (i in colsX){
+      Out_list[[i]] <- all((X[,i]) == 0)
+    }
+
+    stop_or_continue(STOP = STOP, verbose = verbose,
+                     method = method, Out_list = Out_list,
+                     stop_condition = sum(unlist(Out_list), na.rm = T) > 0,
+                     helpful_message = "Some columns are entirely 0 (TRUE in output). See above.")
   }
 
 
@@ -565,7 +587,8 @@ preflight_checks <- function(
           "anyNAdata"    = check_anyNAdata(X = X, colsX = colsX),
           "allNAvec"     = check_allNAvec (X = X),
           "allNAdata"    = check_allNAdata(X = X, colsX = colsX),
-          "all0vec"      = check_all0vec  (X = X)
+          "all0vec"      = check_all0vec  (X = X),
+          "all0data"     = check_all0data (X = X, colsX = colsX)
   )
 
 }
