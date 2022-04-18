@@ -49,6 +49,7 @@
 #'   that of \code{colsX}
 #' @param STOP Do you want to STOP your script if there is a mismatch, or allow
 #'   to continue with a WARNING message?
+#' @param user_message Custom message that prints with output - locate your preflight_check stop location
 #'
 #' @return Output_list of diagnostics that may be assigned, or printed to console (\code{verbose = TRUE})
 #' @export
@@ -138,6 +139,7 @@ preflight_checks <- function(
   method = c("vec2vec"),
   STOP = FALSE, # should an error stop your script?
   verbose = FALSE, # would you like console or invisible() output?
+  user_message = NULL, # custom message to help locate PFC stop-point
   colsX = c("location_id"), # which columns to check from X (left-side gold standard)?
   colsY = NULL # which columns to check from Y? (if column names differ from X)
 ) {
@@ -149,9 +151,13 @@ preflight_checks <- function(
                   "col_names", "all_equal",
                   "anyNAvec", "anyNAdata", "allNAvec", "allNAdata",
                   "all0vec", "all0data")
+  method_vec_readable <- ("\n            vec2vec, hier2data, hier2hier, data2data : (X to Y)
+            col_names, all_equal : (column names or full equality)
+            anyNAvec, anyNAdata, allNAvec, allNAdata : (X only - NA and Inf)
+            all0vec, all0data : (X only - all 0)")
 
   if(!(method %in% method_vec)){
-    stop("<preflight_checks> Invalid method type. Choose: ", paste(method_vec, collapse = ", "))
+    stop("<preflight_checks> Invalid method type. Choose: ", method_vec_readable)
   }
 
   # is Y required by the method?
@@ -184,6 +190,14 @@ preflight_checks <- function(
   union <- dplyr::union
   intersect <- dplyr::intersect
   copy <- data.table::copy
+  # check for scriptName package - shows current filename if sourcing
+  if (suppressWarnings(!require(scriptName))) {
+    message("scriptName package not loaded, if you want preflight_checks to
+            print a script name, please load with
+            library(scriptName, lib = '/mnt/share/code/covid-19/r_packages') ")
+  } else if (require(scriptName)) {
+    suppressWarnings(current_filename <- scriptName::current_filename())
+  }
 
   # keep copies of raw data before prepping for later Out_list info (e.g. location names)
   Xraw <- copy(X)
@@ -223,6 +237,7 @@ preflight_checks <- function(
 
       assign(paste0("PREFLIGHT_CHECK_ERRORS_", method), Out_list, envir = .GlobalEnv) # TODO this may be dangerous
       warning("<preflight_checks>: Stop condition met:", "\n",
+              "filename is: ", ifelse(require(scriptName), current_filename(), "scriptName not loaded"), "\n",
               helpful_message, "\n",
               "method is: ", method, "\n",
               "X (left-side): ", Xname, "\n",
@@ -241,6 +256,7 @@ preflight_checks <- function(
               "Y (right-side): ", Yname, "\n")
 
       warning("<preflight_checks>: Stop condition met, but STOP set to FALSE, showing differences above:", "\n",
+              "filename is: ", ifelse(require(scriptName), current_filename(), "scriptName not loaded"), "\n",
               helpful_message, "\n",
               "method is: ", method, "\n",
               "X (left-side): ", Xname, "\n",
@@ -270,6 +286,7 @@ preflight_checks <- function(
     } else if (!stop_condition & verbose) {
 
       message("INLINE <preflight_checks> method is: ", method, "\n",
+              "filename is: ", ifelse(require(scriptName), current_filename(), "scriptName not loaded"), "\n",
               "X (left-side): ", Xname, "\n",
               "Y (right-side): ", Yname, "\n",
               "Passed the stop condition - continuing script.", "\n")
