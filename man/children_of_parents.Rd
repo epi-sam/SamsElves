@@ -6,22 +6,28 @@
 \usage{
 children_of_parents(
   parent_loc_ids,
-  path_to_parent_string,
-  include_parent = TRUE
+  hierarchy,
+  output = c("boolean", "loc_ids"),
+  include_parent = FALSE
 )
 }
 \arguments{
 \item{parent_loc_ids}{Numeric vector of parent location_ids}
 
-\item{path_to_parent_string}{Vector of strings, formatted "1,2,3". What is
-the path_to_top_parent string vector?}
+\item{hierarchy}{Which hierarchy to use? (Uses 'path_to_top_parent' to find all nested children)}
+
+\item{output}{Output options:
+\itemize{
+ \item{\code{"boolean"} : T/F vector for all rows in the hierarchy - useful for adding a new column}
+ \item{\code{"numeric"} : vector of only the childrens' location_ids (and parent, if desired)}
+}}
 
 \item{include_parent}{Logical T/F Do you want parents included with children?
-If FALSE, be careful if the parent location_ids are nested inside each
-other.}
+(FALSE by default). If FALSE, and using two parent IDs, be careful if the
+parent location_ids are nested inside each other.}
 }
 \value{
-Logical T/F vector
+Logical T/F vector for all hierarchy locs, or a vector of children location_ids?
 }
 \description{
 \code{children_of_parents()} finds children from IHME Hierarchies, given a
@@ -30,13 +36,12 @@ parent ID in the path_to_top_parent column?  Returns logical T/F vector.
 }
 \examples{
 
-paths <- c("1,31,32", "1,31,32,33", "1,4,5,6") # Central Asia, Armenia, China
-parents <- c(6, 32) # China, Central Asia
+source(file.path("/ihme/cc_resources/libraries/current/r/get_location_metadata.R"))
+hierarchy <- get_location_metadata(location_set_id = 111, location_set_version_id = 1050, release_id = 9)
 
-children_of_parents(parent_loc_ids = parents, path_to_parent_string = paths, include_parent = T)
-# [1] TRUE  TRUE  TRUE
+hierarchy$children_of_china <- children_of_parents(6, hierarchy)
+hierarchy$china_and_children <- children_of_parents(6, hierarchy, include_parent = TRUE)
 
-children_of_parents(parent_loc_ids = parents, path_to_parent_string = paths, include_parent = F)
-# [1] FALSE  TRUE FALSE
+child_locs_of_china <- children_of_parents(6, hierarchy, output = "loc_ids")
 
 }
