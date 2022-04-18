@@ -185,6 +185,7 @@ preflight_checks <- function(
   setname <- dplyr::rename
   distinct <- dplyr::distinct
   all_of <- dplyr::all_of
+  if_else <- dplyr::if_else
   arrange <- dplyr::arrange
   setdiff <- dplyr::setdiff
   union <- dplyr::union
@@ -192,9 +193,7 @@ preflight_checks <- function(
   copy <- data.table::copy
   # check for scriptName package - shows current filename if sourcing
   if (suppressWarnings(!require(scriptName))) {
-    message("scriptName package not loaded, if you want preflight_checks to
-            print a script name, please load with
-            library(scriptName, lib = '/mnt/share/code/covid-19/r_packages') ")
+    message("if you want preflight_checks to print a script name, please load with: library(scriptName, lib = '/mnt/share/code/covid-19/r_packages') ")
   } else if (require(scriptName)) {
     suppressWarnings(current_filename <- scriptName::current_filename())
   }
@@ -238,7 +237,11 @@ preflight_checks <- function(
       assign(paste0("PREFLIGHT_CHECK_ERRORS_", method), Out_list, envir = .GlobalEnv) # TODO this may be dangerous
       warning("<preflight_checks>: Stop condition met:", "\n",
               user_message, "\n",
-              "filename is: ", ifelse(require(scriptName), current_filename(), "scriptName not loaded"), "\n",
+              "filename is: ", if (suppressWarnings(require(scriptName))) {
+                current_filename()
+              } else{
+                "scriptName not loaded\n"
+              },
               helpful_message, "\n",
               "method is: ", method, "\n",
               "X (left-side): ", Xname, "\n",
@@ -258,7 +261,11 @@ preflight_checks <- function(
               "Y (right-side): ", Yname, "\n")
 
       warning("<preflight_checks>: Stop condition met, but STOP set to FALSE, showing differences above:", "\n",
-              "filename is: ", ifelse(require(scriptName), current_filename(), "scriptName not loaded"), "\n",
+              "filename is: ", if (suppressWarnings(require(scriptName))) {
+                current_filename()
+              } else{
+                "scriptName not loaded\n"
+              },
               user_message, "\n",
               helpful_message, "\n",
               "method is: ", method, "\n",
@@ -289,7 +296,11 @@ preflight_checks <- function(
     } else if (!stop_condition & verbose) {
 
       message("INLINE <preflight_checks> method is: ", method, "\n",
-              "filename is: ", ifelse(require(scriptName), current_filename(), "scriptName not loaded"), "\n",
+              "filename is: ", if (suppressWarnings(require(scriptName))) {
+                current_filename()
+              } else{
+                "scriptName not loaded\n"
+              },
               user_message, "\n",
               "X (left-side): ", Xname, "\n",
               "Y (right-side): ", Yname, "\n",
