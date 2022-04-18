@@ -237,6 +237,7 @@ preflight_checks <- function(
 
       assign(paste0("PREFLIGHT_CHECK_ERRORS_", method), Out_list, envir = .GlobalEnv) # TODO this may be dangerous
       warning("<preflight_checks>: Stop condition met:", "\n",
+              user_message, "\n",
               "filename is: ", ifelse(require(scriptName), current_filename(), "scriptName not loaded"), "\n",
               helpful_message, "\n",
               "method is: ", method, "\n",
@@ -250,6 +251,7 @@ preflight_checks <- function(
     } else if(stop_condition & !STOP & verbose){
 
       message("INLINE <preflight_checks>: Stop condition met, but STOP set to FALSE, showing differences above:", "\n",
+              user_message, "\n",
               helpful_message, "\n",
               "method is: ", method, "\n",
               "X (left-side): ", Xname, "\n",
@@ -257,6 +259,7 @@ preflight_checks <- function(
 
       warning("<preflight_checks>: Stop condition met, but STOP set to FALSE, showing differences above:", "\n",
               "filename is: ", ifelse(require(scriptName), current_filename(), "scriptName not loaded"), "\n",
+              user_message, "\n",
               helpful_message, "\n",
               "method is: ", method, "\n",
               "X (left-side): ", Xname, "\n",
@@ -287,6 +290,7 @@ preflight_checks <- function(
 
       message("INLINE <preflight_checks> method is: ", method, "\n",
               "filename is: ", ifelse(require(scriptName), current_filename(), "scriptName not loaded"), "\n",
+              user_message, "\n",
               "X (left-side): ", Xname, "\n",
               "Y (right-side): ", Yname, "\n",
               "Passed the stop condition - continuing script.", "\n")
