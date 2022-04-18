@@ -1,41 +1,67 @@
 # preflight_checks -------------------
-# --- packages ---
+#
+# rm(list=ls(all.names = T))
+# USER <- Sys.info()[['user']]
+#
+# source(file.path("/ihme/cc_resources/libraries/current/r/get_location_metadata.R"))
+# library('ihme.covid', lib.loc = '/ihme/covid-19/.r-packages/current')
+#
+# VERSIONS <- list(
+#   MAIN =    '2022_04_06.05', # most recent fixes from hybrid ETL (or Mon/Tue overnight run)
+#   COMPARE = '2022_04_06.01'  # prior model-inputs to compare against  (or last prod "best")
+# )
+#
+# PATHS <- list(
+#   DATA_ROOT = "/ihme/covid-19/model-inputs",
+#   CODE_ROOT = "/ihme/code/covid-19/user",
+#   PLOT_ROOT = "/mnt/share/covid-19/qc-plots",
+#   PLOT_DIR = ihme.covid::get_output_dir("/mnt/share/covid-19/qc-plots", "today")
+# )
+#
+# extra_hosp_main <- fread(file.path(PATHS$DATA_ROOT, VERSIONS$MAIN, 'use_at_your_own_risk/full_data_extra_hospital.csv'))
+# extra_hosp_compare <- fread(file.path(PATHS$DATA_ROOT, VERSIONS$COMPARE, 'use_at_your_own_risk/full_data_extra_hospital.csv'))
+#
+# hier_mi <- fread(file.path(PATHS$DATA_ROOT, VERSIONS$MAIN, 'locations/modeling_hierarchy.csv')) # read from model-inputs
+# hier_db <- get_location_metadata(location_set_id = 111, location_set_version_id = 1050, release_id = 9) # validate model-inputs version
+# library(scriptName, lib = '/mnt/share/code/covid-19/r_packages')
+#
+# # Testing output, messages, warnings ========
+# preflight_checks(hier_db, hier_mi, "hier2hier", v=T, S=F) # testing new user0-friendly output
+# preflight_checks(hier_db, hier_mi, "hier2hier", v=T, S=T) # testing STOP behavior with new output
+# preflight_checks(hier_db, hier_mi, "hier2hier", v=T, S=F,
+#                  user_message = "This is a custom message") # testing new user0-friendly output
+# preflight_checks(hier_db, hier_mi, "hier2", v=T, S=F) # see readable method options it method is wrong
+# # preflight_checks(hier_db, hier_mi, "hier2hier", v=T, S=T)
+# preflight_checks(hier_db, hier_mi, "hier2hier", v=F, S=F)
+# # preflight_checks(hier_db, hier_mi, "hier2hier", v=F, S=T)
+# preflight_checks(hier_db, hier_db, "hier2hier", v=T, S=F)
+# preflight_checks(hier_db, hier_db, "hier2hier", v=F, S=F)
+#
+#
+# test <- "did this stop?"
 
-library(data.table)
-library(dplyr)
-library(tidyr)
-library(glue)
-
-# --- paths ---
-
-PATHS <- list(
-  ROOT = "",
-  SCRIPTS = "R",
-  DATA = "data",
-  ARCHIVE = "archive"
-)
-
-# --- data ---
-
-DFS <- lapply(list.files("data", full.names = T), function(x) as_tibble(get(load(x, verbose = T))))
-names(DFS) <- strsplit(list.files("data"), ".Rdata")
-
-hier_covid <- DFS$modeling_hierarchy
-hier_gbd <- DFS$gbd_analysis_hierarchy
-hier_fh <- DFS$fh_small_area_hierarchy
-hier_covar <- DFS$covariate_with_aggregates_hierarchy
-# bigger data.frame
-full_data <- DFS$full_data_unscaled
-
-# --- sandbox ---
-
-# two equal dataframes for testing
-Equal1 <- hier_covid %>% select(location_id, location_name, path_to_top_parent, most_detailed)
-Equal2 <- copy(Equal1)
-
-# two unequal datasets
-Diff1 <- hier_covid %>% select(location_id, location_name, path_to_top_parent, most_detailed, location_name)
-Diff2 <- hier_gbd %>% select(location_id, location_name, path_to_top_parent, most_detailed, lancet_label)
+# print(cat("a", "b", test, sep = "\n"))
+# # --- data ---
+#
+# DFS <- lapply(list.files("data", full.names = T), function(x) as_tibble(get(load(x, verbose = T))))
+# names(DFS) <- strsplit(list.files("data"), ".Rdata")
+#
+# hier_covid <- DFS$modeling_hierarchy
+# hier_gbd <- DFS$gbd_analysis_hierarchy
+# hier_fh <- DFS$fh_small_area_hierarchy
+# hier_covar <- DFS$covariate_with_aggregates_hierarchy
+# # bigger data.frame
+# full_data <- DFS$full_data_unscaled
+#
+# # --- sandbox ---
+#
+# # two equal dataframes for testing
+# Equal1 <- hier_covid %>% select(location_id, location_name, path_to_top_parent, most_detailed)
+# Equal2 <- copy(Equal1)
+#
+# # two unequal datasets
+# Diff1 <- hier_covid %>% select(location_id, location_name, path_to_top_parent, most_detailed, location_name)
+# Diff2 <- hier_gbd %>% select(location_id, location_name, path_to_top_parent, most_detailed, lancet_label)
 
 # get_children_from_parent ---------------
 

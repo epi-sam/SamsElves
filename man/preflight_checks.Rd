@@ -2,17 +2,17 @@
 % Please edit documentation in R/preflight_checks.R
 \name{preflight_checks}
 \alias{preflight_checks}
-\title{Compare hierarchies or data sets against a reference}
+\title{Validation of hierarchies or data for equivalence or missingness}
 \usage{
 preflight_checks(
   X,
-  Y,
-  method = c("all_equal"),
+  Y = NULL,
+  method = c("vec2vec"),
   STOP = FALSE,
   verbose = FALSE,
+  user_message = NULL,
   colsX = c("location_id"),
-  colsY = NULL,
-  filter_statement = NULL
+  colsY = NULL
 )
 }
 \arguments{
@@ -24,11 +24,18 @@ standard, by 'method')}
 
 \item{method}{method of comparison to be made:
 \itemize{
- \item{\code{"all_equal"} : compare two vectors or \code{data.frames} for total equality.  WARNING: no selecting or filtering applied.  Stop_condition \code{all.equal} is not TRUE.}
- \item{\code{"data2data"} : compare two generic \code{data.frames} and checks for common UNIQUE values in columns between data.frames. Stop_condition if \code{nrow(setdiff(distinct(X), distinct(Y))) > 0}.}
- \item{\code{"hier2data"} : compare a data from on the right against a gold-standard heirarchy on the left. Stop_condition = \code{length(setdiff(X$location_id, Y$location_id)) > 0}}
- \item{\code{"hier2hier"} : compare two hierarchies for exact equivalence across \code{c("location_id", "location_name", "path_to_top_parent", "most_detailed")}. Stop_condition is any differences.}
- \item{\code{"compare_cols"} : compares \code{data.frames} for all same column names. stop_condition is any differences.}
+ \item{\code{"vec2vec"}   : X to Y - compare two vectors for UNIQUE values. Stop_condition = \code{length(setdiff(X,Y)) > 0}}
+ \item{\code{"hier2data"} : X to Y - compare a data from on the right against a gold-standard hierarchy on the left. Stop_condition = \code{length(setdiff(X$location_id, Y$location_id)) > 0}}
+ \item{\code{"hier2hier"} : X to Y - compare two hierarchies for equivalence across \code{c("location_id", "location_name", "path_to_top_parent", "most_detailed")}. Stop_condition = any differences.}
+ \item{\code{"data2data"} : X to Y - compare two generic \code{data.frames} and checks for common UNIQUE values in columns between data.frames. Stop_condition = \code{nrow(setdiff(distinct(X), distinct(Y))) > 0}.}
+ \item{\code{"col_names"} : X to Y - compare \code{data.frames} for all same column names. Stop_condition = any differences.}
+ \item{\code{"all_equal"} : X to Y - compare two vectors or \code{data.frames} for total equality.  WARNING: no selecting.  Stop_condition = \code{all.equal} is not TRUE.}
+ \item{\code{"anyNAvec"}  : X only - evaluate a vector for any \code{NA or Inf}.  Stop_condition = \code{anyNA(X) | any(is.infinite(X))}}
+ \item{\code{"anyNAdata"} : X only - evaluate a data.frame for any \code{NA or Inf}.  Stop_condition = any NA or Inf in any column in \code{colsX}}
+ \item{\code{"allNAvec"}  : X only - evaluate a vector for all \code{NA or Inf}.  Stop_condition = \code{all(is.na(X)) | all(is.infinite(X))}}
+ \item{\code{"allNAdata"} : X only - evaluate a data.frame for all \code{NA or Inf} in any column.  Stop_condition = all NA or Inf in any column in \code{colsX}}
+ \item{\code{"all0vec"}   : X only - evaluate a vector for all \code{0} values.  Stop_condition = \code{all(X==0)}}
+ \item{\code{"all0data"}  : X only - evaluate a data.frame for all \code{0} values in any column.  Stop_condition = all \code{0} in any column in \code{colsX}}
 }}
 
 \item{STOP}{Do you want to STOP your script if there is a mismatch, or allow
@@ -37,34 +44,29 @@ to continue with a WARNING message?}
 \item{verbose}{Do you want verbose console output, or invisible() return of
 the output_list for assignment to a variable?}
 
-\item{colsX}{Only for '___2data' methods. Vector of column names in
+\item{user_message}{Custom message if verbose = TRUE - locate your preflight_check stop location}
+
+\item{colsX}{Only for '___data' methods. Vector of column names in
 "reference" vector or data.frame - keep column order consistent!}
 
 \item{colsY}{Only for '___2data' methods. Vector of column names in the
 "comparison" vector or data.frame - WARNING: MAKE SURE column order matches
 that of \code{colsX}}
-
-\item{filter_statement}{Only for '___2data' methods. All your desired
-  filtering arguments, as a single, quoted, character string. e.g.
-  \code{"location_id > 100 & most_detailed==0"}.
-\itemize{
- \item{Use column names from \code{colsX}, because filtering occurs after
- column selection. Use column names from \code{colsX}, because filtering
- occurs after column selection. It's less cumbersome to filter before using
- \code{preflight_checks}, but this option exists in case.}
-}}
 }
 \value{
 Output_list of diagnostics that may be assigned, or printed to console (\code{verbose = TRUE})
 }
 \description{
 Returns a \code{list()} of diagnostic information, quietly or verbose, and
-STOPS or continues based on user preference.  I recommend saving this output
-to an object with a name that is diagnostically helpful if you set \code{STOP
-or verbose = FALSE.} \code{'X'} is intended as the left-side, 'reference'
-data - that which is your gold standard to compare against, and \code{'Y'} is
-intended as the right-side 'comparison' data - that which you want to
-validate AGAINST \code{X}.
+STOPS or continues a script after a validation check, based on user
+preference.  You can save this output list to an object for investigation.
+\itemize{
+  \item{\code{'X'} is the left-side,'reference' data - your gold standard to compare against.}
+  \item{\code{'Y'} is the right-side 'comparison' data to validate against \code{X}.}
+  \item{Methods with \code{'__vec'} expect a vector, \code{'hier2__'} expect a hierarchy, \code{'__data'} expect a \code{data.frame} with \code{colsX} defined.}
+  \item{\code{__NA/Inf/0__ } methods only require \code{X / colsX}}
+  \item{\code{__2__, col_names}, and \code{all_equal} check methods require \code{X} and \code{Y}.}
+  }
 }
 \details{
 This function may STOP a script if specified. Many 'methods' of comparison
@@ -74,67 +76,80 @@ compare two hierarchies directly for equality. If you need to compare
 data.frame columns with the same content but different column names, enter
 those names in the same order in \code{colsX} and \code{colsY} arguments, and
 the function will use \code{colsX} (left-hand data.frame) to rename all
-columns, and output will return those names. Filtering occurs AFTER column
-selection. Format all filters according to \code{colsX} names. Order of
-operations: \code{select()}, \code{setNames()}, then \code{filter()}.
+columns, and output will return those names. Order of
+operations: \code{select()}, \code{setNames()}.
 }
 \examples{
 
+# MREs -----------------
+
 library(dplyr)
 source("/ihme/cc_resources/libraries/current/r/get_location_metadata.R")
-
-MREs -----------------
 source("/ihme/cc_resources/libraries/current/r/get_location_metadata.R")
 
 # HIERARCHIES
 
-# covid
 hier_covid_771 <- get_location_metadata(111, 771, release_id = 9)
 hier_covid_1020 <- get_location_metadata(111, 1020, release_id = 9)
 hier_covid_mi <- fread('/mnt/share/covid-19/model-inputs/2022_03_30.01/locations/modeling_hierarchy.csv')
 
-# Real data --------------------
+# DATA --------------------
 
 # full_data
 full_data <- fread('/mnt/share/covid-19/model-inputs/2022_03_30.01/full_data_unscaled.csv')
 full_data_prev <- fread('/mnt/share/covid-19/model-inputs/2022_03_29.01/full_data_unscaled.csv')
 full_formatted <- fread('/mnt/share/covid-19/model-inputs/2022_03_30.01/full_data_unscaled_formatted_dates.csv')
 
-# methods ---------
+# METHODS -------------------------
+
+## vec2vec ----------------------
+
+locs_771 <- hier_covid_771$location_id
+locs_1020 <- hier_covid_1020$location_id
+locs_mi <- hier_covid_mi$location_id
+
+preflight_checks(locs_771, locs_mi, "vec2vec", v=T) # fails with output
+preflight_checks(locs_1020, locs_mi, "vec2vec", v=T) # passes with output
+
+## NA/Inf/0 validation ----------------------
+
+A <- c(1:3, NaN, 4, rep(NA,3))
+B <- c(5:6, -Inf, 7, rep(Inf,4))
+C <- rep(NA, 8)
+D <- rep(Inf, 8)
+E <- rep(0,8)
+DF <- data.frame(A, B, C, D, E)
+
+preflight_checks(A, method = "anyNAvec", v=T) # fails
+preflight_checks(A, method = "allNAvec", v=T) # passes
+preflight_checks(D, method = "allNAvec", v=T) # fails
+
+preflight_checks(DF, colsX = names(DF), method = "all0data", v=T) # fails
+
+## hier2hier -------------------
+# compares across c("location_id", "location_name", "path_to_top_parent", "most_detailed")
+# save your output for inspection if not verbose
+(pfc_pass <- preflight_checks(hier_covid_1020, hier_covid_1020, "hier2hier"))
+(pfc_fail <- preflight_checks(hier_covid_1020, hier_covid_771, "hier2hier"))
+
+## data2data -----------------
+preflight_checks(full_data, full_data, "data2data")
+preflight_checks(full_data, full_formatted, "data2data") # why does this pass? (OK)
+preflight_checks(full_data, full_formatted, "data2data", colsX = c("location_id", "Date_formatted")) # pass (OK)
+
+## col_names -----------------
+preflight_checks(hier_covid_1020, hier_covid_771, "col_names")
+preflight_checks(full_data, full_formatted, "col_names")
 
 ## all_equal ---------------
 
 # simple, naive check for equality
 preflight_checks(X = hier_covid_1020, Y = hier_covid_1020, method = "all_equal") # pass (OK)
 preflight_checks(hier_covid_1020, hier_covid_mi) # error - not equivalent (desired behavior)
-# equivalent
-preflight_checks(hier_covid_1020, hier_covid_1020) # pass (O)
-# check LSVIDs against each other, using current as 'left side'
-preflight_checks(hier_covid_1020, hier_covid_771) # fail (OK)
-preflight_checks(hier_covid_1020, hier_covid_771, verbose = T) # prints warning, continues
-preflight_checks(hier_covid_1020, hier_covid_771, STOP = T, verbose = T) # stops, saves errors to .GlobalEnv
-preflight_checks(hier_covid_1020, hier_covid_1020, STOP = T, verbose = T) # keep going, see receipt of passing
 
-## hier2hier -------------------
-# save your output for inspection if not verbose
-output_pass <- preflight_checks(hier_covid_1020, hier_covid_1020, "hier2hier")
-output_pass$names_in_X_not_in_Y
-output_fail <- preflight_checks(hier_covid_1020, hier_covid_771, "hier2hier")
-output_fail$names_in_X_not_in_Y
-
-## data2data -----------------
-preflight_checks(full_data, full_data, "data2data")
-preflight_checks(full_data, full_formatted, "data2data") # why does this pass? (OK)
-preflight_checks(full_data, full_formatted, "data2data", colsX = c("location_id", "Date_formatted")) # pass (OK)
-# is full_data equivalent to formatted date data?
-preflight_checks(full_data, full_formatted, "data2data", colsX = names(full_data)) # pass (ok)
-# compare to yesterday's data?
-preflight_checks(full_data, full_data_prev, "data2data", colsX = names(full_data)) # fail (ok)
-
-## compare_cols -----------------
-preflight_checks(hier_covid_1020, hier_covid_771, "compare_cols")
-preflight_checks(full_data, full_formatted, "compare_cols")
-
+## hier2data -------------------
+# defaults to compare 'location_id'
+preflight_checks(hier_covid_771, full_data, method = "hier2data")
 
 # Shapefiles ---------------------------
 # No built-in method yet, coming soon, and you can compare with a little prep work.
