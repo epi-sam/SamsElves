@@ -26,8 +26,11 @@ hier_db <- get_location_metadata(location_set_id = 111, location_set_version_id 
 library(scriptName, lib = '/mnt/share/code/covid-19/r_packages')
 
 # Testing output, messages, warnings ========
-preflight_checks(hier_db, hier_mi, "hier2hier", v=T, S=F)
-preflight_checks(hier_db, hier_mi, "hier2", v=T, S=F) # see readable method options
+preflight_checks(hier_db, hier_mi, "hier2hier", v=T, S=F) # testing new user0-friendly output
+preflight_checks(hier_db, hier_mi, "hier2hier", v=T, S=T) # testing STOP behavior with new output
+preflight_checks(hier_db, hier_mi, "hier2hier", v=T, S=F,
+                 user_message = "This is a custom message") # testing new user0-friendly output
+preflight_checks(hier_db, hier_mi, "hier2", v=T, S=F) # see readable method options it method is wrong
 # preflight_checks(hier_db, hier_mi, "hier2hier", v=T, S=T)
 preflight_checks(hier_db, hier_mi, "hier2hier", v=F, S=F)
 # preflight_checks(hier_db, hier_mi, "hier2hier", v=F, S=T)

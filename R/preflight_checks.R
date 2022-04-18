@@ -49,7 +49,7 @@
 #'   that of \code{colsX}
 #' @param STOP Do you want to STOP your script if there is a mismatch, or allow
 #'   to continue with a WARNING message?
-#' @param user_message Custom message that prints with output - locate your preflight_check stop location
+#' @param user_message Custom message if verbose = TRUE - locate your preflight_check stop location
 #'
 #' @return Output_list of diagnostics that may be assigned, or printed to console (\code{verbose = TRUE})
 #' @export
@@ -193,7 +193,7 @@ preflight_checks <- function(
   copy <- data.table::copy
   # check for scriptName package - shows current filename if sourcing
   if (suppressWarnings(!require(scriptName))) {
-    message("if you want preflight_checks to print a script name, please load with: library(scriptName, lib = '/mnt/share/code/covid-19/r_packages') ")
+    message("If you want to print the script name, load with: library(scriptName, lib = '/mnt/share/code/covid-19/r_packages') ")
   } else if (require(scriptName)) {
     suppressWarnings(current_filename <- scriptName::current_filename())
   }
@@ -238,7 +238,7 @@ preflight_checks <- function(
       warning("<preflight_checks>: Stop condition met:", "\n",
               user_message, "\n",
               "filename is: ", if (suppressWarnings(require(scriptName))) {
-                current_filename()
+                c(current_filename(),"\n")
               } else{
                 "scriptName not loaded\n"
               },
@@ -262,7 +262,7 @@ preflight_checks <- function(
 
       warning("<preflight_checks>: Stop condition met, but STOP set to FALSE, showing differences above:", "\n",
               "filename is: ", if (suppressWarnings(require(scriptName))) {
-                current_filename()
+                c(current_filename(),"\n")
               } else{
                 "scriptName not loaded\n"
               },
@@ -297,7 +297,7 @@ preflight_checks <- function(
 
       message("INLINE <preflight_checks> method is: ", method, "\n",
               "filename is: ", if (suppressWarnings(require(scriptName))) {
-                current_filename()
+                c(current_filename(),"\n")
               } else{
                 "scriptName not loaded\n"
               },
