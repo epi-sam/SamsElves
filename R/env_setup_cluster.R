@@ -1,4 +1,4 @@
-# # preflight_checks -------------------
+# preflight_checks -------------------
 #
 # rm(list=ls(all.names = T))
 # USER <- Sys.info()[['user']]
@@ -39,7 +39,7 @@
 #
 #
 # test <- "did this stop?"
-#
+
 # print(cat("a", "b", test, sep = "\n"))
 # # --- data ---
 #

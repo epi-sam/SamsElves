@@ -62,10 +62,9 @@ ChangeLog for SamsElves Package
     
 
 # children_of_parents
-- [ ] Add option to just print a vector of locations
-  - [ ] Add switch
-  - [ ] add new argument
-  - [ ] allow "include_parent" argument to work for both options
-  - [ ] add docstrings
-  - [ ] add new MRE
-  - [ ] test
+- [x] Add option to just print a vector of locations
+  - [x] add new argument
+  - [x] allow "include_parent" argument to work for both options
+  - [x] add docstrings
+  - [x] add new MRE
+  - [x] test
