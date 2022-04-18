@@ -1,41 +1,41 @@
-# preflight_checks -------------------
-
-rm(list=ls(all.names = T))
-USER <- Sys.info()[['user']]
-
-source(file.path("/ihme/cc_resources/libraries/current/r/get_location_metadata.R"))
-library('ihme.covid', lib.loc = '/ihme/covid-19/.r-packages/current')
-
-VERSIONS <- list(
-  MAIN =    '2022_04_06.05', # most recent fixes from hybrid ETL (or Mon/Tue overnight run)
-  COMPARE = '2022_04_06.01'  # prior model-inputs to compare against  (or last prod "best")
-)
-
-PATHS <- list(
-  DATA_ROOT = "/ihme/covid-19/model-inputs",
-  CODE_ROOT = "/ihme/code/covid-19/user",
-  PLOT_ROOT = "/mnt/share/covid-19/qc-plots",
-  PLOT_DIR = ihme.covid::get_output_dir("/mnt/share/covid-19/qc-plots", "today")
-)
-
-extra_hosp_main <- fread(file.path(PATHS$DATA_ROOT, VERSIONS$MAIN, 'use_at_your_own_risk/full_data_extra_hospital.csv'))
-extra_hosp_compare <- fread(file.path(PATHS$DATA_ROOT, VERSIONS$COMPARE, 'use_at_your_own_risk/full_data_extra_hospital.csv'))
-
-hier_mi <- fread(file.path(PATHS$DATA_ROOT, VERSIONS$MAIN, 'locations/modeling_hierarchy.csv')) # read from model-inputs
-hier_db <- get_location_metadata(location_set_id = 111, location_set_version_id = 1050, release_id = 9) # validate model-inputs version
-library(scriptName, lib = '/mnt/share/code/covid-19/r_packages')
-
-# Testing output, messages, warnings ========
-preflight_checks(hier_db, hier_mi, "hier2hier", v=T, S=F) # testing new user0-friendly output
-preflight_checks(hier_db, hier_mi, "hier2hier", v=T, S=T) # testing STOP behavior with new output
-preflight_checks(hier_db, hier_mi, "hier2hier", v=T, S=F,
-                 user_message = "This is a custom message") # testing new user0-friendly output
-preflight_checks(hier_db, hier_mi, "hier2", v=T, S=F) # see readable method options it method is wrong
-# preflight_checks(hier_db, hier_mi, "hier2hier", v=T, S=T)
-preflight_checks(hier_db, hier_mi, "hier2hier", v=F, S=F)
-# preflight_checks(hier_db, hier_mi, "hier2hier", v=F, S=T)
-preflight_checks(hier_db, hier_db, "hier2hier", v=T, S=F)
-preflight_checks(hier_db, hier_db, "hier2hier", v=F, S=F)
+# # preflight_checks -------------------
+#
+# rm(list=ls(all.names = T))
+# USER <- Sys.info()[['user']]
+#
+# source(file.path("/ihme/cc_resources/libraries/current/r/get_location_metadata.R"))
+# library('ihme.covid', lib.loc = '/ihme/covid-19/.r-packages/current')
+#
+# VERSIONS <- list(
+#   MAIN =    '2022_04_06.05', # most recent fixes from hybrid ETL (or Mon/Tue overnight run)
+#   COMPARE = '2022_04_06.01'  # prior model-inputs to compare against  (or last prod "best")
+# )
+#
+# PATHS <- list(
+#   DATA_ROOT = "/ihme/covid-19/model-inputs",
+#   CODE_ROOT = "/ihme/code/covid-19/user",
+#   PLOT_ROOT = "/mnt/share/covid-19/qc-plots",
+#   PLOT_DIR = ihme.covid::get_output_dir("/mnt/share/covid-19/qc-plots", "today")
+# )
+#
+# extra_hosp_main <- fread(file.path(PATHS$DATA_ROOT, VERSIONS$MAIN, 'use_at_your_own_risk/full_data_extra_hospital.csv'))
+# extra_hosp_compare <- fread(file.path(PATHS$DATA_ROOT, VERSIONS$COMPARE, 'use_at_your_own_risk/full_data_extra_hospital.csv'))
+#
+# hier_mi <- fread(file.path(PATHS$DATA_ROOT, VERSIONS$MAIN, 'locations/modeling_hierarchy.csv')) # read from model-inputs
+# hier_db <- get_location_metadata(location_set_id = 111, location_set_version_id = 1050, release_id = 9) # validate model-inputs version
+# library(scriptName, lib = '/mnt/share/code/covid-19/r_packages')
+#
+# # Testing output, messages, warnings ========
+# preflight_checks(hier_db, hier_mi, "hier2hier", v=T, S=F) # testing new user0-friendly output
+# preflight_checks(hier_db, hier_mi, "hier2hier", v=T, S=T) # testing STOP behavior with new output
+# preflight_checks(hier_db, hier_mi, "hier2hier", v=T, S=F,
+#                  user_message = "This is a custom message") # testing new user0-friendly output
+# preflight_checks(hier_db, hier_mi, "hier2", v=T, S=F) # see readable method options it method is wrong
+# # preflight_checks(hier_db, hier_mi, "hier2hier", v=T, S=T)
+# preflight_checks(hier_db, hier_mi, "hier2hier", v=F, S=F)
+# # preflight_checks(hier_db, hier_mi, "hier2hier", v=F, S=T)
+# preflight_checks(hier_db, hier_db, "hier2hier", v=T, S=F)
+# preflight_checks(hier_db, hier_db, "hier2hier", v=F, S=F)
 #
 #
 # test <- "did this stop?"

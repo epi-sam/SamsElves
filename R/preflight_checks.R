@@ -192,12 +192,12 @@ preflight_checks <- function(
   intersect <- dplyr::intersect
   copy <- data.table::copy
   # check for scriptName package - shows current filename if sourcing
-  if (suppressWarnings(!require(scriptName))) {
+  if (suppressWarnings(!requireNamespace("scriptName", quietly = TRUE))) {
     message("If you want to print the script name, load with: library(scriptName, lib = '/mnt/share/code/covid-19/r_packages') ")
-  } else if (require(scriptName)) {
+  } else if (requireNamespace("scriptName", quietly = TRUE)) {
     suppressWarnings(current_filename <- scriptName::current_filename())
   }
-
+requireNamespace("scriptName", quietly = TRUE)
   # keep copies of raw data before prepping for later Out_list info (e.g. location names)
   Xraw <- copy(X)
   Yraw <- copy(Y)
@@ -237,7 +237,7 @@ preflight_checks <- function(
       assign(paste0("PREFLIGHT_CHECK_ERRORS_", method), Out_list, envir = .GlobalEnv) # TODO this may be dangerous
       warning("<preflight_checks>: Stop condition met:", "\n",
               user_message, "\n",
-              "filename is: ", if (suppressWarnings(require(scriptName))) {
+              "filename is: ", if (requireNamespace("scriptName", quietly = TRUE)) {
                 c(current_filename(),"\n")
               } else{
                 "scriptName not loaded\n"
@@ -261,7 +261,7 @@ preflight_checks <- function(
               "Y (right-side): ", Yname, "\n")
 
       warning("<preflight_checks>: Stop condition met, but STOP set to FALSE, showing differences above:", "\n",
-              "filename is: ", if (suppressWarnings(require(scriptName))) {
+              "filename is: ", if (requireNamespace("scriptName", quietly = TRUE)) {
                 c(current_filename(),"\n")
               } else{
                 "scriptName not loaded\n"
@@ -296,7 +296,7 @@ preflight_checks <- function(
     } else if (!stop_condition & verbose) {
 
       message("INLINE <preflight_checks> method is: ", method, "\n",
-              "filename is: ", if (suppressWarnings(require(scriptName))) {
+              "filename is: ", if (requireNamespace("scriptName", quietly = TRUE)) {
                 c(current_filename(),"\n")
               } else{
                 "scriptName not loaded\n"

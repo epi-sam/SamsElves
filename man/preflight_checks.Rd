@@ -10,6 +10,7 @@ preflight_checks(
   method = c("vec2vec"),
   STOP = FALSE,
   verbose = FALSE,
+  user_message = NULL,
   colsX = c("location_id"),
   colsY = NULL
 )
@@ -42,6 +43,8 @@ to continue with a WARNING message?}
 
 \item{verbose}{Do you want verbose console output, or invisible() return of
 the output_list for assignment to a variable?}
+
+\item{user_message}{Custom message if verbose = TRUE - locate your preflight_check stop location}
 
 \item{colsX}{Only for '___data' methods. Vector of column names in
 "reference" vector or data.frame - keep column order consistent!}
