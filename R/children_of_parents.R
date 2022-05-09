@@ -65,7 +65,7 @@ children_of_parents <- function(
       }
     }
 
-    return(child_TF)
+    return_vec <- child_TF
 
   } else if (output == "loc_ids"){
 
@@ -89,10 +89,11 @@ children_of_parents <- function(
     }
 
     hierarchy$child_TF <- child_TF
-    child_loc_ids <- hierarchy$location_id[which(child_TF)]
-
-    return(child_loc_ids)
+    return_vec <- hierarchy$location_id[which(child_TF)]
 
   }
   )
+
+  return(return_vec)
+
 }
