@@ -28,23 +28,23 @@
 #' child_locs_of_china <- children_of_parents(6, hierarchy, output = "loc_ids")
 #'
 children_of_parents <- function(
-    parent_loc_ids, # vector of parent location_ids
-    hierarchy, # which hierarchy?
-    output = c("boolean", "loc_ids"), # T/F vector or just a list of location_ids?
-    include_parent = FALSE # include parent with children, or only children?
+  parent_loc_ids, # vector of parent location_ids
+  hierarchy, # which hierarchy?
+  output = "boolean", # output_options <- c("boolean", "loc_ids")
+  include_parent = FALSE # include parent with children, or only children?
 ){
 
   # check for valid method
   output_options <- c("boolean", "loc_ids")
-  suppressWarnings( if (!(output %in% output_options)) {
-    stop("Invalid output, please choose:
+  if (!(output %in% output_options)) {
+    stop("Invalid output argument, please choose:
          boolean, loc_ids")
   }
-  )
+
 
   path_to_parent_string <- hierarchy$path_to_top_parent
 
-  suppressWarnings(if (output == "boolean") {
+  if (output == "boolean") {
 
     child_TF <- c()
 
@@ -92,7 +92,7 @@ children_of_parents <- function(
     return_vec <- hierarchy$location_id[which(child_TF)]
 
   }
-  )
+
 
   return(return_vec)
 
