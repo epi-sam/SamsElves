@@ -180,3 +180,9 @@
 #
 # }
 
+
+
+library(devtools)
+library(withr)
+with_libpaths(new = "/mnt/share/code/covid-19/r_packages",
+              install_github("epi-sam/SamsElves"))

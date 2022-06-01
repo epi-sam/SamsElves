@@ -7,7 +7,7 @@
 children_of_parents(
   parent_loc_ids,
   hierarchy,
-  output = c("boolean", "loc_ids"),
+  output = "boolean",
   include_parent = FALSE
 )
 }
