@@ -33,12 +33,14 @@ gather_clean() {
   if [ "$yn_filetype" == "y" ]; then
    echo "Searching repo for all file extensions"
    find . -type f | perl -ne 'print $1 if m/\.([^.\/]+)$/' | sort -u
+   echo ""
   fi
 
   read -p "File extension type to clean (case sensitive) (default regex = [rR]): " re_ext
 
   if [ -z "$re_ext" ]; then
     echo "No extension supplied, defaulting to [rR]"
+    echo ""
     local re_ext="${1:-[rR]}"
   fi
 
@@ -46,6 +48,7 @@ gather_clean() {
 
   if [ -z "$re_comment" ]; then
     echo "No comments supplied, defaulting to FIXME|TODO|NOTE|SB|HOTIX|hotfix"
+    echo ""
     local re_comment="${1:-FIXME|TODO|NOTE|SB|HOTIX|hotfix}"
   fi
 
@@ -54,12 +57,14 @@ gather_clean() {
   if [ -z "$re_names" ]; then
     local re_names="${1:-steve|lim|chris|troeger|bobby|reiner|john|giles|james|collins|ryan|barber|kaleb|coberly|sam|byrne|austin|carter|emma|castro|erin|tom|pham|parkes|kendrick|haley|lecsinsky|Lescinsky|jeremy|dalos|alice|lazzar|atwood|bachmeier|lauren|woyczynski|Brittney|Sheena|Emily|Linebarger|Brittney|leonardo|Kate|Causey|Xiaohcen|Xiaochen|Dai|Lucas|Earl|Anoushka|Millear|Marissa|Reitsma|Edem|Dossou|Fleming|Katrin|Burkart|Bianca|Zlavog|Peng|Zheng|Sasha|Aravkin}"
     echo "No names supplied, defaulting to (case insensitive): $re_names"
+    echo ""
   fi
 
   read -p "Other words to redact (removes word - case insensitive) (defaults to common profanity): " re_profanity
 
   if [ -z "$re_profanity" ]; then
     echo "No keywords supplied, defaulting to common profanity (case insensitive)"
+    echo ""
     local re_profanity="${1:-hotfix|damn|shit|fuck|hell|heck|ass|bitch|dick}"
   fi
 
@@ -67,6 +72,7 @@ gather_clean() {
 
   if [ -z "$int_repeat" ]; then
     echo "No repeat supplied, defaulting to 1"
+    echo ""
     local int_repeat="${1:-1}"
   fi
 
