@@ -12,22 +12,22 @@ children_of_parents(
 )
 }
 \arguments{
-\item{parent_loc_ids}{Numeric vector of parent location_ids}
+\item{parent_loc_ids}{[numeric] vector of parent location_ids}
 
-\item{hierarchy}{Which hierarchy to use? (Uses 'path_to_top_parent' to find all nested children)}
+\item{hierarchy}{[data.frame] Which hierarchy to use? (Uses 'path_to_top_parent' to find all nested children)}
 
-\item{output}{Output options:
+\item{output}{[character] Output options:
 \itemize{
- \item{\code{"boolean"} : T/F vector for all rows in the hierarchy - useful for adding a new column}
- \item{\code{"numeric"} : vector of only the childrens' location_ids (and parent, if desired)}
+ \item{\code{"boolean"} : mask for all rows in the hierarchy - useful for adding a new column}
+ \item{\code{"numeric"} : vector of child location_ids (and parent, if desired)}
 }}
 
-\item{include_parent}{Logical T/F Do you want parents included with children?
+\item{include_parent}{[logical] Do you want parent location_id included with children?
 (FALSE by default). If FALSE, and using two parent IDs, be careful if the
 parent location_ids are nested inside each other.}
 }
 \value{
-Logical T/F vector for all hierarchy locs, or a vector of children location_ids?
+[logical/numeric] T/F mask for all hierarchy locs, or a vector of children location_ids?
 }
 \description{
 \code{children_of_parents()} finds children from IHME Hierarchies, given a
