@@ -7,6 +7,8 @@
 #' @param path [character] a filepath to convert
 #'
 #' @return correctly formatted filepath (`\` becomes `/`)
+#'
+#' @export
 prep_path <- function(path = "clipboard") {
   y <- if (path == "clipboard") {
     readClipboard()

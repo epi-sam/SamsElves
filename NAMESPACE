@@ -2,3 +2,4 @@
 
 export(children_of_parents)
 export(preflight_checks)
+export(prep_path)
