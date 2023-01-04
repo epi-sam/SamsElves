@@ -8,4 +8,4 @@ Description: Helper functions for the COVID-19 Production Team at IHME
 License: none
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.2
