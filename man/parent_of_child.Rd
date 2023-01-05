@@ -13,6 +13,9 @@ parent_of_child(child_location_id, hierarchy, parent_level)
 
 \item{parent_level}{[int] Single level of the hierarchy - find all parent location_ids of child location_ids at this level}
 }
+\value{
+[int] location_id for a single parent of a single child location
+}
 \description{
 Given a location ID, returns its parent ID at a given level.
 }
