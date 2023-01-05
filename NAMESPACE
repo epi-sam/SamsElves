@@ -3,6 +3,7 @@
 export(assert_git_diff)
 export(assert_no_null_arguments)
 export(children_of_parents)
+export(detach_user_packages)
 export(git_diff)
 export(parents_of_children)
 export(preflight_checks)
