@@ -22,7 +22,7 @@ parents_of_children <- function(
 #' @param hierarchy [data.table] Hierarchy. Must have columns location_id, path_to_top_parent, and level.
 #' @param parent_level [int] Single level of the hierarchy - find all parent location_ids of child location_ids at this level
 #'
-#' @return
+#' @return [int] location_id for a single parent of a single child location
 parent_of_child <- function(
     child_location_id,
     hierarchy,
