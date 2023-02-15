@@ -7,6 +7,7 @@
 #'
 #' @return [list] full metadata, including git info, cluster submission
 #'   commands, and user-appended items
+#' @export
 build_metadata_shell <- function(code_root, ...) {
   
   # browser()
