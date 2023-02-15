@@ -84,21 +84,13 @@ operations: \code{select()}, \code{setNames()}.
 # MREs -----------------
 
 library(dplyr)
-source("/ihme/cc_resources/libraries/current/r/get_location_metadata.R")
-source("/ihme/cc_resources/libraries/current/r/get_location_metadata.R")
 
 # HIERARCHIES
 
-hier_covid_771 <- get_location_metadata(111, 771, release_id = 9)
-hier_covid_1020 <- get_location_metadata(111, 1020, release_id = 9)
-hier_covid_mi <- fread('/mnt/share/covid-19/model-inputs/2022_03_30.01/locations/modeling_hierarchy.csv')
 
 # DATA --------------------
 
 # full_data
-full_data <- fread('/mnt/share/covid-19/model-inputs/2022_03_30.01/full_data_unscaled.csv')
-full_data_prev <- fread('/mnt/share/covid-19/model-inputs/2022_03_29.01/full_data_unscaled.csv')
-full_formatted <- fread('/mnt/share/covid-19/model-inputs/2022_03_30.01/full_data_unscaled_formatted_dates.csv')
 
 # METHODS -------------------------
 
