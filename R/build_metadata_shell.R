@@ -73,6 +73,7 @@ build_metadata_shell <- function(code_root, ...) {
 #'
 #' @return [list] all desired submission commands, and specific extracted text
 #'   from string_to_extract
+#' @export
 extract_submission_commands <- function(
     
   squeue_jobname_filter = "^rst_ide",
