@@ -7,6 +7,9 @@
 #'
 #' @return [list] full metadata, including git info, cluster submission
 #'   commands, and user-appended items
+#' @import readr
+#' @import data.table
+#' @import stringr
 #' @export
 build_metadata_shell <- function(code_root, ...) {
   
