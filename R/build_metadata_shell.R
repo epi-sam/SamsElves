@@ -76,7 +76,6 @@ build_metadata_shell <- function(code_root, ...) {
 #'
 #' @return [list] all desired submission commands, and specific extracted text
 #'   from string_to_extract
-#' @export
 extract_submission_commands <- function(
     
   squeue_jobname_filter = "^rst_ide",
@@ -86,33 +85,84 @@ extract_submission_commands <- function(
   user_name             = Sys.info()[["user"]]
   
 ) {
-  
+  # browser()
   if (is.null(string_to_extract)) {
     stop("You must specify a string to find and extract from command line submissions")
   }
   
-  # command to find user's cluster jobs
+  # function to find user's cluster jobs
   
   job_finder <- function(user = user_name) {
-    all_jobs <- system2(
+    
+    jobs <- system2(
       command ="squeue", 
       args = paste("-u", user), 
       stdout = T
     )
     
-    return(all_jobs)
+    jobs <- read.table(text = jobs, header = T, sep = "")
+    
+    # format table & extract jobids
+    names(jobs) <- tolower(names(jobs))
+    jobs <- jobs[, c("jobid", "name")]
+    jobname_filter_mask <- grepl(squeue_jobname_filter, jobs[["name"]])
+    jobs <- jobs[jobname_filter_mask, ]
+    
+    return(jobs)
+  }
+  
+  # function to extract a custom string
+  
+  extract_command_string <- function (submit_command_element) {
+    
+    extracted_strings <- stringr::str_extract_all(submit_command_element, string_to_extract)
+    
+    # str_extract_all produces a list - need to deal with it
+    if(!length (extracted_strings) == 1) {
+      stop("submit_command_list has more than one element - investigate. 
+             You likely have more than one pattern specified")
+    }
+    
+    extracted_strings <- extracted_strings[[1]]
+    ignore_filter <- !sapply(extracted_strings, stringr::str_detect, pattern = strings_to_ignore)
+    
+    # return only strings without jpy language
+    return(extracted_strings[ignore_filter])
+    
+  }
+  
+  # function to extract thread from squeue
+  
+  extract_cores <- function(user = user_name,
+                            filter = squeue_jobname_filter) {
+    
+    command_args <- paste("-o '%.10A %.5C' -u", user)
+    
+    job_threads <- system2(
+      command = "squeue",
+      args = command_args,
+      stdout = T
+    )
+    
+    job_threads <- read.table(text = job_threads, header = T, sep = "")
+    # match Rstudio JobID to find threads
+    jobs_selected <- job_finder()
+    n_cores <- job_threads[job_threads$JOBID %in% jobs_selected$jobid, "CPUS", drop = F]
+    # validate all dimensions before proceeding
+    if(ncol(n_cores) > 1 | nrow(n_cores) > 1) {
+      warning ("Attempting to find # of cores produced more than one option (either # or jobs or # of columns) - please inspect.  
+               Setting to n_cores = 1, efficiency will be reduced.")
+      print(n_cores)
+      n_cores <- 1
+    } else {
+      n_cores <- n_cores$CPUS
+    }
+    return(n_cores)
   }
   
   # extract submission information
   
   jobs <- job_finder()
-  jobs <- read.table(text = jobs, header = T, sep = "", )
-  
-  # format table & extract jobids
-  names(jobs) <- tolower(names(jobs))
-  jobs <- jobs[, c("jobid", "name")]
-  rstudio_filter <- grepl(squeue_jobname_filter, jobs[["name"]])
-  jobs <- jobs[rstudio_filter, ]
   
   submit_command_list <- list()
   
@@ -141,29 +191,12 @@ extract_submission_commands <- function(
     
   }
   
-  extract_command_string <- function (submit_command_element) {
-    
-    extracted_strings <- stringr::str_extract_all(submit_command_element, string_to_extract)
-    
-    # str_extract_all produces a list - need to deal with it
-    if(!length (extracted_strings) == 1) {
-      stop("submit_command_list has more than one element - investigate. 
-             You likely have more than one pattern specified")
-    }
-    
-    extracted_strings <- extracted_strings[[1]]
-    ignore_filter <- !sapply(extracted_strings, stringr::str_detect, pattern = strings_to_ignore)
-    
-    # return only strings without jpy language
-    return(extracted_strings[ignore_filter])
-    
-  }
-  
   extracted_cmd_strings <- lapply(submit_command_list, extract_command_string)
   
   out_list <- list(
     submission_commands = submit_command_list,
-    extracted_cmd_strings = extracted_cmd_strings
+    extracted_cmd_strings = extracted_cmd_strings,
+    n_cores = extract_cores(user = user_name)
   )
   
   return(out_list)
