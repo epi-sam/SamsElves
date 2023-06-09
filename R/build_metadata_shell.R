@@ -16,20 +16,18 @@ build_metadata_shell <- function(code_root) {
   # ensure path to .git folder exists
   normalizePath(file.path(code_root, ".git"), mustWork = T)
   
-  .git_logs <- data.table::fread(file.path(code_root, ".git/logs/HEAD"), header = F)
+  .git_logs     <- data.table::fread(file.path(code_root, ".git/logs/HEAD"), header = F)
   .git_log_last <- .git_logs[nrow(.git_logs)]
-  .git_hash <- stringr::str_split_fixed(.git_log_last[["V1"]], " ", n = Inf)[2]
+  .git_hash     <- stringr::str_split_fixed(.git_log_last[["V1"]], " ", n = Inf)[2]
   
   GIT <- list(
-    
     git_branch      = gsub("\n", "", readr::read_file(file.path(code_root, ".git/HEAD"))),
     git_log_last    = .git_log_last,
     git_hash        = .git_hash,
-    git_uncommitted = SamsElves::git_diff(code_root)
+    git_uncommitted = SamsElves::query_git_diff(CODE_ROOT = code_root)
   )
   
   metadata_shell <- list(
-    
     start_time      = as.character(Sys.time()),
     user            = Sys.info()[["user"]],
     GIT             = GIT,
