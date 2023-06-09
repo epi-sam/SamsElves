@@ -62,13 +62,14 @@ build_metadata_shell <- function(code_root) {
 #'
 #' @return [list] all desired submission commands, and specific extracted text
 #'   from regex_to_extract
+#' @import glue
 extract_submission_commands <- function(
     
   squeue_jobname_filter = "^rst_ide|^vscode",
   max_cmd_length        = 500L,
   regex_to_extract     = "ihme/singularity-images/rstudio/[:graph:]+",
   regex_to_ignore     = "jpy",
-  user_name             = Sys.info()[["user"]],
+  system_user_name   = Sys.info()[["user"]],
   cluster_type          = "slurm"
   
 ) {
@@ -77,42 +78,11 @@ extract_submission_commands <- function(
     stop("You must specify a string to find and extract from command line submissions")
   }
   
-  # function to extract thread from squeue
-  
-  extract_cores <- function(user = user_name,
-                            filter = squeue_jobname_filter) {
-    
-    command_args <- paste("-o '%.10A %.5C' -u", user)
-    
-    job_threads <- system2(
-      command = "squeue",
-      args = command_args,
-      stdout = T
-    )
-    
-    job_threads <- read.table(text = job_threads, header = T, sep = "")
-    # match Rstudio JobID to find threads
-    jobs_selected <- job_finder(system_user_name = user_name,
-                                squeue_jobname_filter = squeue_jobname_filter, 
-                                cluster_type = cluster_type)
-    n_cores <- job_threads[job_threads$JOBID %in% jobs_selected$jobid, "CPUS", drop = F]
-    # validate all dimensions before proceeding
-    if(ncol(n_cores) > 1 | nrow(n_cores) > 1) {
-      warning ("Attempting to find # of cores produced more than one option (either # or jobs or # of columns) - please inspect.  
-               Setting to n_cores = 1, efficiency will be reduced.")
-      print(n_cores)
-      n_cores <- 1
-    } else {
-      n_cores <- n_cores$CPUS
-    }
-    return(n_cores)
-  }
-  
   # extract submission information
   
-  jobs <- job_finder(system_user_name = user_name,
+  jobs_df <- job_finder(system_user_name      = system_user_name,
                      squeue_jobname_filter = squeue_jobname_filter, 
-                     cluster_type = cluster_type)
+                     cluster_type          = cluster_type)
   
   submit_command_list <- list()
   
@@ -120,9 +90,9 @@ extract_submission_commands <- function(
   # only works if rstudio was started from CLI, not from API
   # https://ihme.slack.com/archives/C01MPBPJ37U/p1659111543571669
   
-  for (i in 1:nrow(jobs)) {
+  for (i in 1:nrow(jobs_df)) {
     
-    job_id <- jobs[i, "jobid"]
+    job_id <- jobs_df[i, "jobid"]
     
     command_args <- paste(
       "-j", job_id,
@@ -163,6 +133,7 @@ extract_submission_commands <- function(
 #' - "slurm" uses `sacct`
 #'
 #' @return [data.frame] long by jobid, wide by jobid and jobname
+#' @import glue
 #' @export
 #'
 #' @examples
@@ -180,10 +151,7 @@ job_finder <- function(system_user_name,
   
   jobs_txt <- system2(
     command = "sacct",
-    args    = c(
-      paste("-u", system_user_name),
-      "--format=JobID%16,JobName%16"
-    ),
+    args    = glue("-u {system_user_name} --format=JobID%16,JobName%16"),
     stdout  = T
   )
   
@@ -229,4 +197,52 @@ extract_command_string <- function (submit_command_text,
   # return only strings without chosen language (e.g. jpy)
   return(extracted_strings[keep_filter])
   
+}
+
+#' Extract number of interactive user cores
+#'
+#' @param system_user_name [chr] how user is identified on the cluster
+#' @param squeue_jobname_filter [regex] filter to include for `job_finder()` call
+#'
+#' @return [int] number of available cores for multithreading
+#' - if user has more than one interactive session, defaults to 1
+#' @import glue
+#' @export
+#'
+#' @examples
+extract_cores <- function(system_user_name      = user_name,
+                          squeue_jobname_filter = squeue_jobname_filter) {
+  
+  # Find number of cores for all the user's jobids
+  
+  job_threads_txt <- system2(
+    command = "squeue",
+    args    = glue("-o '%.10A %.5C' -u {system_user_name}"),
+    stdout  = T
+  )
+  
+  job_threads_df <- read.table(text = job_threads_txt, header = T, sep = "")
+  
+  # Find jobids matching the user's desired string
+  jobs_selected_df <- job_finder(system_user_name = system_user_name,
+                                 squeue_jobname_filter = squeue_jobname_filter, 
+                                 cluster_type = cluster_type)
+  
+  jobids_threads  <- job_threads_df$JOBID
+  jobids_selected <- jobs_selected_df$jobid
+  jobid_mask      <- jobids_threads %in% jobids_selected
+  
+  # Filter the thread table for jobids matching user's interactive session
+  n_cores_df <- job_threads_df[jobid_mask, "CPUS", drop = F]
+  # validate all dimensions before proceeding
+  more_than_one_interactive_session <- ncol(n_cores_df) > 1 | nrow(n_cores_df) > 1
+  if(more_than_one_interactive_session) {
+    warning ("Attempting to find # of cores produced more than one option (either # or jobs or # of columns) - please inspect.  
+               Setting to n_cores = 1, efficiency will be reduced.")
+    print(n_cores)
+    n_cores <- 1
+  } else {
+    n_cores <- n_cores_df$CPUS
+  }
+  return(as.integer(n_cores))
 }
