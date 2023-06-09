@@ -66,14 +66,16 @@ build_metadata_shell <- function(code_root) {
 extract_submission_commands <- function(
     
   squeue_jobname_filter = "^rst_ide|^vscode",
-  max_cmd_length        = 500L,
-  regex_to_extract     = "ihme/singularity-images/rstudio/[:graph:]+",
-  regex_to_ignore     = "jpy",
-  system_user_name   = Sys.info()[["user"]],
+  submitline_n_char     = 1000L,
+  regex_to_extract      = "ihme/singularity-images/rstudio/[:graph:]+",
+  regex_to_ignore       = "jpy",
+  system_user_name      = Sys.info()[["user"]],
   cluster_type          = "slurm"
   
 ) {
+  
   # browser()
+  
   if (is.null(regex_to_extract)) {
     stop("You must specify a string to find and extract from command line submissions")
   }
@@ -81,42 +83,36 @@ extract_submission_commands <- function(
   # extract submission information
   
   jobs_df <- job_finder(system_user_name      = system_user_name,
-                     squeue_jobname_filter = squeue_jobname_filter, 
-                     cluster_type          = cluster_type)
-  
-  submit_command_list <- list()
+                        squeue_jobname_filter = squeue_jobname_filter, 
+                        cluster_type          = cluster_type)
+  jobid_vec <- jobs_df$jobid
   
   # use sacct to extract original rstudio image submission commands
   # only works if rstudio was started from CLI, not from API
   # https://ihme.slack.com/archives/C01MPBPJ37U/p1659111543571669
   
-  for (i in 1:nrow(jobs_df)) {
-    
-    job_id <- jobs_df[i, "jobid"]
-    
-    command_args <- paste(
-      "-j", job_id,
-      paste0("-o submitline%", max_cmd_length)
-    )
-    
+  submit_command_list <- lapply(jobid_vec, function(job_id){
     submission_command <- system2(
       command = "sacct",
-      args = command_args, 
-      stdout = T
-    )[[3]]
-    
-    submission_command <- tolower(trimws(submission_command, which = "both"))
-    
-    submit_command_list[[i]] <- submission_command
-    
-  }
+      args    = glue("-j {job_id} -o submitline%{submitline_n_char}"), 
+      stdout  = T
+    )
+    submission_command <- tolower(submission_command[[3]])
+    submission_command <- trimws(submission_command, which = "both")
+  })
   
-  extracted_cmd_strings <- lapply(submit_command_list, extract_command_string)
+  extracted_cmd_strings <- lapply(
+    submit_command_list, 
+    extract_command_string, regex_to_extract, regex_to_ignore
+  )
+  
+  n_cores <- extract_cores(system_user_name = system_user_name, 
+                           squeue_jobname_filter =squeue_jobname_filter)
   
   out_list <- list(
-    submission_commands = submit_command_list,
+    submission_commands   = submit_command_list,
     extracted_cmd_strings = extracted_cmd_strings,
-    n_cores = extract_cores(user = user_name)
+    n_cores               = n_cores
   )
   
   return(out_list)
