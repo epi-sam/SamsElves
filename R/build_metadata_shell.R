@@ -30,12 +30,58 @@ build_metadata_shell <- function(code_root) {
   metadata_shell <- list(
     start_time      = as.character(Sys.time()),
     user            = Sys.info()[["user"]],
+    CODE_ROOT       = code_root,
     GIT             = GIT,
     SUBMIT_COMMANDS = SamsElves::extract_submission_commands()
   )
   
   return(metadata_shell)
   
+}
+
+
+#' Find cluster jobs for a user using 
+#' 
+#' You can filter jobs to a string match (grepl()).
+#'
+#' @param system_user_name [chr] string identifying user on the cluster
+#' @param squeue_jobname_filter [regex] filter the user's jobs to include this string
+#' @param cluster_type [chr] allows methods by cluster type, if multiple are applicable
+#' - "slurm" uses `sacct`
+#'
+#' @return [data.frame] long by jobid, wide by jobid and jobname
+#' @export
+#'
+#' @examples
+job_finder <- function(system_user_name, 
+                       squeue_jobname_filter,
+                       cluster_type = "slurm") {
+  
+  valid_cluster_types <- c("slurm")
+  cluster_type        <- tolower(cluster_type)
+  valid_cluster_msg   <- paste0(valid_cluster_types, collapse = ", ")
+  
+  if(!cluster_type %in% valid_cluster_types) {
+    stop(glue("Enter a valid cluster type, options (case-insensitive): {valid_cluster_msg}"))
+  }
+  
+  jobs_txt <- system2(
+    command = "sacct",
+    args    = c(
+      paste("-u", system_user_name),
+      "--format=JobID%16,JobName%16"
+    ),
+    stdout  = T
+  )
+  
+  jobs_txt <- tolower(jobs_txt)
+  jobs_df  <- read.table(text = jobs_txt, header = T, sep = "")
+  
+  # format table & extract jobids
+  jobname_filter_mask <- grepl(squeue_jobname_filter, jobs_df[["jobname"]])
+  jobs_df             <- jobs_df[jobname_filter_mask, ]
+  
+  return(jobs_df)
 }
 
 #' Find a string in a user's recent Slurm squeue
@@ -63,37 +109,17 @@ build_metadata_shell <- function(code_root) {
 #'   from string_to_extract
 extract_submission_commands <- function(
     
-  squeue_jobname_filter = "^rst_ide",
+  squeue_jobname_filter = "^rst_ide|^vscode",
   max_cmd_length        = 500L,
   string_to_extract     = "ihme/singularity-images/rstudio/[:graph:]+",
   strings_to_ignore     = "jpy",
-  user_name             = Sys.info()[["user"]]
+  user_name             = Sys.info()[["user"]],
+  cluster_type          = "slurm"
   
 ) {
   # browser()
   if (is.null(string_to_extract)) {
     stop("You must specify a string to find and extract from command line submissions")
-  }
-  
-  # function to find user's cluster jobs
-  
-  job_finder <- function(user = user_name) {
-    
-    jobs <- system2(
-      command ="squeue", 
-      args = paste("-u", user), 
-      stdout = T
-    )
-    
-    jobs <- read.table(text = jobs, header = T, sep = "")
-    
-    # format table & extract jobids
-    names(jobs) <- tolower(names(jobs))
-    jobs <- jobs[, c("jobid", "name")]
-    jobname_filter_mask <- grepl(squeue_jobname_filter, jobs[["name"]])
-    jobs <- jobs[jobname_filter_mask, ]
-    
-    return(jobs)
   }
   
   # function to extract a custom string
@@ -131,7 +157,9 @@ extract_submission_commands <- function(
     
     job_threads <- read.table(text = job_threads, header = T, sep = "")
     # match Rstudio JobID to find threads
-    jobs_selected <- job_finder()
+    jobs_selected <- job_finder(system_user_name = user_name,
+                                squeue_jobname_filter = squeue_jobname_filter, 
+                                cluster_type = cluster_type)
     n_cores <- job_threads[job_threads$JOBID %in% jobs_selected$jobid, "CPUS", drop = F]
     # validate all dimensions before proceeding
     if(ncol(n_cores) > 1 | nrow(n_cores) > 1) {
@@ -147,7 +175,9 @@ extract_submission_commands <- function(
   
   # extract submission information
   
-  jobs <- job_finder()
+  jobs <- job_finder(system_user_name = user_name,
+                     squeue_jobname_filter = squeue_jobname_filter, 
+                     cluster_type = cluster_type)
   
   submit_command_list <- list()
   
