@@ -2,8 +2,6 @@
 #'
 #' @param code_root [path] path to top-level code repo folder, require: path
 #'   contains a `.git` subfolder
-#' @param ... [named vectors] any number of named vectors to append to the
-#'   metadata - be careful with this one
 #'
 #' @return [list] full metadata, including git info, cluster submission
 #'   commands, and user-appended items
@@ -11,20 +9,12 @@
 #' @import data.table
 #' @import stringr
 #' @export
-build_metadata_shell <- function(code_root, ...) {
+build_metadata_shell <- function(code_root) {
   
   # browser()
   
   # ensure path to .git folder exists
   normalizePath(file.path(code_root, ".git"), mustWork = T)
-  
-  # arbitrary named list of other items to add to metadata
-  CONSTANTS <- list(...)
-  
-  const_name_lengths <- sapply(names(CONSTANTS), nchar)
-  if(any(const_name_lengths == 0)) {
-    stop("All `...` arguments must be named in function call")
-  }
   
   .git_logs <- data.table::fread(file.path(code_root, ".git/logs/HEAD"), header = F)
   .git_log_last <- .git_logs[nrow(.git_logs)]
@@ -45,9 +35,6 @@ build_metadata_shell <- function(code_root, ...) {
     GIT             = GIT,
     SUBMIT_COMMANDS = SamsElves::extract_submission_commands()
   )
-  
-  # add all arbitrary user elements to metadata
-  metadata_shell <- append(x = metadata_shell, values = CONSTANTS)
   
   return(metadata_shell)
   
