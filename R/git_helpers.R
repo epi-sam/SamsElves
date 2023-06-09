@@ -39,7 +39,7 @@ assert_git_hash <- function(launch_hash, script_hash) {
 #'
 #' @return [character] succinct git diff vector length 1 with newlines for easy console printing
 #' @export
-git_diff <- function(CODE_ROOT) {
+query_git_diff <- function(CODE_ROOT) {
   current_dir <- getwd() # save to reset at the end
   on.exit(setwd(current_dir))
   
@@ -48,17 +48,15 @@ git_diff <- function(CODE_ROOT) {
     uncommitted_changes <- system("git diff HEAD | grep ^[@+-]", intern = T)
   )
   
-  output <- if(length(uncommitted_changes)) {
-    # collapse for intuitive display later
-    uncommitted_changes <- paste(
-      paste(uncommitted_changes, collapse = "\n"),
-      "\n"
-    )
+  git_uncommitted <- if(length(uncommitted_changes)) {
+    # collapse for intuitive display
+    uncommitted_changes <- paste(uncommitted_changes, collapse = "\n")
+    uncommitted_changes <- paste(uncommitted_changes, "\n")
   } else {
     NULL
   }
   
-  return(output)
+  return(git_uncommitted)
 }
 
 #' Stop progress if user has uncommitted changes
