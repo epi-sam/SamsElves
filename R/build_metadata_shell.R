@@ -2,6 +2,12 @@
 #'
 #' @param code_root [path] path to top-level code repo folder, require: path
 #'   contains a `.git` subfolder
+#' @param jobname_filter 
+#' @param submitline_n_char 
+#' @param regex_to_extract 
+#' @param regex_to_ignore 
+#' @param system_user_name 
+#' @param cluster_type 
 #'
 #' @return [list] full metadata, including git info, cluster submission
 #'   commands, and user-appended items
@@ -9,21 +15,28 @@
 #' @import data.table
 #' @import stringr
 #' @export
-build_metadata_shell <- function(code_root) {
+build_metadata_shell <- function(code_root,
+                                 jobname_filter = "^rst_ide|^vscode",
+                                 submitline_n_char     = 1000L,
+                                 regex_to_extract      = "ihme/singularity-images/rstudio/[:graph:]+",
+                                 regex_to_ignore       = "jpy",
+                                 system_user_name      = Sys.info()[["user"]],
+                                 cluster_type          = "slurm"
+) {
   
   # browser()
   
   # ensure path to .git folder exists
   normalizePath(file.path(code_root, ".git"), mustWork = T)
   
-  .git_logs     <- data.table::fread(file.path(code_root, ".git/logs/HEAD"), header = F)
-  .git_log_last <- .git_logs[nrow(.git_logs)]
-  .git_hash     <- stringr::str_split_fixed(.git_log_last[["V1"]], " ", n = Inf)[2]
+  git_logs     <- data.table::fread(file.path(code_root, ".git/logs/HEAD"), header = F)
+  git_log_last <- git_logs[nrow(git_logs)]
+  git_hash     <- stringr::str_split_fixed(git_log_last[["V1"]], " ", n = Inf)[2]
   
   GIT <- list(
     git_branch      = gsub("\n", "", readr::read_file(file.path(code_root, ".git/HEAD"))),
-    git_log_last    = .git_log_last,
-    git_hash        = .git_hash,
+    git_log_last    = git_log_last,
+    git_hash        = git_hash,
     git_uncommitted = SamsElves::query_git_diff(CODE_ROOT = code_root)
   )
   
@@ -32,7 +45,14 @@ build_metadata_shell <- function(code_root) {
     user            = Sys.info()[["user"]],
     CODE_ROOT       = code_root,
     GIT             = GIT,
-    SUBMIT_COMMANDS = SamsElves::extract_submission_commands()
+    SUBMIT_COMMANDS = 
+      SamsElves::extract_submission_commands(
+        jobname_filter = jobname_filter,
+        submitline_n_char     = submitline_n_char,
+        regex_to_extract      = regex_to_extract,
+        regex_to_ignore       = regex_to_ignore,
+        system_user_name      = system_user_name,
+        cluster_type          = cluster_type)
   )
   
   return(metadata_shell)
@@ -46,8 +66,8 @@ build_metadata_shell <- function(code_root) {
 #' Rstudio singularity image (or something else you desire).  Extracts this
 #' informtion from ALL jobs you currently have active in your squeue.
 #'
-#' @param squeue_jobname_filter [character|regex] when you run `squeue -u
-#'   <username>`, what `NAME` do you want to filter for?
+#' @param jobname_filter [character|regex] when you run 
+#' `sacct -u <username>`, what `NAME` do you want to filter for?
 #' @param max_cmd_length [integer] how many characters long is your command?
 #'   Increase your default if the command is truncated.  All leading/trailing
 #'   whitespace is trimmed.
@@ -65,7 +85,7 @@ build_metadata_shell <- function(code_root) {
 #' @import glue
 extract_submission_commands <- function(
     
-  squeue_jobname_filter = "^rst_ide|^vscode",
+  jobname_filter = "^rst_ide|^vscode",
   submitline_n_char     = 1000L,
   regex_to_extract      = "ihme/singularity-images/rstudio/[:graph:]+",
   regex_to_ignore       = "jpy",
@@ -83,7 +103,7 @@ extract_submission_commands <- function(
   # extract submission information
   
   jobs_df <- job_finder(system_user_name      = system_user_name,
-                        squeue_jobname_filter = squeue_jobname_filter, 
+                        jobname_filter = jobname_filter, 
                         cluster_type          = cluster_type)
   jobid_vec <- jobs_df$jobid
   
@@ -107,7 +127,7 @@ extract_submission_commands <- function(
   )
   
   n_cores <- extract_cores(system_user_name = system_user_name, 
-                           squeue_jobname_filter =squeue_jobname_filter)
+                           jobname_filter =jobname_filter)
   
   out_list <- list(
     submission_commands   = submit_command_list,
@@ -119,12 +139,13 @@ extract_submission_commands <- function(
   
 }
 
-#' Find cluster jobs for a user using 
+#' Find cluster jobs for a user
 #' 
+#' Filters to jobs with State = RUNNING 
 #' You can filter jobs to a string match (grepl()).
 #'
 #' @param system_user_name [chr] string identifying user on the cluster
-#' @param squeue_jobname_filter [regex] filter the user's jobs to include this string
+#' @param jobname_filter [regex] filter the user's jobs to include this string
 #' @param cluster_type [chr] allows methods by cluster type, if multiple are applicable
 #' - "slurm" uses `sacct`
 #'
@@ -134,7 +155,7 @@ extract_submission_commands <- function(
 #'
 #' @examples
 job_finder <- function(system_user_name, 
-                       squeue_jobname_filter,
+                       jobname_filter,
                        cluster_type = "slurm") {
   
   valid_cluster_types <- c("slurm")
@@ -147,15 +168,16 @@ job_finder <- function(system_user_name,
   
   jobs_txt <- system2(
     command = "sacct",
-    args    = glue("-u {system_user_name} --format=JobID%16,JobName%16"),
+    args    = glue("-u {system_user_name} --format=JobID%16,JobName%16,State%10"),
     stdout  = T
   )
   
   jobs_txt <- tolower(jobs_txt)
   jobs_df  <- read.table(text = jobs_txt, header = T, sep = "")
+  jobs_df  <- jobs_df[jobs_df$state == 'running', ]
   
   # format table & extract jobids
-  jobname_filter_mask <- grepl(squeue_jobname_filter, jobs_df[["jobname"]])
+  jobname_filter_mask <- grepl(jobname_filter, jobs_df[["jobname"]])
   jobs_df             <- jobs_df[jobname_filter_mask, ]
   
   return(jobs_df)
@@ -163,6 +185,8 @@ job_finder <- function(system_user_name,
 
 
 #' Search a cluster submitted command string for some pattern
+#' 
+#' Intended to pull Rstudio image information 
 #'
 #' @param submit_command_text [chr] the result of calling "sacct -j <INT> -o submitline%<INT>"
 #' @param regex_to_extract [regex] pattern to `stringr::str_extract()`
@@ -198,7 +222,7 @@ extract_command_string <- function (submit_command_text,
 #' Extract number of interactive user cores
 #'
 #' @param system_user_name [chr] how user is identified on the cluster
-#' @param squeue_jobname_filter [regex] filter to include for `job_finder()` call
+#' @param jobname_filter [regex] filter to include for `job_finder()` call
 #'
 #' @return [int] number of available cores for multithreading
 #' - if user has more than one interactive session, defaults to 1
@@ -207,7 +231,7 @@ extract_command_string <- function (submit_command_text,
 #'
 #' @examples
 extract_cores <- function(system_user_name      = user_name,
-                          squeue_jobname_filter = squeue_jobname_filter) {
+                          jobname_filter = jobname_filter) {
   
   # Find number of cores for all the user's jobids
   
@@ -221,7 +245,7 @@ extract_cores <- function(system_user_name      = user_name,
   
   # Find jobids matching the user's desired string
   jobs_selected_df <- job_finder(system_user_name = system_user_name,
-                                 squeue_jobname_filter = squeue_jobname_filter, 
+                                 jobname_filter = jobname_filter, 
                                  cluster_type = cluster_type)
   
   jobids_threads  <- job_threads_df$JOBID
