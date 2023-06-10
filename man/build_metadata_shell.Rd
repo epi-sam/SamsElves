@@ -4,19 +4,60 @@
 \alias{build_metadata_shell}
 \title{Build metadata from a template}
 \usage{
-build_metadata_shell(code_root, ...)
+build_metadata_shell(
+  code_root,
+  jobname_filter = "^rst_ide|^vscode",
+  submitline_n_char = 1000L,
+  regex_to_extract = "ihme/singularity-images/rstudio/[:graph:]+",
+  regex_to_ignore = "jpy",
+  system_user_name = Sys.info()[["user"]],
+  cluster_type = "slurm",
+  send_user_msg = FALSE
+)
 }
 \arguments{
-\item{code_root}{[path] path to top-level code repo folder, require: path
+\item{code_root}{[path] Path to top-level code repo folder, require: path
 contains a `.git` subfolder}
 
-\item{...}{[named vectors] any number of named vectors to append to the
-metadata - be careful with this one}
+\item{jobname_filter}{[regex] When you run `sacct -u <username>`, what
+`JobName` indicates your interactive Rstudio session? (case-sensitive)
+- see defaults}
+
+\item{submitline_n_char}{[int] Length of submitted command string to expect
+from system `sacct -j <jobid> -o submitline\%xxx` call (set this much
+longer than you'd think necessary)}
+
+\item{regex_to_extract}{[regex] What string do you want to extract after
+running  `sacct -j <jobid> -o submitline\%xxx` using
+`stringr::str_extract_all`}
+
+\item{regex_to_ignore}{[regex] If your `regex_to_extract` command finds more
+strings than you want, this removes all strings matching this pattern}
+
+\item{system_user_name}{[chr] User's identifier, according to the cluster}
+
+\item{cluster_type}{[chr] Only 'slurm' currently available - methods/calls
+may differ by system in the future. (case-insensitive)}
+
+\item{send_user_msg}{[lgl] Do you want a std_err message of arguments to this
+function?}
 }
 \value{
-[list] full metadata, including git info, cluster submission
-  commands, and user-appended items
+[list] Full metadata shell, including git info, cluster submission
+  commands
 }
 \description{
-Build metadata from a template
+Defaults currently designed for interactive Rstudio sessions.
+}
+\examples{
+# Make metadata shell, and message the function's key arguments to console 
+(or std_err logs)
+metadata_shell <- build_metadata_shell(
+  code_root = "/mnt/share/code/hiv_tb_selectid/rt-shared-functions/", 
+  send_user_msg = T
+)
+
+# Extract readable git diff to see any uncommitted code changes 
+# (NULL is good - no uncommitted changes, prints nothing)
+cat(metadata_shell$GIT$git_uncommitted)
 }
