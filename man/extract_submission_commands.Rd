@@ -2,42 +2,42 @@
 % Please edit documentation in R/build_metadata_shell.R
 \name{extract_submission_commands}
 \alias{extract_submission_commands}
-\title{Find a string in a user's recent Slurm squeue}
+\title{Find a string in a user's recent Slurm sacct}
 \usage{
 extract_submission_commands(
-  squeue_jobname_filter = "^rst_ide",
-  max_cmd_length = 500L,
-  string_to_extract = "ihme/singularity-images/rstudio/[:graph:]+",
-  strings_to_ignore = "jpy",
-  user_name = Sys.info()[["user"]]
+  jobname_filter,
+  submitline_n_char,
+  regex_to_extract,
+  regex_to_ignore,
+  system_user_name,
+  cluster_type
 )
 }
 \arguments{
-\item{squeue_jobname_filter}{[character|regex] when you run `squeue -u
-<username>`, what `NAME` do you want to filter for?}
+\item{jobname_filter}{[character|regex] When you run `sacct -u <username>`,
+what `NAME` do you want to filter for?}
 
-\item{max_cmd_length}{[integer] how many characters long is your command?
-Increase your default if the command is truncated.  All leading/trailing
-whitespace is trimmed.}
+\item{submitline_n_char}{[int] Length of submitted command string to expect
+from system (set this much longer than you'd think necessary)}
 
-\item{string_to_extract}{[character|regex] what string do you want to extract
-after running  `sacct -j <jobid> -o submitline%xxx` using
+\item{regex_to_extract}{[character|regex] What string do you want to extract
+after running  `sacct -j <jobid> -o submitline\%xxx` using
 `stringr::str_extract_all`}
 
-\item{strings_to_ignore}{[character|regex] if your `string_to_extract`
-command finds more strings than you want, this removes all strings with
-this pattern anywhere inside using `stringr::str_detect`}
+\item{regex_to_ignore}{[character|regex] If your `regex_to_extract` command
+finds more strings than you want, this removes all strings with}
 
-\item{user_name}{[character] which user's commands to find - defaults to your
-own}
+\item{system_user_name}{[chr] User's identifier, according to the cluster}
+
+\item{cluster_type}{this pattern anywhere inside using `stringr::str_detect`}
 }
 \value{
-[list] all desired submission commands, and specific extracted text
-  from string_to_extract
+[list] All desired submission commands, and specific extracted text
+  from regex_to_extract
 }
 \description{
 Intended to find Rstudio singularity image versions for metadata.  Finds a
 user-defined string from the submission command you used to start your
 Rstudio singularity image (or something else you desire).  Extracts this
-informtion from ALL jobs you currently have active in your squeue.
+informtion from ALL jobs you currently have active in your sacct.
 }

@@ -1,45 +1,10 @@
-#' Assert that daughter scripts share a common code state with launch script
-#'
-#' @param metadata [list] metadata written in launch script
-#' @param script_hash [character] daughter script hash to check against main
-#'
-#' @return passing statement or error message
-assert_git_hash <- function(launch_hash, script_hash) {
-  
-  if (is.null(launch_hash) |
-      is.null(script_hash)) {
-    stop("One of your git hashes was not found - please inspect function call and metadata.")
-  }
-  
-  if (
-    length(script_hash) != 1 |
-    !is.character(script_hash) |
-    length(launch_hash) != 1 |
-    !is.character(launch_hash)
-  ) {
-    stop("You must submit exactly one character string per hash.")
-  }
-  
-  result <- assertthat::assert_that(
-    assertthat::are_equal(launch_hash, script_hash),
-    msg = paste(
-      "Launch script git hash does not match daughter script git hash - please inspect and do a clean run.", "\n",
-      "Launch hash = ", substr(launch_hash, 1, 8), "\n",
-      "Script hash = ", substr(script_hash, 1, 8), "\n"
-    )
-  )
-  
-  message(result)
-  
-}
-
 #' Record uncommitted git changes
 #'
 #' @param CODE_ROOT [path] path to code root containing a .git folder
 #'
 #' @return [character] succinct git diff vector length 1 with newlines for easy console printing
 #' @export
-git_diff <- function(CODE_ROOT) {
+query_git_diff <- function(CODE_ROOT) {
   current_dir <- getwd() # save to reset at the end
   on.exit(setwd(current_dir))
   
@@ -48,17 +13,15 @@ git_diff <- function(CODE_ROOT) {
     uncommitted_changes <- system("git diff HEAD | grep ^[@+-]", intern = T)
   )
   
-  output <- if(length(uncommitted_changes)) {
-    # collapse for intuitive display later
-    uncommitted_changes <- paste(
-      paste(uncommitted_changes, collapse = "\n"),
-      "\n"
-    )
+  git_uncommitted <- if(length(uncommitted_changes)) {
+    # collapse for intuitive display
+    uncommitted_changes <- paste(uncommitted_changes, collapse = "\n")
+    uncommitted_changes <- paste(uncommitted_changes, "\n")
   } else {
     NULL
   }
   
-  return(output)
+  return(git_uncommitted)
 }
 
 #' Stop progress if user has uncommitted changes
@@ -74,4 +37,40 @@ assert_git_diff <- function(git_uncommitted) {
   } else {
     message("Passing git diff check.")
   }
+}
+
+#' Assert that daughter scripts share a common code state with launch script
+#'
+#' @param metadata [list] metadata written in launch script
+#' @param script_hash [character] daughter script hash to check against main
+#'
+#' @return passing statement or error message
+#' @import assertthat
+#' 
+#' @export
+assert_git_hash <- function(launch_hash, script_hash) {
+  
+  if(is.null(launch_hash)) stop("Your upstream launch script hash is null.") 
+  if(is.null(script_hash)) stop("Your downstream script hash is null.")
+  
+  if (
+    length(script_hash) != 1 |
+    !is.character(script_hash) |
+    length(launch_hash) != 1 |
+    !is.character(launch_hash)
+  ) {
+    stop("You must submit exactly one character string per hash.")
+  }
+  
+  result <- assertthat::assert_that(
+    assertthat::are_equal(launch_hash, script_hash),
+    msg = paste(
+      "Launch script git hash does not match downstream script git hash - please inspect and do a clean run.", "\n",
+      "Launch hash = ", substr(launch_hash, 1, 8), "\n",
+      "Script hash = ", substr(script_hash, 1, 8), "\n"
+    )
+  )
+  
+  message(result)
+  
 }
