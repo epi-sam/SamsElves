@@ -5,12 +5,12 @@
 \title{Find a string in a user's recent Slurm sacct}
 \usage{
 extract_submission_commands(
-  jobname_filter = "^rst_ide|^vscode",
-  submitline_n_char = 1000L,
-  regex_to_extract = "ihme/singularity-images/rstudio/[:graph:]+",
-  regex_to_ignore = "jpy",
-  system_user_name = Sys.info()[["user"]],
-  cluster_type = "slurm"
+  jobname_filter,
+  submitline_n_char,
+  regex_to_extract,
+  regex_to_ignore,
+  system_user_name,
+  cluster_type
 )
 }
 \arguments{
