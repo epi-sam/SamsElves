@@ -85,6 +85,7 @@ build_metadata_shell <- function(
         cluster_type      = cluster_type)
   )
   
+  # Messaging
   if(send_user_msg){
     message(glue(
       "Metadata shell from code root: {code_root}
