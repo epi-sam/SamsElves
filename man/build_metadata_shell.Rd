@@ -39,7 +39,7 @@ strings than you want, this removes all strings matching this pattern}
 \item{cluster_type}{[chr] Only 'slurm' currently available - methods/calls
 may differ by system in the future. (case-insensitive)}
 
-\item{send_user_msg}{[lgl] do you want a std_err message of arguments to this
+\item{send_user_msg}{[lgl] Do you want a std_err message of arguments to this
 function?}
 }
 \value{
@@ -58,6 +58,6 @@ metadata_shell <- build_metadata_shell(
 )
 
 # Extract readable git diff to see any uncommitted code changes 
-(NULL is good - no uncommitted changes, prints nothing)
+# (NULL is good - no uncommitted changes, prints nothing)
 cat(metadata_shell$GIT$git_uncommitted)
 }

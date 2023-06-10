@@ -18,7 +18,7 @@
 #' @param system_user_name [chr] User's identifier, according to the cluster
 #' @param cluster_type [chr] Only 'slurm' currently available - methods/calls
 #'   may differ by system in the future. (case-insensitive)
-#' @param send_user_msg [lgl] do you want a std_err message of arguments to this
+#' @param send_user_msg [lgl] Do you want a std_err message of arguments to this
 #'   function?
 #'
 #' @return [list] Full metadata shell, including git info, cluster submission
@@ -40,7 +40,7 @@
 #' )
 #' 
 #' # Extract readable git diff to see any uncommitted code changes 
-#' (NULL is good - no uncommitted changes, prints nothing)
+#' # (NULL is good - no uncommitted changes, prints nothing)
 #' cat(metadata_shell$GIT$git_uncommitted)
 build_metadata_shell <- function(
     code_root,
@@ -142,12 +142,12 @@ build_metadata_shell <- function(
 #' 
 extract_submission_commands <- function(
     
-  jobname_filter    = "^rst_ide|^vscode",
-  submitline_n_char = 1000L,
-  regex_to_extract  = "ihme/singularity-images/rstudio/[:graph:]+",
-  regex_to_ignore   = "jpy",
-  system_user_name  = Sys.info()[["user"]],
-  cluster_type      = "slurm"
+  jobname_filter,
+  submitline_n_char,
+  regex_to_extract,
+  regex_to_ignore,
+  system_user_name,
+  cluster_type
   
 ) {
   
