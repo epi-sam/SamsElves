@@ -116,7 +116,7 @@ extract_submission_commands <- function(
   
   submit_command_list <- lapply(jobid_vec, function(job_id){
     
-    submission_command = system2(
+    submission_command <- system2(
       command = "sacct",
       args    = glue("-j {job_id} -o submitline%{submitline_n_char}"), 
       stdout  = T
