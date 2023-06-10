@@ -8,7 +8,6 @@
 #' @return [char] "YYYY_MM_DD.VV" folder name
 #' @export
 #'
-#' @examples
 get_version_from_path <- function(x) {
   
   x <- unlist(strsplit(x, '/')) 
