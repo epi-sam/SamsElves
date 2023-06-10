@@ -6,6 +6,7 @@
 #'   contains a `.git` subfolder
 #' @param jobname_filter [regex] When you run `sacct -u <username>`, what
 #'   `JobName` indicates your interactive Rstudio session? (case-sensitive)
+#'   - see defaults
 #' @param submitline_n_char [int] Length of submitted command string to expect
 #'   from system `sacct -j <jobid> -o submitline\%xxx` call (set this much
 #'   longer than you'd think necessary)
@@ -30,14 +31,26 @@
 #'
 #' @export
 #' 
-build_metadata_shell <- function(code_root,
-                                 jobname_filter    = "^rst_ide|^vscode",
-                                 submitline_n_char = 1000L,
-                                 regex_to_extract  = "ihme/singularity-images/rstudio/[:graph:]+",
-                                 regex_to_ignore   = "jpy",
-                                 system_user_name  = Sys.info()[["user"]],
-                                 cluster_type      = "slurm",
-                                 send_user_msg     = FALSE
+#' @examples 
+#' # Make metadata shell, and message the function's key arguments to console 
+#' (or std_err logs)
+#' metadata_shell <- build_metadata_shell(
+#'   code_root = "/mnt/share/code/hiv_tb_selectid/rt-shared-functions/", 
+#'   send_user_msg = T
+#' )
+#' 
+#' # Extract readable git diff to see any uncommitted code changes 
+#' (NULL is good - no uncommitted changes, prints nothing)
+#' cat(metadata_shell$GIT$git_uncommitted)
+build_metadata_shell <- function(
+    code_root,
+    jobname_filter    = "^rst_ide|^vscode",
+    submitline_n_char = 1000L,
+    regex_to_extract  = "ihme/singularity-images/rstudio/[:graph:]+",
+    regex_to_ignore   = "jpy",
+    system_user_name  = Sys.info()[["user"]],
+    cluster_type      = "slurm",
+    send_user_msg     = FALSE
 ) {
   
   # browser()
@@ -75,13 +88,26 @@ build_metadata_shell <- function(code_root,
   if(send_user_msg){
     message(glue(
       "Metadata shell from code root: {code_root}
-      for user: {system_user_name}
-      on cluster type: {cluster_type}
-      sacct JobName filter: {jobname_filter}
-      extracting string: {regex_to_extract}
-      ignoring string: {regex_to_ignore}"
+      - user: {system_user_name}
+      - cluster type: {cluster_type}
+      - sacct JobName filter: {jobname_filter}
+      - extracting string: {regex_to_extract}
+      - ignoring string: {regex_to_ignore}"
     ))
   }
+  
+  # Only want to warn once from top level
+  jobs_df <- job_finder(system_user_name = system_user_name, 
+                        jobname_filter = jobname_filter, 
+                        cluster_type = cluster_type)
+  
+  if(nrow(jobs_df) == 0) warning(glue(
+    "Matched no jobs to jobname_filter argument. User argument : '{jobname_filter}'
+    - Returning git information, but no system information (e.g. n_cores and rstudio image are unknown)
+    - Please update: call 'sacct -u <your_username>' from the command line.
+    - Use '^' with the beginning JobName string as your jobname_filter argument.
+    - e.g. '^rst_ide' or '^vscode' "
+  ))
   
   return(metadata_shell)
   
@@ -209,7 +235,7 @@ job_finder <- function(system_user_name,
   names(jobs_df)      <- tolower(names(jobs_df))
   jobs_df             <- jobs_df[jobs_df$state == 'RUNNING', ]
   jobname_filter_mask <- grepl(jobname_filter, jobs_df[["jobname"]])
-  jobs_df             <- jobs_df[jobname_filter_mask, ]
+  jobs_df             <- jobs_df[jobname_filter_mask, ]  
   
   return(jobs_df)
 }

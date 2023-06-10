@@ -20,7 +20,8 @@ build_metadata_shell(
 contains a `.git` subfolder}
 
 \item{jobname_filter}{[regex] When you run `sacct -u <username>`, what
-`JobName` indicates your interactive Rstudio session? (case-sensitive)}
+`JobName` indicates your interactive Rstudio session? (case-sensitive)
+- see defaults}
 
 \item{submitline_n_char}{[int] Length of submitted command string to expect
 from system `sacct -j <jobid> -o submitline\%xxx` call (set this much
@@ -47,4 +48,16 @@ function?}
 }
 \description{
 Defaults currently designed for interactive Rstudio sessions.
+}
+\examples{
+# Make metadata shell, and message the function's key arguments to console 
+(or std_err logs)
+metadata_shell <- build_metadata_shell(
+  code_root = "/mnt/share/code/hiv_tb_selectid/rt-shared-functions/", 
+  send_user_msg = T
+)
+
+# Extract readable git diff to see any uncommitted code changes 
+(NULL is good - no uncommitted changes, prints nothing)
+cat(metadata_shell$GIT$git_uncommitted)
 }
