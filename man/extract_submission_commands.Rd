@@ -5,35 +5,35 @@
 \title{Find a string in a user's recent Slurm squeue}
 \usage{
 extract_submission_commands(
-  squeue_jobname_filter = "^rst_ide",
-  max_cmd_length = 500L,
-  string_to_extract = "ihme/singularity-images/rstudio/[:graph:]+",
-  strings_to_ignore = "jpy",
-  user_name = Sys.info()[["user"]]
+  jobname_filter = "^rst_ide|^vscode",
+  submitline_n_char = 1000L,
+  regex_to_extract = "ihme/singularity-images/rstudio/[:graph:]+",
+  regex_to_ignore = "jpy",
+  system_user_name = Sys.info()[["user"]],
+  cluster_type = "slurm"
 )
 }
 \arguments{
-\item{squeue_jobname_filter}{[character|regex] when you run `squeue -u
-<username>`, what `NAME` do you want to filter for?}
+\item{jobname_filter}{[character|regex] when you run `sacct -u <username>`,
+what `NAME` do you want to filter for?}
 
-\item{max_cmd_length}{[integer] how many characters long is your command?
-Increase your default if the command is truncated.  All leading/trailing
-whitespace is trimmed.}
+\item{submitline_n_char}{[int] length of submitted command string to expect
+from system (set this much longer than you'd think necessary)}
 
-\item{string_to_extract}{[character|regex] what string do you want to extract
+\item{regex_to_extract}{[character|regex] what string do you want to extract
 after running  `sacct -j <jobid> -o submitline%xxx` using
 `stringr::str_extract_all`}
 
-\item{strings_to_ignore}{[character|regex] if your `string_to_extract`
-command finds more strings than you want, this removes all strings with
-this pattern anywhere inside using `stringr::str_detect`}
+\item{regex_to_ignore}{[character|regex] if your `regex_to_extract` command
+finds more strings than you want, this removes all strings with}
 
-\item{user_name}{[character] which user's commands to find - defaults to your
-own}
+\item{system_user_name}{[chr] user's identifier, according to the cluster}
+
+\item{cluster_type}{this pattern anywhere inside using `stringr::str_detect`}
 }
 \value{
 [list] all desired submission commands, and specific extracted text
-  from string_to_extract
+  from regex_to_extract
 }
 \description{
 Intended to find Rstudio singularity image versions for metadata.  Finds a

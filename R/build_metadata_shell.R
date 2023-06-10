@@ -2,7 +2,8 @@
 #'
 #' @param code_root [path] path to top-level code repo folder, require: path
 #'   contains a `.git` subfolder
-#' @param jobname_filter [character|regex] when you run `sacct/squeue -u <username>`, what `NAME` do you want to filter for?
+#' @param jobname_filter [character|regex] when you run `sacct/squeue -u
+#'   <username>`, what `NAME` do you want to filter for?
 #' @param submitline_n_char [int] length of submitted command string to expect
 #'   from system (set this much longer than you'd think necessary)
 #' @param regex_to_extract [character|regex] what string do you want to extract
@@ -10,9 +11,9 @@
 #'   `stringr::str_extract_all`
 #' @param regex_to_ignore [character|regex] if your `regex_to_extract` command
 #'   finds more strings than you want, this removes all strings with
-#' @param system_user_name [chr] user's identifier, according to the cluster 
-#' @param cluster_type [chr] methods/calls may differ by system 
-#' - only 'slurm' currently available
+#' @param system_user_name [chr] user's identifier, according to the cluster
+#' @param cluster_type [chr] methods/calls may differ by system - only 'slurm'
+#'   currently available
 #'
 #' @return [list] full metadata, including git info, cluster submission
 #'   commands, and user-appended items
@@ -20,6 +21,7 @@
 #' @import data.table
 #' @import stringr
 #' @export
+#' 
 build_metadata_shell <- function(code_root,
                                  jobname_filter    = "^rst_ide|^vscode",
                                  submitline_n_char = 1000L,
@@ -42,6 +44,7 @@ build_metadata_shell <- function(code_root,
     git_branch      = gsub("\n", "", readr::read_file(file.path(code_root, ".git/HEAD"))),
     git_log_last    = git_log_last,
     git_hash        = git_hash,
+    # git_uncommitted = query_git_diff(CODE_ROOT = code_root) # for dev work
     git_uncommitted = SamsElves::query_git_diff(CODE_ROOT = code_root)
   )
   
@@ -52,6 +55,7 @@ build_metadata_shell <- function(code_root,
     GIT             = GIT,
     
     SUBMIT_COMMANDS = 
+      # extract_submission_commands( # for dev work
       SamsElves::extract_submission_commands(
         jobname_filter    = jobname_filter,
         submitline_n_char = submitline_n_char,
@@ -81,11 +85,12 @@ build_metadata_shell <- function(code_root,
 #'   `stringr::str_extract_all`
 #' @param regex_to_ignore [character|regex] if your `regex_to_extract` command
 #'   finds more strings than you want, this removes all strings with
-#' @param system_user_name
+#' @param system_user_name [chr] user's identifier, according to the cluster 
 #' @param cluster_type this pattern anywhere inside using `stringr::str_detect`
 #' @return [list] all desired submission commands, and specific extracted text
 #'   from regex_to_extract
 #' @import glue
+#' 
 extract_submission_commands <- function(
     
   jobname_filter    = "^rst_ide|^vscode",
@@ -144,19 +149,18 @@ extract_submission_commands <- function(
 }
 
 #' Find cluster jobs for a user
-#' 
-#' Filters to jobs with State = RUNNING 
-#' You can filter jobs to a string match (grepl()).
+#'
+#' Filters to jobs with State = RUNNING You can filter jobs to a string match
+#' (grepl()).
 #'
 #' @param system_user_name [chr] string identifying user on the cluster
 #' @param jobname_filter [regex] filter the user's jobs to include this string
-#' @param cluster_type [chr] allows methods by cluster type, if multiple are applicable
-#' - "slurm" uses `sacct`
+#' @param cluster_type [chr] allows methods by cluster type, if multiple are
+#'   applicable - "slurm" uses `sacct`
 #'
 #' @return [data.frame] long by jobid, wide by jobid and jobname
 #' @import glue
-#'
-#' @examples
+#'   
 job_finder <- function(system_user_name, 
                        jobname_filter,
                        cluster_type = "slurm") {
@@ -188,17 +192,17 @@ job_finder <- function(system_user_name,
 
 
 #' Search a cluster submitted command string for some pattern
-#' 
-#' Intended to pull Rstudio image information 
 #'
-#' @param submit_command_text [chr] the result of calling "sacct -j <INT> -o submitline%<INT>"
+#' Intended to pull Rstudio image information
+#'
+#' @param submit_command_text [chr] the result of calling "sacct -j <INT> -o
+#'   submitline%<INT>"
 #' @param regex_to_extract [regex] pattern to `stringr::str_extract()`
 #' @param regex_to_ignore [regex] patterns to not `stringr::str_detect()`
 #'
-#' @return [chr] vector of 
+#' @return [chr] vector of
 #' @import stringr
-#'
-#' @examples
+#'   
 extract_command_string <- function (submit_command_text,
                                     regex_to_extract,
                                     regex_to_ignore) {
@@ -230,7 +234,6 @@ extract_command_string <- function (submit_command_text,
 #' - if user has more than one interactive session, defaults to 1
 #' @import glue
 #'
-#' @examples
 extract_cores <- function(system_user_name = user_name,
                           jobname_filter   = jobname_filter) {
   
