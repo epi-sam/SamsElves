@@ -2,7 +2,7 @@
 % Please edit documentation in R/build_metadata_shell.R
 \name{extract_submission_commands}
 \alias{extract_submission_commands}
-\title{Find a string in a user's recent Slurm squeue}
+\title{Find a string in a user's recent Slurm sacct}
 \usage{
 extract_submission_commands(
   jobname_filter = "^rst_ide|^vscode",
@@ -14,30 +14,30 @@ extract_submission_commands(
 )
 }
 \arguments{
-\item{jobname_filter}{[character|regex] when you run `sacct -u <username>`,
+\item{jobname_filter}{[character|regex] When you run `sacct -u <username>`,
 what `NAME` do you want to filter for?}
 
-\item{submitline_n_char}{[int] length of submitted command string to expect
+\item{submitline_n_char}{[int] Length of submitted command string to expect
 from system (set this much longer than you'd think necessary)}
 
-\item{regex_to_extract}{[character|regex] what string do you want to extract
-after running  `sacct -j <jobid> -o submitline%xxx` using
+\item{regex_to_extract}{[character|regex] What string do you want to extract
+after running  `sacct -j <jobid> -o submitline\%xxx` using
 `stringr::str_extract_all`}
 
-\item{regex_to_ignore}{[character|regex] if your `regex_to_extract` command
+\item{regex_to_ignore}{[character|regex] If your `regex_to_extract` command
 finds more strings than you want, this removes all strings with}
 
-\item{system_user_name}{[chr] user's identifier, according to the cluster}
+\item{system_user_name}{[chr] User's identifier, according to the cluster}
 
 \item{cluster_type}{this pattern anywhere inside using `stringr::str_detect`}
 }
 \value{
-[list] all desired submission commands, and specific extracted text
+[list] All desired submission commands, and specific extracted text
   from regex_to_extract
 }
 \description{
 Intended to find Rstudio singularity image versions for metadata.  Finds a
 user-defined string from the submission command you used to start your
 Rstudio singularity image (or something else you desire).  Extracts this
-informtion from ALL jobs you currently have active in your squeue.
+informtion from ALL jobs you currently have active in your sacct.
 }

@@ -46,6 +46,8 @@ assert_git_diff <- function(git_uncommitted) {
 #'
 #' @return passing statement or error message
 #' @import assertthat
+#' 
+#' @export
 assert_git_hash <- function(launch_hash, script_hash) {
   
   if(is.null(launch_hash)) stop("Your upstream launch script hash is null.") 

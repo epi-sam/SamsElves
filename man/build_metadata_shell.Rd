@@ -11,35 +11,40 @@ build_metadata_shell(
   regex_to_extract = "ihme/singularity-images/rstudio/[:graph:]+",
   regex_to_ignore = "jpy",
   system_user_name = Sys.info()[["user"]],
-  cluster_type = "slurm"
+  cluster_type = "slurm",
+  send_user_msg = FALSE
 )
 }
 \arguments{
-\item{code_root}{[path] path to top-level code repo folder, require: path
+\item{code_root}{[path] Path to top-level code repo folder, require: path
 contains a `.git` subfolder}
 
-\item{jobname_filter}{[character|regex] when you run `sacct/squeue -u
-<username>`, what `NAME` do you want to filter for?}
+\item{jobname_filter}{[regex] When you run `sacct -u <username>`, what
+`JobName` indicates your interactive Rstudio session? (case-sensitive)}
 
-\item{submitline_n_char}{[int] length of submitted command string to expect
-from system (set this much longer than you'd think necessary)}
+\item{submitline_n_char}{[int] Length of submitted command string to expect
+from system `sacct -j <jobid> -o submitline\%xxx` call (set this much
+longer than you'd think necessary)}
 
-\item{regex_to_extract}{[character|regex] what string do you want to extract
-after running  `sacct -j <jobid> -o submitline%xxx` using
+\item{regex_to_extract}{[regex] What string do you want to extract after
+running  `sacct -j <jobid> -o submitline\%xxx` using
 `stringr::str_extract_all`}
 
-\item{regex_to_ignore}{[character|regex] if your `regex_to_extract` command
-finds more strings than you want, this removes all strings with}
+\item{regex_to_ignore}{[regex] If your `regex_to_extract` command finds more
+strings than you want, this removes all strings matching this pattern}
 
-\item{system_user_name}{[chr] user's identifier, according to the cluster}
+\item{system_user_name}{[chr] User's identifier, according to the cluster}
 
-\item{cluster_type}{[chr] methods/calls may differ by system - only 'slurm'
-currently available}
+\item{cluster_type}{[chr] Only 'slurm' currently available - methods/calls
+may differ by system in the future. (case-insensitive)}
+
+\item{send_user_msg}{[lgl] do you want a std_err message of arguments to this
+function?}
 }
 \value{
-[list] full metadata, including git info, cluster submission
-  commands, and user-appended items
+[list] Full metadata shell, including git info, cluster submission
+  commands
 }
 \description{
-Build metadata from a template
+Defaults currently designed for interactive Rstudio sessions.
 }

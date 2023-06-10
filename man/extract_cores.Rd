@@ -4,7 +4,11 @@
 \alias{extract_cores}
 \title{Extract number of interactive user cores}
 \usage{
-extract_cores(system_user_name = user_name, jobname_filter = jobname_filter)
+extract_cores(
+  system_user_name = user_name,
+  jobname_filter = jobname_filter,
+  cluster_type = cluster_type
+)
 }
 \arguments{
 \item{system_user_name}{[chr] how user is identified on the cluster}
@@ -16,5 +20,5 @@ extract_cores(system_user_name = user_name, jobname_filter = jobname_filter)
 - if user has more than one interactive session, defaults to 1
 }
 \description{
-Extract number of interactive user cores
+NOTE: This step finds cores with squeue, rather than sacct
 }
