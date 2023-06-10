@@ -2,12 +2,17 @@
 #'
 #' @param code_root [path] path to top-level code repo folder, require: path
 #'   contains a `.git` subfolder
-#' @param jobname_filter 
-#' @param submitline_n_char 
-#' @param regex_to_extract 
-#' @param regex_to_ignore 
-#' @param system_user_name 
-#' @param cluster_type 
+#' @param jobname_filter [character|regex] when you run `sacct/squeue -u <username>`, what `NAME` do you want to filter for?
+#' @param submitline_n_char [int] length of submitted command string to expect
+#'   from system (set this much longer than you'd think necessary)
+#' @param regex_to_extract [character|regex] what string do you want to extract
+#'   after running  `sacct -j <jobid> -o submitline%xxx` using
+#'   `stringr::str_extract_all`
+#' @param regex_to_ignore [character|regex] if your `regex_to_extract` command
+#'   finds more strings than you want, this removes all strings with
+#' @param system_user_name [chr] user's identifier, according to the cluster 
+#' @param cluster_type [chr] methods/calls may differ by system 
+#' - only 'slurm' currently available
 #'
 #' @return [list] full metadata, including git info, cluster submission
 #'   commands, and user-appended items
@@ -16,12 +21,12 @@
 #' @import stringr
 #' @export
 build_metadata_shell <- function(code_root,
-                                 jobname_filter = "^rst_ide|^vscode",
-                                 submitline_n_char     = 1000L,
-                                 regex_to_extract      = "ihme/singularity-images/rstudio/[:graph:]+",
-                                 regex_to_ignore       = "jpy",
-                                 system_user_name      = Sys.info()[["user"]],
-                                 cluster_type          = "slurm"
+                                 jobname_filter    = "^rst_ide|^vscode",
+                                 submitline_n_char = 1000L,
+                                 regex_to_extract  = "ihme/singularity-images/rstudio/[:graph:]+",
+                                 regex_to_ignore   = "jpy",
+                                 system_user_name  = Sys.info()[["user"]],
+                                 cluster_type      = "slurm"
 ) {
   
   # browser()
@@ -45,14 +50,15 @@ build_metadata_shell <- function(code_root,
     user            = Sys.info()[["user"]],
     CODE_ROOT       = code_root,
     GIT             = GIT,
+    
     SUBMIT_COMMANDS = 
       SamsElves::extract_submission_commands(
-        jobname_filter = jobname_filter,
-        submitline_n_char     = submitline_n_char,
-        regex_to_extract      = regex_to_extract,
-        regex_to_ignore       = regex_to_ignore,
-        system_user_name      = system_user_name,
-        cluster_type          = cluster_type)
+        jobname_filter    = jobname_filter,
+        submitline_n_char = submitline_n_char,
+        regex_to_extract  = regex_to_extract,
+        regex_to_ignore   = regex_to_ignore,
+        system_user_name  = system_user_name,
+        cluster_type      = cluster_type)
   )
   
   return(metadata_shell)
@@ -66,31 +72,28 @@ build_metadata_shell <- function(code_root,
 #' Rstudio singularity image (or something else you desire).  Extracts this
 #' informtion from ALL jobs you currently have active in your squeue.
 #'
-#' @param jobname_filter [character|regex] when you run 
-#' `sacct -u <username>`, what `NAME` do you want to filter for?
-#' @param max_cmd_length [integer] how many characters long is your command?
-#'   Increase your default if the command is truncated.  All leading/trailing
-#'   whitespace is trimmed.
+#' @param jobname_filter [character|regex] when you run `sacct -u <username>`,
+#'   what `NAME` do you want to filter for?
+#' @param submitline_n_char [int] length of submitted command string to expect
+#'   from system (set this much longer than you'd think necessary)
 #' @param regex_to_extract [character|regex] what string do you want to extract
 #'   after running  `sacct -j <jobid> -o submitline%xxx` using
 #'   `stringr::str_extract_all`
-#' @param regex_to_ignore [character|regex] if your `regex_to_extract`
-#'   command finds more strings than you want, this removes all strings with
-#'   this pattern anywhere inside using `stringr::str_detect`
-#' @param user_name [character] which user's commands to find - defaults to your
-#'   own
-#'
+#' @param regex_to_ignore [character|regex] if your `regex_to_extract` command
+#'   finds more strings than you want, this removes all strings with
+#' @param system_user_name
+#' @param cluster_type this pattern anywhere inside using `stringr::str_detect`
 #' @return [list] all desired submission commands, and specific extracted text
 #'   from regex_to_extract
 #' @import glue
 extract_submission_commands <- function(
     
-  jobname_filter = "^rst_ide|^vscode",
-  submitline_n_char     = 1000L,
-  regex_to_extract      = "ihme/singularity-images/rstudio/[:graph:]+",
-  regex_to_ignore       = "jpy",
-  system_user_name      = Sys.info()[["user"]],
-  cluster_type          = "slurm"
+  jobname_filter    = "^rst_ide|^vscode",
+  submitline_n_char = 1000L,
+  regex_to_extract  = "ihme/singularity-images/rstudio/[:graph:]+",
+  regex_to_ignore   = "jpy",
+  system_user_name  = Sys.info()[["user"]],
+  cluster_type      = "slurm"
   
 ) {
   
@@ -112,7 +115,8 @@ extract_submission_commands <- function(
   # https://ihme.slack.com/archives/C01MPBPJ37U/p1659111543571669
   
   submit_command_list <- lapply(jobid_vec, function(job_id){
-    submission_command <- system2(
+    
+    submission_command = system2(
       command = "sacct",
       args    = glue("-j {job_id} -o submitline%{submitline_n_char}"), 
       stdout  = T
@@ -151,7 +155,6 @@ extract_submission_commands <- function(
 #'
 #' @return [data.frame] long by jobid, wide by jobid and jobname
 #' @import glue
-#' @export
 #'
 #' @examples
 job_finder <- function(system_user_name, 
@@ -194,7 +197,6 @@ job_finder <- function(system_user_name,
 #'
 #' @return [chr] vector of 
 #' @import stringr
-#' @export
 #'
 #' @examples
 extract_command_string <- function (submit_command_text,
@@ -227,11 +229,10 @@ extract_command_string <- function (submit_command_text,
 #' @return [int] number of available cores for multithreading
 #' - if user has more than one interactive session, defaults to 1
 #' @import glue
-#' @export
 #'
 #' @examples
-extract_cores <- function(system_user_name      = user_name,
-                          jobname_filter = jobname_filter) {
+extract_cores <- function(system_user_name = user_name,
+                          jobname_filter   = jobname_filter) {
   
   # Find number of cores for all the user's jobids
   
@@ -245,8 +246,8 @@ extract_cores <- function(system_user_name      = user_name,
   
   # Find jobids matching the user's desired string
   jobs_selected_df <- job_finder(system_user_name = system_user_name,
-                                 jobname_filter = jobname_filter, 
-                                 cluster_type = cluster_type)
+                                 jobname_filter   = jobname_filter, 
+                                 cluster_type     = cluster_type)
   
   jobids_threads  <- job_threads_df$JOBID
   jobids_selected <- jobs_selected_df$jobid
