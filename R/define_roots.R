@@ -6,7 +6,7 @@
 #' @export
 #'
 #' @examples
-define_git_root <- function(){
+define_git_repo_root <- function(){
   INTERACTIVE <- rstudioapi::isAvailable()
   
   git_root <- rprojroot::is_git_root
@@ -15,7 +15,7 @@ define_git_root <- function(){
     this_file <- rstudioapi::getSourceEditorContext()$path
     this_file <- DescTools::SplitPath(this_file)$fullfilename
   } else {
-    stop("This is only reliable with interactive sessions - pass code_root to submitted jobs through arguments.")
+    stop("This is only reliable with Rstudio interactive sessions - pass code_root to submitted jobs through arguments.")
   }
   
   git_root$find_file()
