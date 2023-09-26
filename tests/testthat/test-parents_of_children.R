@@ -14,7 +14,7 @@ test_that(
   "parents_of_children works", 
   {
     # A single child
-    res             = parents_of_children(
+    res <- parents_of_children(
       child_loc_ids = 102,
       hierarchy     = test_hier, 
       parent_level  = 1
@@ -22,7 +22,7 @@ test_that(
     expect_equal(res, 1)
     
     # Multiple children of the same parent 
-    res             = parents_of_children(
+    res <- parents_of_children(
       child_loc_ids = c(102, 570),
       hierarchy     = test_hier, 
       parent_level  = 1
@@ -30,7 +30,7 @@ test_that(
     expect_equal(res, c(1))
     
     # Multiple children with different parents 
-    res             = parents_of_children(
+    res <- parents_of_children(
       child_loc_ids = c(526, 4868),
       hierarchy     = test_hier, 
       parent_level  = 2
@@ -58,7 +58,7 @@ test_that(
       ), regexp       = "Please specify a single parent level"
     )
     
-    bad_hierarchy     = data.table::copy(test_hier)
+    bad_hierarchy <- data.table::copy(test_hier)
     bad_hierarchy$path_to_top_parent <- NULL
     expect_error(
       parents_of_children(
