@@ -22,18 +22,26 @@ test_that(
   {
     expect_error(
       extract_command_string(test_str_2, test_regex_1), 
-      regexp = "Submit text length == 1"
+      regexp = "Must submit text length == 1"
     )
     
     expect_error(
       extract_command_string(test_str_2, test_regex_2), 
-      regexp = "Submit text length == 1"
+      regexp = "Must submit text length == 1"
     )
     
     expect_error(
       extract_command_string(test_str_1, test_regex_2), 
-      regexp = "Submit regex length == 1"
+      regexp = "Must submit regex length == 1"
     )
     
+    expect_error(
+      extract_command_string(
+        submit_command_text = test_str_1,
+        regex_to_extract = test_regex_1,
+        regex_to_ignore = "g"
+      ),
+      regexp = "No strings were extracted - inspect inputs and regex_to_ignore"
+    )
   }
 )
