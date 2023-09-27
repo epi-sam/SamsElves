@@ -258,22 +258,24 @@ job_finder <- function(system_user_name,
 extract_command_string <- function (submit_command_text,
                                     regex_to_extract,
                                     regex_to_ignore = NULL) {
+  
+  # str_extract_all returns a list long by either string OR pattern
   if(length(submit_command_text) > 1) stop ("Submit text length == 1")
   if(length(regex_to_extract) > 1) stop ("Submit regex length == 1")
   
   extracted_strings <- stringr::str_extract_all(submit_command_text, regex_to_extract)
   
-  # str_extract_all returns a list long by either string OR pattern
+  # net to catch unexpected errors
   if(!length (extracted_strings) == 1) {
     stop("submit_command_list has more than one element - investigate. 
              You likely have more than one string or pattern specified")
   }
+  
   extracted_strings <- extracted_strings[[1]]
   
   if(is.null(regex_to_ignore)) {
     keep_filter <- rep(TRUE, length(extracted_strings))
   } else {
-    # KEEP strings NOT found by regex_to_ignore
     keep_filter <- lapply(extracted_strings, stringr::str_detect, pattern = regex_to_ignore, negate = TRUE)
     keep_filter <- unlist(keep_filter)
   }
