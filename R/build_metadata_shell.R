@@ -260,8 +260,8 @@ extract_command_string <- function (submit_command_text,
                                     regex_to_ignore = NULL) {
   
   # str_extract_all returns a list long by either string OR pattern
-  if(length(submit_command_text) > 1) stop ("Submit text length == 1")
-  if(length(regex_to_extract) > 1) stop ("Submit regex length == 1")
+  if(length(submit_command_text) > 1) stop ("Must submit text length == 1")
+  if(length(regex_to_extract) > 1) stop ("Must submit regex length == 1")
   
   extracted_strings <- stringr::str_extract_all(submit_command_text, regex_to_extract)
   
@@ -280,7 +280,9 @@ extract_command_string <- function (submit_command_text,
     keep_filter <- unlist(keep_filter)
   }
   
-  return(extracted_strings[keep_filter])
+  return_strings <- extracted_strings[keep_filter]
+  if(length(return_strings) == 0) stop("No strings were extracted - inspect inputs and regex_to_ignore")
+  return(return_strings)
   
 }
 
