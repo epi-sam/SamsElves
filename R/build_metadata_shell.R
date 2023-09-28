@@ -216,20 +216,19 @@ job_finder <- function(system_user_name,
                        jobname_filter,
                        cluster_type = "slurm") {
   
-  valid_cluster_types <- c("slurm")
-  cluster_type        <- tolower(cluster_type)
-  valid_cluster_msg   <- paste0(valid_cluster_types, collapse = ", ")
-  
-  if(!cluster_type %in% valid_cluster_types) {
-    stop(paste("Enter a valid cluster type, options (case-insensitive):", valid_cluster_msg))
-  }
+  valid_cluster_types  <- c("slurm")
+  valid_cluster_msg    <- paste0(valid_cluster_types, collapse = ", ")
+  stop_msg_clusterType <- paste("Enter a valid cluster type, options (case-insensitive):", valid_cluster_msg)
+
+  if(is.null(cluster_type)) stop(stop_msg_clusterType)
+  if(!tolower(cluster_type) %in% valid_cluster_types) stop(stop_msg_clusterType)
   
   # read job accounting list from cluster
-  jobs_txt <- system2(
-    command = "sacct",
-    args    = glue("-u {system_user_name} --format=JobID%16,JobName%16,State%10"),
-    stdout  = T
-  )
+  jobs_txt <- system(
+    command = glue("sacct -u {system_user_name} --format=JobID%16,JobName%16,State%10"),
+    intern = T
+    )
+  
   jobs_df  <- read.table(text = jobs_txt, header = T, sep = "")
   
   # format, filter & extract jobids & jobnames in a table
