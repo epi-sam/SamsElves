@@ -81,13 +81,21 @@ test_that(
   }
 )
 
+# test_that(
+#   "ls works",
+#   {
+#     expect_output(print(system("ls")))
+#   }
+# )
+
 # Also fails due to inability to call `system("sacct xxx")`
 
 # test_that(
-#   "metadata_shell produces a list with the correct named top-level items",
+#   "metadata_shell produces a list with the correctly named top-level items",
 #   {
 #     metadata_shell <- build_metadata_shell(code_root = file.path("/mnt/share/code/", Sys.getenv()["USER"], "SamsElves"))
 #     metadata_shell_names <- c("start_time", "user", "CODE_ROOT", "GIT", "SUBMIT_COMMANDS")
+#     expect_type(metadata_shell, "list")
 #     expect_equal(names(metadata_shell), metadata_shell_names)
 #   }
 # )
