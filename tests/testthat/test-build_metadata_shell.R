@@ -81,9 +81,13 @@ test_that(
   }
 )
 
-# 80/20 test - low coverage integration test - working with outside system is tricky
-# - one integration test, don't isolate components, interact with them all directly
-# - sometimes they can take a long time - 
-# - call some regex for sha string form
-# - test for no errors
-# - the goal is not 100% coverage, the goal is confidence
+# Also fails due to inability to call `system("sacct xxx")`
+
+# test_that(
+#   "metadata_shell produces a list with the correct named top-level items",
+#   {
+#     metadata_shell <- build_metadata_shell(code_root = file.path("/mnt/share/code/", Sys.getenv()["USER"], "SamsElves"))
+#     metadata_shell_names <- c("start_time", "user", "CODE_ROOT", "GIT", "SUBMIT_COMMANDS")
+#     expect_equal(names(metadata_shell), metadata_shell_names)
+#   }
+# )
