@@ -171,7 +171,7 @@ extract_submission_commands <- function(
   submit_command_list <- lapply(jobid_vec, function(job_id){
     
     submission_command <- system2(
-      command = "sacct",
+      command = "/opt/slurm/bin/sacct", # use full path to pass testing
       args    = glue("-j {job_id} -o submitline%{submitline_n_char}"), 
       stdout  = T
     )
@@ -224,10 +224,16 @@ job_finder <- function(system_user_name,
   if(!tolower(cluster_type) %in% valid_cluster_types) stop(stop_msg_clusterType)
   
   # read job accounting list from cluster
-  jobs_txt <- system(
-    command = glue("sacct -u {system_user_name} --format=JobID%16,JobName%16,State%10"),
-    intern = T
+  jobs_txt <- system2(
+    command = glue("/opt/slurm/bin/sacct"), # use full path to pass testing
+    args = glue("-u {system_user_name} --format=JobID%16,JobName%16,State%10"),
+    stdout = TRUE
     )
+  
+  # jobs_txt <- system(
+  #   command = glue("/opt/slurm/bin/sacct -u {system_user_name} --format=JobID%16,JobName%16,State%10"),
+  #   intern = TRUE
+  #   )
   
   jobs_df  <- read.table(text = jobs_txt, header = T, sep = "")
   
@@ -287,7 +293,7 @@ extract_command_string <- function (submit_command_text,
 
 #' Extract number of interactive user cores
 #' 
-#' NOTE: This step finds cores with squeue, rather than sacct
+#' NOTE: This step finds cores with squeue, rather than sacct - eases formatting
 #'
 #' @param system_user_name [chr] how user is identified on the cluster
 #' @param jobname_filter [regex] filter to include for `job_finder()` call
@@ -303,7 +309,7 @@ extract_cores <- function(system_user_name = user_name,
   
   # Find number of cores for all the user's jobs
   job_threads_txt <- system2(
-    command = "squeue",
+    command = "/opt/slurm/bin/squeue", # use full path to pass testing
     args    = glue("-o '%.10A %.5C' -u {system_user_name}"),
     stdout  = T
   )
