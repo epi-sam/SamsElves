@@ -102,3 +102,39 @@ test_that(
     )
   }
 )
+
+# extract_submission_commands  ------------------------------------------------------
+
+test_that(
+  "extract_submission_commands returns a correctly shaped object",
+  {
+    submit_command_list <- extract_submission_commands(
+      jobname_filter = "^rst_ide",
+      submitline_n_char = 500,
+      regex_to_extract = "ihme/singularity-images/rstudio/[:graph:]+",
+      regex_to_ignore = "jpy",
+      system_user_name = Sys.getenv()["USER"],
+      cluster_type = "slurm"
+    )
+    
+    submit_command_template <- c(
+      submission_commands   = 1,
+      extracted_cmd_strings = 1,
+      n_cores               = 1
+    )
+    
+    expect_equal(
+      unlist(lapply(submit_command_list, length)),
+      submit_command_template
+    )
+  }
+)
+
+test_that(
+  "extract_submission_commands returns at least one character per item",
+  {
+    for(submit_command_item in submit_command_list){
+      expect_gte(nchar(submit_command_item), 2)
+    }
+  }
+)
