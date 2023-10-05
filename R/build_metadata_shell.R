@@ -303,9 +303,9 @@ extract_command_string <- function (submit_command_text,
 #' 
 #' @import glue
 #'
-extract_cores <- function(system_user_name = user_name,
-                          jobname_filter   = jobname_filter,
-                          cluster_type     = cluster_type) {
+extract_cores <- function(system_user_name,
+                          jobname_filter,
+                          cluster_type) {
   
   # Find number of cores for all the user's jobs
   job_threads_txt <- system2(

@@ -48,19 +48,18 @@ test_that(
 
 # job_finder --------------------------------------------------
 
-# FIXME - 2023 Sep 28 - apparently we can't call `sacct` with testthat... ----
-# test_that(
-#   "job_finder produces a data.frame with 0+ rows for jobs with 'rst' or 'login' in the JobName",{
-#     job_results <-
-#       job_finder(
-#         system_user_name = Sys.getenv()["USER"],
-#         jobname_filter   = "rst|login",
-#         cluster_type     = "slurm"
-#       )
-#     expect_s3_class(job_results, "data.frame")
-#     expect_gte(nrow(job_results), 0)
-#   }
-# )
+test_that(
+  "job_finder produces a data.frame with 0+ rows for jobs with 'rst' or 'login' in the JobName",{
+    job_results <-
+      job_finder(
+        system_user_name = Sys.getenv()["USER"],
+        jobname_filter   = "rst|login",
+        cluster_type     = "slurm"
+      )
+    expect_s3_class(job_results, "data.frame")
+    expect_gte(nrow(job_results), 0)
+  }
+)
 
 test_that(
   "job_finder errors for wrong/blank cluster name",
@@ -81,14 +80,6 @@ test_that(
   }
 )
 
-# test_that(
-#   "ls works",
-#   {
-#     expect_output(print(system("ls")))
-#   }
-# )
-
-# Also fails due to inability to call `system("sacct xxx")`
 
 test_that(
   "metadata_shell produces a list with the correctly named top-level items",
@@ -97,5 +88,17 @@ test_that(
     metadata_shell_names <- c("start_time", "user", "CODE_ROOT", "GIT", "SUBMIT_COMMANDS")
     expect_type(metadata_shell, "list")
     expect_equal(names(metadata_shell), metadata_shell_names)
+  }
+)
+
+# extract_cores ----------------------------------------------------------------
+
+test_that(
+  "extract_cores returns an integer for a single Rstudio session",
+  {
+    expect_type(
+      extract_cores(system_user_name = Sys.getenv()["USER"], jobname_filter = "^rst_ide", cluster_type = "slurm"),
+      "integer"
+    )
   }
 )
