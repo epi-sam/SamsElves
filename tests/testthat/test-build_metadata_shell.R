@@ -134,7 +134,7 @@ test_that(
   "extract_submission_commands returns at least one character per item",
   {
     for(submit_command_item in submit_command_list){
-      expect_gte(nchar(submit_command_item), 2)
+      expect_gte(nchar(submit_command_item), 1)
     }
   }
 )
