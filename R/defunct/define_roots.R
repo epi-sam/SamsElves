@@ -3,7 +3,6 @@
 #' Only reliable with Rstudio interactive sessions.
 #'
 #' @return [path] path to root folder
-#' @export
 #'
 #' @examples
 define_git_repo_root <- function(){

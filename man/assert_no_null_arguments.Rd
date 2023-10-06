@@ -4,14 +4,14 @@
 \alias{assert_no_null_arguments}
 \title{Assert function arguments are not null}
 \usage{
-assert_no_null_arguments(as_list_env = as.list(environment()))
+assert_no_null_arguments(as_list_env = NULL)
 }
 \arguments{
-\item{as_list_env}{[list] Require: user must provide as_list_env =
-as.list(environment()) - cannot rely on default argument}
+\item{as_list_env}{[list] as_list_env = as.list(environment()) - default
+calling environment one level up the call stack}
 }
 \value{
-[none] console output of missing arguments
+[std_err] console output of missing arguments
 }
 \description{
 Assert function arguments are not null

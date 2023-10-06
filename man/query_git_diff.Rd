@@ -10,7 +10,8 @@ query_git_diff(CODE_ROOT)
 \item{CODE_ROOT}{[path] path to code root containing a .git folder}
 }
 \value{
-[character] succinct git diff vector length 1 with newlines for easy console printing
+[character] succinct git diff vector length 1 with newlines for
+  console printing with `cat()`, `glue::glue()` or `message()`
 }
 \description{
 Record uncommitted git changes
