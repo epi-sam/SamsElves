@@ -7,8 +7,6 @@
 #'
 #' @return [stderr/stdout] one or both
 #' @export
-#'
-#' @examples
 msg_prt <- function(string = "No message supplied", output = "message") {
   
   stopifnot(is.character(string))
