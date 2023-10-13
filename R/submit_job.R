@@ -39,19 +39,20 @@ submit_job <- function(
     dry_runTF              = FALSE
 ) {
   
-  # Argument standardization
-  language        <- tolower(language)
-  valid_langs     <- tolower(c("r", "python"))
+  # Argument validation 
+  ## coding language
+  valid_langs     <- c("r", "python")
   valid_langs_msg <- paste0(valid_langs, collapse = ", ")
-
-  # Agrument validation
-  if(is.null(script_path))       stop ("Please define a valid script path to submit")
+  if(is.null(language))    stop("Input a valid language (case insensitive): ", valid_langs_msg)
+  language <- tolower(language)
   if(!language %in% valid_langs) stop("Input a valid language (case insensitive): ", valid_langs_msg)
-  if(is.null(Account))           stop("Please define a Slurm Account e.g. proj_cov_vc")
-  
-  # build log folders
-  dir.create(std_err_path, recursive = RECURSIVE, showWarnings = FALSE)
-  dir.create(std_out_path, recursive = RECURSIVE, showWarnings = FALSE)
+  ## others
+  if(is.null(script_path)) stop("Please define a valid script path to submit")
+  if(is.null(Account))     stop("Please define a Slurm Account e.g. proj_cov_vc")
+
+  # build log folders silently (dir.create fails naturally if directory exists)
+  dir.create(std_err_path, recursive = TRUE, showWarnings = FALSE)
+  dir.create(std_out_path, recursive = TRUE, showWarnings = FALSE)
   
   # Define commands
   if (is.null(job_name)) {
@@ -63,9 +64,9 @@ submit_job <- function(
   if(language == "r") {
     
     if(is.null(r_image)) {
-      r_image_cmd <- " -i /ihme/singularity-images/rstudio/latest.img"
+      r_image_cmd <- "-i /ihme/singularity-images/rstudio/latest.img"
     } else {
-      r_image_cmd <- paste0(" -i ", r_image)
+      r_image_cmd <- paste0("-i ", r_image)
     }
     
     if(is.null(shell_script_path)) {
@@ -90,7 +91,7 @@ submit_job <- function(
   command <- paste0(
     "sbatch",
     " -J ",    job_name,
-    " ",       archive_cmd,
+    "",       archive_cmd,
     " --mem=", mem_GB,
     " -c ",    threads,
     " -t ",    runtime_min,
