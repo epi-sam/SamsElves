@@ -117,10 +117,8 @@ submit_job_array <- function(
   
   ## add hold_for_JobIDs if exists
   if(!is.null(hold_for_JobIDs)){
-    if(length(hold_for_JobIDs) > 0){
       hold_ids <- paste(hold_for_JobIDs, collapse = ":")
-      command <- paste0(command, " --dependency=afterok:", hold_ids)
-    }
+      command  <- paste0(command, " --dependency=afterok:", hold_ids)
   }
   
   # append extra arguments - handles NULL input by default
