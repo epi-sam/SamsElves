@@ -1,7 +1,8 @@
-#' Submit a script as a job to the Slurm cluster
+#' Submit an array job to the slurm cluster (only R supported 2023-10-16)
 #' 
-#' Function contains internal defaults for R and Python shell scripts.
-#' Function will build log paths automatically.
+#' See implementation here:
+#' https://stash.ihme.washington.edu/projects/HIVTBID/repos/hiv_sdg_analyses/browse/launch_sdg.R?at=develop#385-428
+#'
 #'
 #' @param language [chr] coding language for job (see valid_langs validation)
 #' @param shell_script_path [path] path to shell script (language-specific)
@@ -15,44 +16,59 @@
 #' @param runtime_min [chr] cluster resource requirement
 #' @param partition [chr] a.k.a. 'queue' - cluster resource requirement
 #' @param Account [chr] a.k.a. 'project' - cluster resource requirement
+#' @param array_first_task [chr] (default "1") index of first array task ID
+#' @param array_n_tasks [chr] number of tasks per array 
+#' @param hold_for_JobIDs [int] vector of jobids that must complete successfully before running this job (https://slurm.schedmd.com/sbatch.html#OPT_dependency)
 #' @param r_image [chr] (default "latest.img") e.g. "/ihme/singularity-images/rstudio/ihme_rstudio_4214.img"
 #' @param args_list [list, chr] optional list() of arguments, e.g. list("--arg1" = arg1, "--arg2" = arg2)
 #' @param dry_runTF [lgl] (default FALSE) if TRUE, only message and return submission command, no job submission
 #'
-#' @return [std_err] (message) submitted command and response from system re: submitted job status
+#' @return [list] 2 items - command submitted to cluster, cluster submission reply
 #' @export
-submit_job <- function(
-    language          = "R",
-    shell_script_path = NULL, 
-    script_path       = NULL, 
-    std_err_path      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
-    std_out_path      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
-    job_name          = NULL, 
-    archiveTF         = FALSE,  
+#'
+#' @examples
+submit_job_array <- function(
+    language          = "R", 
+    shell_script_path = NULL,
+    script_path       = NULL,
+    std_err_path      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),  # default to /ihme/temp/[cluster]/usr
+    std_out_path      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"), # default to /ihme/temp/[cluster]/usr
+    job_name          = NULL,
+    archiveTF         = FALSE,
     mem_GB            = "10G", 
     threads           = "2", 
     runtime_min       = "15", 
     partition         = "all.q", 
-    Account           = NULL, 
-    r_image           = NULL,  
-    args_list         = NULL,
+    Account           = NULL,
+    array_first_task  = "1", 
+    array_n_tasks     = NULL, 
+    hold_for_JobIDs   = NULL, 
+    r_image           = NULL,
+    args_list         = NULL, 
     dry_runTF         = FALSE
-) {
+){
   
   # Argument validation 
   ## coding language
-  valid_langs     <- c("r", "python")
+  valid_langs     <- c("r")
   valid_langs_msg <- paste0(valid_langs, collapse = ", ")
   if(is.null(language)) stop("Input a valid language (case insensitive): ", valid_langs_msg)
   language        <- tolower(language)
   if(!language %in% valid_langs) stop("Input a valid language (case insensitive): ", valid_langs_msg)
   ## others
-  if(is.null(script_path)) stop("Please define a valid script path to submit")
-  if(is.null(Account))     stop("Please define a Slurm Account e.g. proj_cov_vc")
-
+  if(is.null(script_path))   stop("Please define a valid script path to submit")
+  if(is.null(Account))       stop("Please define a Slurm Account e.g. proj_cov_vc")
+  if(is.null(array_n_tasks)) stop("Please define number of jobs per array (1 to array_n_tasks)")
+  if(!is.integer(hold_for_JobIDs)) stop("hold_for_JobIDs must be integer")
+  if(!is.vector(hold_for_JobIDs, mode = "vector")) stop("hold_for_JobIDs must be a simple vector")
+  
   # build log folders silently (dir.create fails naturally if directory exists)
   dir.create(std_err_path, recursive = TRUE, showWarnings = FALSE)
   dir.create(std_out_path, recursive = TRUE, showWarnings = FALSE)
+  
+  # temp fix for the image not being able to find the singularity 2/8/22
+  # old_path <- Sys.getenv("PATH")
+  # Sys.setenv(PATH = paste(old_path, "/opt/singularity/bin", sep = ":"))
   
   # Define commands
   if (is.null(job_name)) {
@@ -72,12 +88,6 @@ submit_job <- function(
     if(is.null(shell_script_path)) {
       shell_script_path <- "/ihme/singularity-images/rstudio/shells/execRscript.sh"
     }
-    
-  } else if (language == "python") {
-    
-    if(is.null(shell_script_path)) {
-      shell_script_path <- system.file("py/python_shell_slurm.sh", package = "SamsElves")
-    } 
     
   } 
   
@@ -100,8 +110,18 @@ submit_job <- function(
     " -o ",    std_out_path, 
     " "   ,    shell_script_path,
     " "   ,    r_image_cmd,
-    " -s ",    script_path
+    " -s ",    script_path,
+    paste0("--array=", array_first_task, "-", array_n_tasks),
+    "-D ./",
   )
+  
+  ## add hold_for_JobIDs if exists
+  if(!is.null(hold_for_JobIDs)){
+    if(length(hold_for_JobIDs) > 0){
+      hold_ids <- paste(hold_for_JobIDs, collapse = ":")
+      command <- paste0(command, " --dependency=afterok:", hold_ids)
+    }
+  }
   
   # append extra arguments - handles NULL input by default
   for (arg_name in names(args_list)) { 
@@ -114,29 +134,9 @@ submit_job <- function(
   
   submission_return <- system(command, intern = T)
   message(paste("Cluster job submitted:", job_name, "; Submission return code:", submission_return))
-  return(submission_return)
   
+  ## and return jid
+  out_list <- list(command           = command,
+                   submission_return = submission_return)
+  return(out_list)
 }
-
-# scoping
-# language               = "R"
-# script_path            = file.path(.bootstrap_root, "module_simmod/run_eppasm_for_location_by_draw_and_scenario.R")
-# std_err_path           = file.path(.output_root, "std_err")
-# std_out_path           = file.path(.output_root, "std_out")
-# job_name               = .job_name
-# mem_GB                 = "40G"
-# shell_script_path      = NULL
-# archiveTF              = T
-# use_paths_file_r_image = T
-# Account                = "proj_hiv"
-# partition              = "all.q"
-# threads                = as.character(PARAMS$n_cores_eppasm)
-# runtime_min            = "60"
-# job_name               = NULL
-# r_image                = NULL
-# args_list =
-#   list("--bootstrap_root"  = .bootstrap_root,
-#        "--output_root"     = .output_root,
-#        "--n_cores"         = as.integer(PARAMS$n_cores_eppasm),
-#        "--loc_id"          = loc_id,
-#        "--available_draws" = available_draws)
