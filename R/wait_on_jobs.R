@@ -1,32 +1,48 @@
 # Given string pattern matching job name, wait while jobs are running or pending (SLURM)
-wait_on_jobs <- function(job_pattern, initial_sleep = 5, file_list=NULL, obj=NULL, resub=0, perl = FALSE) {
+#'
+#' @param job_pattern [regex] a (perl) regular expression - submitted to `gnu grep` system commend
+#'
+#' @param initial_sleep_sec [int] time to allow system time to find a submitted job
+#' @param jobname_nchar [int] (defualt: 50) how many characters of a JobName to display and search
+#' @param file_list [path/list] list of paths to files to wait on
+#' @param obj 
+#' @param resub 
+#'
+#' @return [std_out] message to user
+#' @export
+#' 
+#' @import rhdf5
+#' @import glue
+wait_on_jobs <- function(job_pattern, jobname_nchar = 50L, initial_sleep_sec = 5L, file_list=NULL, obj=NULL, resub=0) {
   
-  ## Give it a sec to launch
-  Sys.sleep(initial_sleep)
+  # FIXME SB - 2023 Oct 20 - UNDER CONSTRUCTION
+  # - NEXT PHASE IS SORTING OUT THE FILE_LIST SECTION, MAKING IT MORE GENERIC
   
-  if(nchar(job_pattern) > 50) {
-    warning(paste0("The job pattern ", job_pattern, " exceeds the current max of 50 characters, job_hold will not track this job correctly."))
+  # argument validation
+  if(!is.vector(jobname_nchar, mode = "integer")) stop("jobname_nchar must be a single integer.")
+  if(length(jobname_nchar) > 1) stop("jobname_nchar must be a single integer.")
+  
+  ## Give jobs time to be discoverable on the cluster
+  Sys.sleep(initial_sleep_sec)
+  
+  if(nchar(job_pattern) > jobname_nchar) {
+    warning(glue::glue("The job pattern {job_pattern} exceeds the current max of {jobname_nchar} characters, wait_on_jobs may not track this job correctly."))
   }
   
   ## Start timer
-  start.time <- proc.time()
+  job_starttime <- proc.time()
   
   # Save SLURM get jobs command
-  slurm_get_jobs_command <- "sacct --format=JobID%16,JobName%50,User%20,State%16,ExitCode,NodeList%27,Partition%12,Account%20"
+  slurm_get_jobs_command <- glue::glue("sacct --format=JobID%16,JobName%{jobname_nchar},User%20,State%16,ExitCode,NodeList%27,Partition%12,Account%20")
   
   # While jobs are still running or pending matching the pattern in `job_name`, sleep
-  if(perl){
-    found_jobs <- suppressWarnings(system(paste0(slurm_get_jobs_command, " | grep 'RUNNING\\|PENDING' | grep -P ", job_pattern), intern = T))
-  } else {
-    found_jobs <- suppressWarnings(system(paste0(slurm_get_jobs_command, " | grep 'RUNNING\\|PENDING' | grep ", job_pattern), intern = T))
-  }
-  while(length(found_jobs) > 0) {
-    Sys.sleep(15)
-  }
+  found_jobs <- suppressWarnings(system(paste0(slurm_get_jobs_command, " | grep 'RUNNING\\|PENDING' | grep -P ", job_pattern), intern = T))
+  
+  while(length(found_jobs) > 0) Sys.sleep(15)
   
   ## End Timer
-  job.runtime <- proc.time() - start.time
-  job.runtime <- job.runtime[3]
+  job_runtime <- proc.time() - job_starttime
+  job_runtime <- job_runtime[3]
   
   ## Check for the file list
   if (!is.null(file_list)) {
@@ -40,7 +56,7 @@ wait_on_jobs <- function(job_pattern, initial_sleep = 5, file_list=NULL, obj=NUL
         ## Check obj if hdf
       } else {
         if (grepl(".h5", file_list[1])) {
-          if (!(obj %in% h5ls(file_list)$name)) {
+          if (!(obj %in% rhdf5::h5ls(file_list)$name)) {
             missing_list <- rbind(missing_list, file)
           }
         }
@@ -50,9 +66,9 @@ wait_on_jobs <- function(job_pattern, initial_sleep = 5, file_list=NULL, obj=NUL
     ## If missing_list > 0, break
     if (length(missing_list) > 0) {
       if (resub == 0) {
-        stop(paste0("Job failed: ", job_pattern,
-                    "\nTime elapsed: ", job.runtime,
-                    "\nYou are missing the following files: ", toString(missing_list)))
+        stop(glue::glue("Job failed: {job_pattern}
+                        Time elapsed: {job_runtime}
+                        You are missing the following files: {toString(missing_list)}"))
       } else {
         return(1)
       }
@@ -62,5 +78,6 @@ wait_on_jobs <- function(job_pattern, initial_sleep = 5, file_list=NULL, obj=NUL
   }
   
   ## Complete
-  print(paste0("Job ", job_pattern, " has completed. Time elapsed: ", job.runtime))
+  print(glue::glue("Job(s) {job_pattern} completed. Time elapsed: {job_runtime}"))
 }
+
