@@ -63,7 +63,7 @@ submit_job_array(
 \item{dry_runTF}{[lgl] (default FALSE) if TRUE, only message and return submission command, no job submission}
 }
 \value{
-[list] 2 items - command submitted to cluster, cluster submission reply
+[list] 2 items - list(command submitted to cluster, cluster submission reply)
 }
 \description{
 See implementation here:

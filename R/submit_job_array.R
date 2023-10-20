@@ -23,10 +23,8 @@
 #' @param args_list [list, chr] optional list() of arguments, e.g. list("--arg1" = arg1, "--arg2" = arg2)
 #' @param dry_runTF [lgl] (default FALSE) if TRUE, only message and return submission command, no job submission
 #'
-#' @return [list] 2 items - command submitted to cluster, cluster submission reply
+#' @return [list] 2 items - list(command submitted to cluster, cluster submission reply)
 #' @export
-#'
-#' @examples
 submit_job_array <- function(
     language          = "R", 
     shell_script_path = NULL,
@@ -59,8 +57,7 @@ submit_job_array <- function(
   if(is.null(script_path))   stop("Please define a valid script path to submit")
   if(is.null(Account))       stop("Please define a Slurm Account e.g. proj_cov_vc")
   if(is.null(array_n_tasks)) stop("Please define number of jobs per array (1 to array_n_tasks)")
-  if(!is.integer(hold_for_JobIDs)) stop("hold_for_JobIDs must be integer")
-  if(!is.vector(hold_for_JobIDs, mode = "vector")) stop("hold_for_JobIDs must be a simple vector")
+  if(!is.vector(hold_for_JobIDs, mode = "integer")) stop("hold_for_JobIDs must be a simple integer vector")
   
   # build log folders silently (dir.create fails naturally if directory exists)
   dir.create(std_err_path, recursive = TRUE, showWarnings = FALSE)
@@ -111,8 +108,8 @@ submit_job_array <- function(
     " "   ,    shell_script_path,
     " "   ,    r_image_cmd,
     " -s ",    script_path,
-    paste0("--array=", array_first_task, "-", array_n_tasks),
-    "-D ./",
+    paste0("--array=", array_first_task, "-", array_n_tasks)
+    # , " -D ./" # FIXME SB - 2023 Oct 20 - I'm not sure I want this in here
   )
   
   ## add hold_for_JobIDs if exists
