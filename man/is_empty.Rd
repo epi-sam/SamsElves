@@ -8,10 +8,12 @@ is_empty(x, check_whitespace = TRUE)
 }
 \arguments{
 \item{x}{[vec] some scalar element}
+
+\item{check_whitespace}{[lgl] check for all-whitespace strings?}
 }
 \value{
 [lgl]
 }
 \description{
-Checks for length == 1, is.null, is.na, empty string ("")
+vectorized check for is.null, is.na, empty string (""), optional whitespace only string
 }
