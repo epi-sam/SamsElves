@@ -88,6 +88,9 @@ submit_job <- function(
     if(!is.list(args_list)) stop("args_list must be a named list")
     if(is.null(names(args_list))) stop("args_list must be a named list")
     if(any(nchar(names(args_list)) == 0)) stop("args_list must be a named list")
+    # don't break backward compatibility
+    names(args_list) <- gsub("^--", "", names(args_list))
+    # format for scheduler
     names(args_list) <- paste0("--", names(args_list))
   }
   
