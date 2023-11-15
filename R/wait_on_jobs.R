@@ -81,3 +81,31 @@ wait_on_jobs <- function(job_pattern, jobname_nchar = 50L, initial_sleep_sec = 5
   print(glue::glue("Job(s) {job_pattern} completed. Time elapsed: {job_runtime}"))
 }
 
+
+#' Wait for a Slurm job to finish
+#'
+#' @param job_id [int]
+#' @param initial_sleep [int] default 5
+#' @param perl [lgl] does you need perl to find your job_id?
+#'
+#' @return [std_out] console print
+#' @export
+wait_on_slurm_job_id <- function(job_id, initial_sleep = 5, perl = FALSE) {
+  
+  Sys.sleep(initial_sleep)
+  start.time <- proc.time()
+  
+  cmd <- "sacct --format=JobID%16,JobName%50,User%20,State%16,ExitCode,NodeList%27,Partition%12,Account%20"
+  
+  perl_stub <- ifelse(perl, "-P ", "")
+  
+  while(length(suppressWarnings(system(paste0(cmd, " | grep 'RUNNING\\|PENDING' | grep ", perl_stub, job_id), intern = T))) > 0 ) {
+    Sys.sleep(15)
+    print(round((proc.time() - start.time)[[3]],0))
+  }
+  
+  job.runtime <- proc.time() - start.time
+  job.runtime <- round(job.runtime[3], 0)
+  
+  print(paste0("Job ", job_id, " has completed. Time elapsed: ", job.runtime, " seconds"))
+}
