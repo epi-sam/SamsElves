@@ -1,8 +1,9 @@
 #' Check that a vector/element is not empty
 #'
-#' Checks for length == 1, is.null, is.na, empty string ("")
+#' vectorized check for is.null, is.na, empty string (""), optional whitespace only string
 #'
 #' @param x [vec] some scalar element
+#' @param check_whitespace [lgl] check for all-whitespace strings?
 #'
 #' @return [lgl]
 #' @export
