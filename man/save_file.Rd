@@ -2,22 +2,22 @@
 % Please edit documentation in R/utils_io.R
 \name{save_file}
 \alias{save_file}
-\title{SDG core function - save a file of approved format, with overwrite toggle}
+\title{Save file I/O with overwrite and message control}
 \usage{
-save_file(object, path_to_file, forbid_overwrite = TRUE, inform_user = FALSE)
+save_file(object, f_path, forbid_overwrite = TRUE, verbose = FALSE)
 }
 \arguments{
 \item{object}{[obj] any R object}
 
-\item{path_to_file}{[path] duh}
+\item{f_path}{[path] duh}
 
 \item{forbid_overwrite}{[lgl] default: overwrite not allowed}
 
-\item{inform_user}{[lgl]}
+\item{verbose}{[lgl] default: silent}
 }
 \value{
 [none] Saves to disk
 }
 \description{
-SDG core function - save a file of approved format, with overwrite toggle
+Save file I/O with overwrite and message control
 }

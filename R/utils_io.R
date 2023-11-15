@@ -29,13 +29,28 @@ datetime_stamp <- function(std_out = TRUE, std_err = FALSE, dt_format = "%Y_%m_%
   invisible(dt_stamp)
 }
 
+#' Find the file extension from a full path
+#'
+#' @param f_path [path]
+#'
+#' @return [chr] a file extension
+#' @export
+#' @importFrom DescTools SplitPath
+#' @importFrom glue glue
+find_file_extension <- function(f_path){
+  
+  path_deconstructed <- DescTools::SplitPath(f_path) # a list
+  if(is.na(path_deconstructed$extension)) stop(glue("This path has no file extension : {path_deconstructed$normpath}"))
+  return(path_deconstructed$extension)
+}
 
-#' SDG core function - save a file of approved format, with overwrite toggle
+
+#' Save file I/O with overwrite and message control
 #'
 #' @param object [obj] any R object
-#' @param path_to_file [path] duh
+#' @param f_path [path] duh
 #' @param forbid_overwrite [lgl] default: overwrite not allowed
-#' @param inform_user [lgl] 
+#' @param verbose [lgl] default: silent
 #'
 #' @return [none] Saves to disk
 #' @export
@@ -43,16 +58,16 @@ datetime_stamp <- function(std_out = TRUE, std_err = FALSE, dt_format = "%Y_%m_%
 #' @importFrom glue glue
 #' @importFrom data.table data.table fwrite
 #' @importFrom yaml write_yaml
-save_file <- function(object, path_to_file, forbid_overwrite = TRUE, inform_user = FALSE){
+save_file <- function(object, f_path, forbid_overwrite = TRUE, verbose = FALSE){
 
-  parent_directory <- DescTools::SplitPath(path_to_file)$dirname
-  if(parent_directory == "/") stop("Parent directory is '/', likely undefined.  Inspect path_to_file")
+  parent_directory <- DescTools::SplitPath(f_path)$dirname
+  if(parent_directory == "/") stop("Parent directory is '/', likely undefined.  Inspect f_path")
   if(!dir.exists(parent_directory)) {
     stop(glue::glue("Parent directory does not exist, please create it first : 
                     {parent_directory}"))
   }
   
-  flag_file_exists <- file.exists(path_to_file)
+  flag_file_exists <- file.exists(f_path)
   
   msg_grid <- data.table(
     expand.grid(
@@ -62,10 +77,10 @@ save_file <- function(object, path_to_file, forbid_overwrite = TRUE, inform_user
   )
   
   msg_grid$user_message <- c(
-    glue("File already exists, not over-writing : {path_to_file}"),
-    glue("Saved file to disk {path_to_file}"),
-    glue("Overwriting file: {path_to_file}"),
-    glue("Saved file to disk {path_to_file}")
+    glue("File already exists, not over-writing : {f_path}"),
+    glue("Saved file to disk {f_path}"),
+    glue("Overwriting file: {f_path}"),
+    glue("Saved file to disk {f_path}")
   )
   
   user_msg <-
@@ -85,21 +100,64 @@ save_file <- function(object, path_to_file, forbid_overwrite = TRUE, inform_user
       collapse = ", "
     )
     
-    ext <- find_file_extension(path_to_file)
+    ext <- find_file_extension(f_path)
     ext <- tolower(ext)
     
     switch(
       ext,
-      "csv"  = {fwrite(object, path_to_file)},
-      "yaml" = {yaml::write_yaml(object, path_to_file)},
-      "rds"  = {saveRDS(object, path_to_file)},
+      "csv"  = {data.table::fwrite(object, f_path)},
+      "yaml" = {yaml::write_yaml(object, f_path)},
+      "rds"  = {saveRDS(object, f_path)},
       {
         stop(glue("This function only supports {valid_file_extensions} file extensions (case-insensitive)."), 
              glue(" Update if more options are needed. Submitted extension: {ext}"))
       }
     )
     
-    if(inform_user) msg_prt(user_msg)
+    if(verbose) msg_prt(user_msg)
     
+  }
+}
+
+#' Read a file of approved format
+#'
+#' @param f_path [path]
+#' @param verbose [lgl]
+#'
+#' @return [obj] use this to assign a file to an R object
+#' @export
+#' @importFrom yaml read_yaml
+#' @importFrom data.table fread
+#' @importFrom glue glue
+read_file <- function(f_path, verbose = FALSE){
+  
+  valid_file_extensions <- paste(
+    c("csv", "yaml", "rds"),
+    collapse = ", "
+  )
+  
+  if(!file.exists(f_path)){
+    
+    warning("File does not exist : ", f_path)
+    return(NULL) # warning returns a std_out string, for some reason
+    
+  } else {
+    
+    ext <- find_file_extension(f_path)
+    if(is.numeric(ext)) stop("File extension is numeric, must be character.")
+    ext <- tolower(ext)
+    
+    if(verbose) msg_prt("Reading file: ", f_path)
+    
+    switch(
+      ext,
+      "csv"  = {data.table::fread(f_path)},
+      "yaml" = {yaml::read_yaml(f_path)},
+      "rds"  = {readRDS(f_path)},
+      {
+        stop(glue("This function only supports {valid_file_extensions} file extensions (case-insensitive)."), 
+             " Update if more options are needed.")
+      }
+    )
   }
 }
