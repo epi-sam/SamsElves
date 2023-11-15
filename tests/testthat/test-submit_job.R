@@ -111,5 +111,27 @@ test_that(
        ),
        regexp = "sbatch -J scriptname --mem=10G -c 2 -t 15 -p all.q -A proj_cov_vc -e /mnt/share/temp/slurmoutput/ssbyrne/error/%x_e%j.log -o /mnt/share/temp/slurmoutput/ssbyrne/output/%x_o%j.log /ihme/singularity-images/rstudio/shells/execRscript.sh -i /ihme/singularity-images/rstudio/latest.img -s some/script/path/scriptname.R"
      )
+     
+     expect_message(
+       submit_job(
+         language               = "R",
+         shell_script_path      = NULL, 
+         script_path            = "some/script/path/scriptname.R", 
+         std_err_path           = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
+         std_out_path           = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
+         job_name               = NULL, 
+         archiveTF              = FALSE,  
+         mem_GB                 = "10G", 
+         threads                = "2", 
+         runtime_min            = "15", 
+         partition              = "all.q", 
+         Account                = "proj_cov_vc", 
+         r_image                = NULL,  
+         args_list              = list(a = 'arg_a',
+                                       b = 'arg_b'),
+         dry_runTF              = TRUE
+       ),
+       regexp = "sbatch -J scriptname --mem=10G -c 2 -t 15 -p all.q -A proj_cov_vc -e /mnt/share/temp/slurmoutput/ssbyrne/error/%x_e%j.log -o /mnt/share/temp/slurmoutput/ssbyrne/output/%x_o%j.log /ihme/singularity-images/rstudio/shells/execRscript.sh -i /ihme/singularity-images/rstudio/latest.img -s some/script/path/scriptname.R --a arg_a --b arg_b"
+     )
    }
  )
