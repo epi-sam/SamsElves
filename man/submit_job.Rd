@@ -5,56 +5,56 @@
 \title{Submit a script as a job to the Slurm cluster}
 \usage{
 submit_job(
-  language = "R",
-  shell_script_path = NULL,
   script_path = NULL,
-  std_err_path = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
-  std_out_path = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
-  job_name = NULL,
-  archiveTF = FALSE,
-  mem_GB = "10G",
   threads = "2",
+  mem_GB = "10G",
   runtime_min = "15",
+  archiveTF = FALSE,
+  job_name = NULL,
   partition = "all.q",
   Account = NULL,
+  language = "R",
+  shell_script_path = NULL,
+  std_err_path = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
+  std_out_path = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
   r_image = NULL,
   args_list = NULL,
   dry_runTF = FALSE
 )
 }
 \arguments{
-\item{language}{[chr] coding language for job (see valid_langs validation)}
-
-\item{shell_script_path}{[path] path to shell script (language-specific)}
-
 \item{script_path}{[path] full path to submitted script}
-
-\item{std_err_path}{[path] path for Slurm std_err logs}
-
-\item{std_out_path}{[path] path for Slurm std_out logs}
-
-\item{job_name}{[chr] Will be name of script if NULL}
-
-\item{archiveTF}{[lgl] (default FALSE) do you need an archive node?}
-
-\item{mem_GB}{[chr] cluster resource requirement}
 
 \item{threads}{[chr] cluster resource requirement}
 
+\item{mem_GB}{[chr] cluster resource requirement}
+
 \item{runtime_min}{[chr] cluster resource requirement}
+
+\item{archiveTF}{[lgl] (default FALSE) do you need an archive node?}
+
+\item{job_name}{[chr] Will be name of script if NULL}
 
 \item{partition}{[chr] a.k.a. 'queue' - cluster resource requirement}
 
 \item{Account}{[chr] a.k.a. 'project' - cluster resource requirement}
 
+\item{language}{[chr] coding language for job (see valid_langs validation)}
+
+\item{shell_script_path}{[path] path to shell script (language-specific)}
+
+\item{std_err_path}{[path] path for Slurm std_err logs}
+
+\item{std_out_path}{[path] path for Slurm std_out logs}
+
 \item{r_image}{[chr] (default "latest.img") e.g. "/ihme/singularity-images/rstudio/ihme_rstudio_4214.img"}
 
-\item{args_list}{[list, chr] optional list() of arguments, e.g. list("--arg1" = arg1, "--arg2" = arg2)}
+\item{args_list}{[list, chr] optional named list() of arguments, e.g. list("arg1" = arg1, "arg2" = arg2)}
 
 \item{dry_runTF}{[lgl] (default FALSE) if TRUE, only message and return submission command, no job submission}
 }
 \value{
-[std_err] (message) submitted command and response from system re: submitted job status
+[int] job_id of submitted job, also messsage with job_id and job_name
 }
 \description{
 Function contains internal defaults for R and Python shell scripts.
