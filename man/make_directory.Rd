@@ -2,14 +2,14 @@
 % Please edit documentation in R/utils_io.R
 \name{make_directory}
 \alias{make_directory}
-\title{SDG core function - Convenience `dir.create` wrapper with desired defaults}
+\title{Convenience `dir.create` wrapper with desired defaults}
 \usage{
-make_directory(path, RECURSIVE = TRUE)
+make_directory(path, recursive = TRUE)
 }
 \arguments{
 \item{path}{[path] directory to create}
 
-\item{RECURSIVE}{[lgl] dir.create arg (default = TRUE)}
+\item{recursive}{[lgl] dir.create arg (default = TRUE)}
 }
 \value{
 [lgl] did directory creation succeed or fail?
