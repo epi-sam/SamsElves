@@ -12,10 +12,8 @@ fpath_h5    <- file.path(dir_parent, 'save_object.h5')
 # - /tmp is node specific AND
 # - /tmp within an Rstudio session is user-specific, part of the singularity container
 # - it's complicated
-
-
 system(paste("rm -rf /tmp/Rtmp*"))
-system("ls /tmp")
+print(system("ls /tmp"))
 
 test_that("make_directory makes a directory and cleans up afterward", 
           {
