@@ -92,6 +92,7 @@ save_file <- function(object, f_path, forbid_overwrite = TRUE, verbose = FALSE){
   if(flag_file_exists & forbid_overwrite){
     
     msg_prt(user_msg)
+    invisible()
     
   } else {
     
