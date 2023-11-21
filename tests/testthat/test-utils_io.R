@@ -116,7 +116,7 @@ test_that("save_file produces correct messages",
                         , verbose = TRUE)
               , regexp = "Saved file to disk"
             )
-            
+            # second write - allow overwrite
             expect_message(
               save_file(object = save_object
                         , f_path = fpath_supported_ftype
@@ -125,6 +125,7 @@ test_that("save_file produces correct messages",
               , regexp = "Overwriting file:"
             )
             
+            # second write - forbid overwrite
             expect_message(
               save_file(object = save_object
                         , f_path = fpath_supported_ftype
