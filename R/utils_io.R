@@ -77,7 +77,7 @@ save_file <- function(object, f_path, forbid_overwrite = TRUE, verbose = FALSE){
   )
   
   msg_grid$user_message <- c(
-    glue("File already exists, not over-writing : {f_path}"),
+    glue("File already exists, not over-writing: {f_path}"),
     glue("Saved file to disk {f_path}"),
     glue("Overwriting file: {f_path}"),
     glue("Saved file to disk {f_path}")

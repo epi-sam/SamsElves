@@ -68,7 +68,7 @@ test_that("save_file forbids overwrite",
                         , f_path = fpath_supported_ftype
                         , forbid_overwrite = TRUE
                         , verbose = FALSE)
-              , regexp = paste("File already exists, not over-writing :", fpath_supported_ftype)
+              , regexp = paste("File already exists, not over-writing:", fpath_supported_ftype)
               
             ) 
             
@@ -105,6 +105,33 @@ test_that("save_file prevents saving files with unsupported extension",
 
 test_that("save_file produces correct messages",
           {
+            withr::local_file(dir_parent)
+            dir.create(dir_parent)
+            
+            # first write
+            expect_message(
+              save_file(object = save_object
+                        , f_path = fpath_supported_ftype
+                        , forbid_overwrite = TRUE
+                        , verbose = TRUE)
+              , regexp = "Saved file to disk"
+            )
+            
+            expect_message(
+              save_file(object = save_object
+                        , f_path = fpath_supported_ftype
+                        , forbid_overwrite = FALSE
+                        , verbose = TRUE)
+              , regexp = "Overwriting file:"
+            )
+            
+            expect_message(
+              save_file(object = save_object
+                        , f_path = fpath_supported_ftype
+                        , forbid_overwrite = TRUE
+                        , verbose = TRUE)
+              , regexp = "File already exists, not over-writing:"
+            )
             
           }
 )
