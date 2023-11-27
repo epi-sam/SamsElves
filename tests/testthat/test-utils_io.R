@@ -34,7 +34,7 @@ test_that("directory is actually gone",
           }
 )
 
-# Using deprecated fuctions - shown for comparability - please retain
+# Written with Kyle Humphrey - shown for comparability - please retain
 # test_that("make_directory makes a directory and cleans up afterward", {
 #   withr::with_tempdir({
 #     dir1 <- 'temp_directory_1'
@@ -172,11 +172,12 @@ test_that("read_file errors correctly",
 # In addition: Warning message:
 # In file() :
 #   cannot open file '/tmp/Rtmp8Lg0sx/Rfe703824c4fc55': No such file or directory
-# Error in file(out, "wt") : cannot open the connectionn the connection
+# Error in file(out, "wt") : cannot open the connection
 
 test_that("read_file errors correctly",
           {
             on.exit(unlink(dir_parent, recursive = TRUE), add = TRUE, after = FALSE)
+            # on.exit(system(paste("rm -rf /tmp/Rtmp*")), add = TRUE, after = FALSE) # trying another option
             dir.create(dir_parent)
             save(save_object, file = fpath_unsupported_ftype)
             # expect_true(file.exists(fpath_unsupported_ftype)) # trying a reprex that doesn't use my functions
