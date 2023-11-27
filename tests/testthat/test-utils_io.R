@@ -200,14 +200,22 @@ test_that("directory is actually gone",
 
 # error reprex ----
 # dir_parent  <- tempdir()
-# save_object             <- list(a = 1, b = 2, c = 3)
+# save_object <- list(a = 1, b = 2, c = 3)
 # fname <- 'save_object.rdata'
 # fpath <- file.path(dir_parent, fname)
 # library(testthat)
 # 
+# ?file
+# 
 # # ensure any tmp directories are removed for the test purposes
+# print(system("ls /tmp"))
+# tempdir()
 # system(paste("rm -rf /tmp/Rtmp*"))
 # print(system("ls /tmp"))
+# ?file
+# 
+# dir.create(tempdir())
+# ?file
 # 
 # test_that("temp file exists",
 #           {
@@ -215,19 +223,19 @@ test_that("directory is actually gone",
 #             on.exit(system(paste("rm -rf /tmp/Rtmp*")), add = TRUE, after = FALSE) # same errors
 #             dir.create(dir_parent)
 #             save(save_object, file = fpath)
-#             expect_true(file.exists(fpath)) 
+#             expect_true(file.exists(fpath))
 #           })
 # 
 # # Test passed 🎊
 # 
-# ?file 
+# ?file
 # 
 # # Error in file() : cannot open the connection
 # # In addition: Warning message:
 # #   In file() :
 # #   cannot open file '/tmp/RtmpF1cqaE/Rfe7f0c4380bd18': No such file or directory
-# # 
-# # - also produces 'Internal Server Error' message in help pane 
+# #
+# # - also produces 'Internal Server Error' message in help pane
 # # - also seeing persistent console errors (type `file` and wait for tab autocomplete)
 # # - 'Error in file(out, "wt") : cannot open the connection'
 # 
@@ -237,6 +245,6 @@ test_that("directory is actually gone",
 #             withr::defer(unlink(dir_parent, recursive = TRUE))
 #             dir.create(dir_parent)
 #             save(save_object, file = fpath)
-#             expect_true(file.exists(fpath)) 
+#             expect_true(file.exists(fpath))
 #           })
 
