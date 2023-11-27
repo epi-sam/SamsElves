@@ -15,7 +15,9 @@ msg_prt <- function(string = "No message supplied", output = "message") {
   valid_output   <- c("message", "print", "both")
   validation_msg <- paste("Submit a valid output:", paste0(valid_output, collapse = ", "))
   
-  stopifnot(validation_msg = output %in% valid_output)
+  if(!output %in% valid_output){
+    stop(validation_msg)
+  }
   
   switch(output,
          "message" = {message(string)},

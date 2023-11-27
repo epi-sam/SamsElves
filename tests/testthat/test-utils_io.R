@@ -7,8 +7,11 @@ dir_child   <- 'temp_directory_1'
 dir_full    <- file.path(dir_parent, dir_child)
 # objects to read and write
 save_object             <- list(a = 1, b = 2, c = 3)
-fpath_supported_ftype   <- file.path(dir_parent, 'save_object.csv')
-fpath_unsupported_ftype <- file.path(dir_parent, 'save_object.h5')
+fname_supported_ftype   <- 'save_object.rds'
+fname_unsupported_ftype <- 'save_object.rdata'
+fpath_supported_ftype   <- file.path(dir_parent, fname_supported_ftype)
+fpath_unsupported_ftype <- file.path(dir_parent, fname_unsupported_ftype)
+# devtools::load_all()
 
 # first enforce the expected tempdir does not exist before tests
 # - /tmp is node specific AND
@@ -137,6 +140,53 @@ test_that("save_file produces correct messages",
           }
 )
 
+test_that("read_file reads a file",
+          {
+            withr::local_file(dir_parent)
+            dir.create(dir_parent)
+            saveRDS(save_object, fpath_supported_ftype)
+            expect_message(
+              read_file(
+                f_path = fpath_supported_ftype
+                , verbose = TRUE)
+              , regexp = paste("Reading file:", fpath_supported_ftype)
+            )
+            
+          })
+
+test_that("read_file errors correctly",
+          {
+            withr::local_file(dir_parent)
+            dir.create(dir_parent)
+            save(save_object, file = fpath_unsupported_ftype)
+            expect_error(
+              read_file(
+                f_path = fpath_unsupported_ftype
+                , verbose = FALSE)
+              , regexp = paste("This function only supports .* file extensions")
+            )
+          })
+
+# FIXME SB - 2023 Nov 27 - this doesn't fix this persistent error, but works correctly
+# Error in file() : cannot open the coError in file() : cannot open the connection
+# In addition: Warning message:
+# In file() :
+#   cannot open file '/tmp/Rtmp8Lg0sx/Rfe703824c4fc55': No such file or directory
+# Error in file(out, "wt") : cannot open the connectionn the connection
+
+test_that("read_file errors correctly",
+          {
+            on.exit(unlink(dir_parent, recursive = TRUE), add = TRUE, after = FALSE)
+            dir.create(dir_parent)
+            save(save_object, file = fpath_unsupported_ftype)
+            # expect_true(file.exists(fpath_unsupported_ftype)) # trying a reprex that doesn't use my functions
+            expect_error(
+              read_file(
+                f_path = fpath_unsupported_ftype
+                , verbose = FALSE)
+              , regexp = paste("This function only supports .* file extensions")
+            )
+          })
 
 # Last test
 test_that("directory is actually gone",

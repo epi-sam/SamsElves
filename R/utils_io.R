@@ -148,7 +148,7 @@ read_file <- function(f_path, verbose = FALSE){
     if(is.numeric(ext)) stop("File extension is numeric, must be character.")
     ext <- tolower(ext)
     
-    if(verbose) msg_prt("Reading file: ", f_path)
+    if(verbose) msg_prt(paste("Reading file:", f_path))
     
     switch(
       ext,
