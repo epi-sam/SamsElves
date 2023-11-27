@@ -13,6 +13,7 @@ fpath_supported_ftype   <- file.path(dir_parent, fname_supported_ftype)
 fpath_unsupported_ftype <- file.path(dir_parent, fname_unsupported_ftype)
 # devtools::load_all()
 
+
 # first enforce the expected tempdir does not exist before tests
 # - /tmp is node specific AND
 # - /tmp within an Rstudio session is user-specific, part of the singularity container
@@ -34,7 +35,7 @@ test_that("directory is actually gone",
           }
 )
 
-# Written with Kyle Humphrey - shown for comparability - please retain
+# Written with Kyle Humphrey - shown for comparability - please retain - doesn't actually work
 # test_that("make_directory makes a directory and cleans up afterward", {
 #   withr::with_tempdir({
 #     dir1 <- 'temp_directory_1'
@@ -195,3 +196,47 @@ test_that("directory is actually gone",
             expect_false(dir.exists(dir_parent))
           }
 )
+
+
+# error reprex ----
+# dir_parent  <- tempdir()
+# save_object             <- list(a = 1, b = 2, c = 3)
+# fname <- 'save_object.rdata'
+# fpath <- file.path(dir_parent, fname)
+# library(testthat)
+# 
+# # ensure any tmp directories are removed for the test purposes
+# system(paste("rm -rf /tmp/Rtmp*"))
+# print(system("ls /tmp"))
+# 
+# test_that("temp file exists",
+#           {
+#             # on.exit(unlink(dir_parent, recursive = TRUE), add = TRUE, after = FALSE)
+#             on.exit(system(paste("rm -rf /tmp/Rtmp*")), add = TRUE, after = FALSE) # same errors
+#             dir.create(dir_parent)
+#             save(save_object, file = fpath)
+#             expect_true(file.exists(fpath)) 
+#           })
+# 
+# # Test passed 🎊
+# 
+# ?file 
+# 
+# # Error in file() : cannot open the connection
+# # In addition: Warning message:
+# #   In file() :
+# #   cannot open file '/tmp/RtmpF1cqaE/Rfe7f0c4380bd18': No such file or directory
+# # 
+# # - also produces 'Internal Server Error' message in help pane 
+# # - also seeing persistent console errors (type `file` and wait for tab autocomplete)
+# # - 'Error in file(out, "wt") : cannot open the connection'
+# 
+# # Equivalent test to produce error
+# test_that("temp file exists",
+#           {
+#             withr::defer(unlink(dir_parent, recursive = TRUE))
+#             dir.create(dir_parent)
+#             save(save_object, file = fpath)
+#             expect_true(file.exists(fpath)) 
+#           })
+
