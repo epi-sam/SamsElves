@@ -9,58 +9,60 @@ dir_full    <- file.path(dir_parent, dir_child)
 save_object             <- list(a = 1, b = 2, c = 3)
 fname_supported_ftype   <- 'save_object.rds'
 fname_unsupported_ftype <- 'save_object.rdata'
-fpath_supported_ftype   <- file.path(dir_parent, fname_supported_ftype)
-fpath_unsupported_ftype <- file.path(dir_parent, fname_unsupported_ftype)
-# devtools::load_all()
+fpath_supported_ftype   <- file.path(dir_full, fname_supported_ftype)
+fpath_unsupported_ftype <- file.path(dir_full, fname_unsupported_ftype)
 
 
-# first enforce the expected tempdir does not exist before tests
+# the path specified by tempdir() is user & session specific, and required for help files 
+# - form is Rtmp******
+# - it must persist through and after tests
 # - /tmp is node specific AND
 # - /tmp within an Rstudio session is user-specific, part of the singularity container
 # - it's complicated
-system(paste("rm -rf /tmp/Rtmp*"))
-print(system("ls /tmp"))
+
+# Interactive helpers
+# print(system("ls -alt /tmp"))
+# print(system(paste("ls -alt", dir_parent)))
+# print(system(paste("ls -alt", dir_full))) # expect an error - ls: cannot access '/tmp/RtmpMHC8jJ/temp_directory_1': No such file or directory
 
 test_that("make_directory makes a directory and cleans up afterward", 
           {
-            withr::local_file(dir_parent)
+            withr::local_file(dir_full)
             make_directory(dir_full)
             expect_true(dir.exists(dir_full))
           }
 )
 
-test_that("directory is actually gone",
-          {
-            expect_false(dir.exists(dir_parent))
-          }
-)
-
-# Written with Kyle Humphrey - shown for comparability - please retain - doesn't actually work
+# Equivalent test Written with Kyle H. - retain for comparability
 # test_that("make_directory makes a directory and cleans up afterward", {
 #   withr::with_tempdir({
-#     dir1 <- 'temp_directory_1'
-#     make_directory(dir1)
-#     expect_true(dir.exists(dir1))
+#     make_directory(dir_child)
+#     expect_true(dir.exists(dir_child))
 #   })
 # })
 
+test_that("tempdir (dir_parent) exists and dir_full does not",
+          {
+            expect_true(dir.exists(dir_parent))
+            expect_false(dir.exists(dir_full))
+          })
+
 test_that("save_file writes a file for a correct extension",
           {
-            withr::local_file(dir_parent)
-            dir.create(dir_parent)
+            withr::local_file(dir_full)
+            dir.create(dir_full)
             save_file(object = save_object
                       , f_path = fpath_supported_ftype
                       , forbid_overwrite = TRUE
                       , verbose = FALSE)
             expect_true(file.exists(fpath_supported_ftype))
-          }
-)
+          })
 
 test_that("save_file forbids overwrite",
           {
             
-            withr::local_file(dir_parent)
-            dir.create(dir_parent)
+            withr::local_file(dir_full)
+            dir.create(dir_full)
             
             save_file(object = save_object
                       , f_path = fpath_supported_ftype
@@ -76,8 +78,7 @@ test_that("save_file forbids overwrite",
               
             ) 
             
-          }
-)
+          })
 
 test_that("save_file errors correctly for nonexistent directory",
           {
@@ -93,8 +94,8 @@ test_that("save_file errors correctly for nonexistent directory",
 
 test_that("save_file prevents saving files with unsupported extension", 
           {
-            withr::local_file(dir_parent)
-            dir.create(dir_parent)
+            withr::local_file(dir_full)
+            dir.create(dir_full)
             expect_error(
               save_file(object = save_object
                         , f_path = fpath_unsupported_ftype
@@ -104,13 +105,12 @@ test_that("save_file prevents saving files with unsupported extension",
               
             )
             expect_false(file.exists(fpath_unsupported_ftype))
-          }
-)
+          })
 
 test_that("save_file produces correct messages",
           {
-            withr::local_file(dir_parent)
-            dir.create(dir_parent)
+            withr::local_file(dir_full)
+            dir.create(dir_full)
             
             # first write
             expect_message(
@@ -138,13 +138,12 @@ test_that("save_file produces correct messages",
               , regexp = "File already exists, not over-writing:"
             )
             
-          }
-)
+          })
 
 test_that("read_file reads a file",
           {
-            withr::local_file(dir_parent)
-            dir.create(dir_parent)
+            withr::local_file(dir_full)
+            dir.create(dir_full)
             saveRDS(save_object, fpath_supported_ftype)
             expect_message(
               read_file(
@@ -157,31 +156,9 @@ test_that("read_file reads a file",
 
 test_that("read_file errors correctly",
           {
-            withr::local_file(dir_parent)
-            dir.create(dir_parent)
+            withr::local_file(dir_full)
+            dir.create(dir_full)
             save(save_object, file = fpath_unsupported_ftype)
-            expect_error(
-              read_file(
-                f_path = fpath_unsupported_ftype
-                , verbose = FALSE)
-              , regexp = paste("This function only supports .* file extensions")
-            )
-          })
-
-# FIXME SB - 2023 Nov 27 - this doesn't fix this persistent error, but works correctly
-# Error in file() : cannot open the coError in file() : cannot open the connection
-# In addition: Warning message:
-# In file() :
-#   cannot open file '/tmp/Rtmp8Lg0sx/Rfe703824c4fc55': No such file or directory
-# Error in file(out, "wt") : cannot open the connection
-
-test_that("read_file errors correctly",
-          {
-            on.exit(unlink(dir_parent, recursive = TRUE), add = TRUE, after = FALSE)
-            # on.exit(system(paste("rm -rf /tmp/Rtmp*")), add = TRUE, after = FALSE) # trying another option
-            dir.create(dir_parent)
-            save(save_object, file = fpath_unsupported_ftype)
-            # expect_true(file.exists(fpath_unsupported_ftype)) # trying a reprex that doesn't use my functions
             expect_error(
               read_file(
                 f_path = fpath_unsupported_ftype
@@ -191,60 +168,8 @@ test_that("read_file errors correctly",
           })
 
 # Last test
-test_that("directory is actually gone",
+test_that("tempdir (dir_parent) exists and dir_full does not",
           {
-            expect_false(dir.exists(dir_parent))
-          }
-)
-
-
-# error reprex ----
-# dir_parent  <- tempdir()
-# save_object <- list(a = 1, b = 2, c = 3)
-# fname <- 'save_object.rdata'
-# fpath <- file.path(dir_parent, fname)
-# library(testthat)
-# 
-# ?file
-# 
-# # ensure any tmp directories are removed for the test purposes
-# print(system("ls /tmp"))
-# tempdir()
-# system(paste("rm -rf /tmp/Rtmp*"))
-# print(system("ls /tmp"))
-# ?file
-# 
-# dir.create(tempdir())
-# ?file
-# 
-# test_that("temp file exists",
-#           {
-#             # on.exit(unlink(dir_parent, recursive = TRUE), add = TRUE, after = FALSE)
-#             on.exit(system(paste("rm -rf /tmp/Rtmp*")), add = TRUE, after = FALSE) # same errors
-#             dir.create(dir_parent)
-#             save(save_object, file = fpath)
-#             expect_true(file.exists(fpath))
-#           })
-# 
-# # Test passed 🎊
-# 
-# ?file
-# 
-# # Error in file() : cannot open the connection
-# # In addition: Warning message:
-# #   In file() :
-# #   cannot open file '/tmp/RtmpF1cqaE/Rfe7f0c4380bd18': No such file or directory
-# #
-# # - also produces 'Internal Server Error' message in help pane
-# # - also seeing persistent console errors (type `file` and wait for tab autocomplete)
-# # - 'Error in file(out, "wt") : cannot open the connection'
-# 
-# # Equivalent test to produce error
-# test_that("temp file exists",
-#           {
-#             withr::defer(unlink(dir_parent, recursive = TRUE))
-#             dir.create(dir_parent)
-#             save(save_object, file = fpath)
-#             expect_true(file.exists(fpath))
-#           })
-
+            expect_true(dir.exists(dir_parent))
+            expect_false(dir.exists(dir_full))
+          })
