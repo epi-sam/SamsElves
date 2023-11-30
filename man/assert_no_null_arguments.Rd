@@ -2,7 +2,7 @@
 % Please edit documentation in R/assertions.R
 \name{assert_no_null_arguments}
 \alias{assert_no_null_arguments}
-\title{Assert function arguments are not null}
+\title{Assert function arguments are not null.}
 \usage{
 assert_no_null_arguments(as_list_env = NULL)
 }
@@ -14,5 +14,14 @@ calling environment one level up the call stack}
 [std_err] console output of missing arguments
 }
 \description{
-Assert function arguments are not null
+Sometimes a NULL argument allows a the function to proceed without error, but
+produces unhelpful, NULL results. This allows the user to reject functions
+called with NULL arguments if they'll be problematic.
+}
+\examples{
+test_fun <- function(arg_a){return(5 *arg_a)}
+test_fun(NULL) # produces NULL, but maybe you prefer an error
+test_fun2 <- function(arg_b){assert_no_null_arguments(); return(5 * arg_b)}
+test_fun2(NULL) # produces an error rather than NULL 
+test_fun2() # informs user of _all_ missing arguments rather than only the first missing arg found (base R behavior)
 }
