@@ -7,13 +7,21 @@
 #' @param file_list [path/list] list of paths to files to wait on
 #' @param obj 
 #' @param resub 
+#' @param dryrun (default FALSE) if TRUE, only message and return system command, but do not submit
 #'
 #' @return [std_out] message to user
 #' @export
 #' 
 #' @import rhdf5
 #' @import glue
-wait_on_jobs <- function(job_pattern, jobname_nchar = 50L, initial_sleep_sec = 5L, file_list=NULL, obj=NULL, resub=0) {
+wait_on_jobs <- function(job_pattern,
+                         jobname_nchar     = 50L,
+                         initial_sleep_sec = 5L,
+                         file_list         = NULL,
+                         obj               = NULL,
+                         resub             = 0,
+                         perl              = FALSE,
+                         dryrun            = FALSE) {
   
   # FIXME SB - 2023 Oct 20 - UNDER CONSTRUCTION
   # - NEXT PHASE IS SORTING OUT THE FILE_LIST SECTION, MAKING IT MORE GENERIC
@@ -22,23 +30,28 @@ wait_on_jobs <- function(job_pattern, jobname_nchar = 50L, initial_sleep_sec = 5
   if(!is.vector(jobname_nchar, mode = "integer")) stop("jobname_nchar must be a single integer.")
   if(length(jobname_nchar) > 1) stop("jobname_nchar must be a single integer.")
   
-  ## Give jobs time to be discoverable on the cluster
-  Sys.sleep(initial_sleep_sec)
-  
   if(nchar(job_pattern) > jobname_nchar) {
     warning(glue::glue("The job pattern {job_pattern} exceeds the current max of {jobname_nchar} characters, wait_on_jobs may not track this job correctly."))
   }
   
+  # Save SLURM get jobs command
+  slurm_get_jobs_command <- glue::glue("sacct --format=JobID%16,JobName%{jobname_nchar},User%20,State%16,ExitCode,NodeList%27,Partition%12,Account%20")
+  perl_stub <- ifelse(perl, "-P ", "")
+  cmd <- paste0(slurm_get_jobs_command, " | grep 'RUNNING\\|PENDING' | grep ", perl_stub, job_pattern)
+  
+  if(dryrun) message(cmd); return(cmd)
+  
+  ## Give jobs time to be discoverable on the cluster
+  Sys.sleep(initial_sleep_sec)
+  
   ## Start timer
   job_starttime <- proc.time()
   
-  # Save SLURM get jobs command
-  slurm_get_jobs_command <- glue::glue("sacct --format=JobID%16,JobName%{jobname_nchar},User%20,State%16,ExitCode,NodeList%27,Partition%12,Account%20")
-  
   # While jobs are still running or pending matching the pattern in `job_name`, sleep
-  found_jobs <- suppressWarnings(system(paste0(slurm_get_jobs_command, " | grep 'RUNNING\\|PENDING' | grep -P ", job_pattern), intern = T))
-  
-  while(length(found_jobs) > 0) Sys.sleep(15)
+  while(length(suppressWarnings(system(cmd, intern = T))) > 0 ) {
+    Sys.sleep(15)
+    print(round((proc.time() - start.time)[[3]],0))
+  }
   
   ## End Timer
   job_runtime <- proc.time() - job_starttime
@@ -87,19 +100,25 @@ wait_on_jobs <- function(job_pattern, jobname_nchar = 50L, initial_sleep_sec = 5
 #' @param job_id [int]
 #' @param initial_sleep [int] default 5
 #' @param perl [lgl] does you need perl to find your job_id?
+#' @param dryrun [lgl] (default FALSE) if TRUE, only message and return system command, but do not submit
 #'
 #' @return [std_out] console print
 #' @export
-wait_on_slurm_job_id <- function(job_id, initial_sleep = 5, perl = FALSE) {
+wait_on_slurm_job_id <- function(job_id,
+                                 initial_sleep = 5,
+                                 perl          = FALSE,
+                                 dryrun        = FALSE) {
+  
+  cmd <- "sacct --format=JobID%16,JobName%50,User%20,State%16,ExitCode,NodeList%27,Partition%12,Account%20"
+  perl_stub <- ifelse(perl, "-P ", "")
+  cmd <- paste0(cmd, " | grep 'RUNNING\\|PENDING' | grep ", perl_stub, job_id)
+  
+  if(dryrun) message(cmd); return(cmd)
   
   Sys.sleep(initial_sleep)
   start.time <- proc.time()
   
-  cmd <- "sacct --format=JobID%16,JobName%50,User%20,State%16,ExitCode,NodeList%27,Partition%12,Account%20"
-  
-  perl_stub <- ifelse(perl, "-P ", "")
-  
-  while(length(suppressWarnings(system(paste0(cmd, " | grep 'RUNNING\\|PENDING' | grep ", perl_stub, job_id), intern = T))) > 0 ) {
+  while(length(suppressWarnings(system(cmd, intern = T))) > 0 ) {
     Sys.sleep(15)
     print(round((proc.time() - start.time)[[3]],0))
   }

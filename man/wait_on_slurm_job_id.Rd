@@ -4,7 +4,7 @@
 \alias{wait_on_slurm_job_id}
 \title{Wait for a Slurm job to finish}
 \usage{
-wait_on_slurm_job_id(job_id, initial_sleep = 5, perl = FALSE)
+wait_on_slurm_job_id(job_id, initial_sleep = 5, perl = FALSE, dryrun = FALSE)
 }
 \arguments{
 \item{job_id}{[int]}
@@ -12,6 +12,8 @@ wait_on_slurm_job_id(job_id, initial_sleep = 5, perl = FALSE)
 \item{initial_sleep}{[int] default 5}
 
 \item{perl}{[lgl] does you need perl to find your job_id?}
+
+\item{dryrun}{[lgl] (default FALSE) if TRUE, only message and return system command, but do not submit}
 }
 \value{
 [std_out] console print

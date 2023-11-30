@@ -7,8 +7,6 @@
 #'
 #' @return [lgl]
 #' @export
-#'
-#' @examples
 is_empty <- function(x, check_whitespace = TRUE){
   
   if (is.null(x)) {
