@@ -4,11 +4,11 @@ ChangeLog for SamsElves Package
 
 ## 2023-12-04
 
-- removed: 
+- deprecated: 
   - define_roots
   - detach_user_packages
   - get_version_from_path
-- preflight_checks
+  - preflight_checks
     
 - added:
   - **test suite**
