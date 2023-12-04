@@ -2,7 +2,8 @@
 #'
 #' @param CODE_ROOT [path] path to code root containing a .git folder
 #'
-#' @return [character] succinct git diff vector length 1 with newlines for easy console printing
+#' @return [character] succinct git diff vector length 1 with newlines for
+#'   console printing with `cat()`, `glue::glue()` or `message()`
 #' @export
 query_git_diff <- function(CODE_ROOT) {
   current_dir <- getwd() # save to reset at the end
@@ -20,13 +21,12 @@ query_git_diff <- function(CODE_ROOT) {
   } else {
     NULL
   }
-  
   return(git_uncommitted)
 }
 
 #' Stop progress if user has uncommitted changes
 #'
-#' @param git_uncommitted [character] output from git_diff function
+#' @param git_uncommitted [character] output from query_git_diff function
 #'
 #' @return [NULL] 
 #' @export
@@ -41,7 +41,7 @@ assert_git_diff <- function(git_uncommitted) {
 
 #' Assert that daughter scripts share a common code state with launch script
 #'
-#' @param metadata [list] metadata written in launch script
+#' @param launch_hash [character] launch script hash as gold standard
 #' @param script_hash [character] daughter script hash to check against main
 #'
 #' @return passing statement or error message

@@ -6,7 +6,6 @@
 #'
 #' @return [nothing]
 #'
-#' @export
 detach_user_packages <- function () {
 
   message("Detaching all user-attached packages and clearing namespace to prevent function conflicts")
