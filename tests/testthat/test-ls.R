@@ -4,6 +4,7 @@
 test_that(
   "ls works",
   {
-    expect_output(print(system("ls /")))
+  sys_return <- system("ls / | head -n1", intern = TRUE)
+  expect_equal(sys_return, "bin")
   }
 )
