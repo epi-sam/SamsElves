@@ -7,14 +7,16 @@ test_that(
 )
 
 test_that("output is a message", {
-  expect_message(msg_prt(string = "My message", output = "message"))
+  expect_message(msg_prt(string = "My message", output = "message"), regexp = "My message")
 })
 
 test_that("output is std_out", {
-  expect_output(msg_prt(string = "My std_out", output = "print"))
+  expect_output(msg_prt(string = "My std_out", output = "print"), regexp = "My std_out")
 })
 
 test_that("output is message and std_out", {
-  expect_output(msg_prt(string = "My msg & print", output = "both"))
-  expect_message(msg_prt(string = "My msg & print", output = "both"))
+  # \n provides cleaner console output
+  msg_prt(string = "\\nMy msg & print", output = "both") %>% 
+  expect_message(regexp = "\\\\nMy msg & print") %>% 
+  expect_output(regexp = "\\\\nMy msg & print")
 })
