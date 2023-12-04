@@ -4,7 +4,9 @@
 #'
 #' @param root path to root of output results
 #' @param date character date in form of "YYYY_MM_DD" or "today". "today" will be interpreted as today's date.
-build_versioned_output_dir <- function(root, date) {
+#'
+#' @export
+make_versioned_dir <- function(root, date) {
   if (date == "today") {
     date <- format(Sys.Date(), "%Y_%m_%d")
   }

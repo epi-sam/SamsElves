@@ -12,15 +12,15 @@ test_that("get_output_dir functionality works", {
   # dir.create(root)
   
   # expect bootstrap to work
-  expect_equal(file.path(root, "1999_09_09.01"), build_versioned_output_dir(root = root, date = "1999_09_09"))
+  expect_equal(file.path(root, "1999_09_09.01"), make_versioned_dir(root = root, date = "1999_09_09"))
   expect_true(dir.exists(file.path(root, "1999_09_09.01")))
   
   # incrementing automatically happens
-  expect_equal(file.path(root, "1999_09_09.02"), build_versioned_output_dir(root = root, date = "1999_09_09"))
+  expect_equal(file.path(root, "1999_09_09.02"), make_versioned_dir(root = root, date = "1999_09_09"))
   
   # handle convenience "today" value
   today.v1 <- format(Sys.Date(), "%Y_%m_%d.01")
-  expect_equal(file.path(root, today.v1), build_versioned_output_dir(root = root, date = "today"))
+  expect_equal(file.path(root, today.v1), make_versioned_dir(root = root, date = "today"))
   
   test_that("get_latest_output_date_index returns correct value", {
     expect_equal(2, get_latest_output_date_index(dir = root, date = "1999_09_09"))
