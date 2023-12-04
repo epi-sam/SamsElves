@@ -4,7 +4,11 @@
 \alias{extract_command_string}
 \title{Search a cluster submitted command string for some pattern}
 \usage{
-extract_command_string(submit_command_text, regex_to_extract, regex_to_ignore)
+extract_command_string(
+  submit_command_text,
+  regex_to_extract,
+  regex_to_ignore = NULL
+)
 }
 \arguments{
 \item{submit_command_text}{[chr] the result of calling "sacct -j <INT> -o

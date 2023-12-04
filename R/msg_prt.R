@@ -1,17 +1,26 @@
-#' Send a user-message to both stdout and stderr
+#' Control how user-defined messages submit to std_err or std_out
 #' 
-#' When using `sink()` on a pipeline, some context may be more useful in stdout
-#' or stderr, but it's difficult to know when.  This wrapper prints a message to
-#' both locations.  
+#' Change this function's default output mode depending on how you debug / read logs
 #'
-#' @param string [character] message to the pipeline's user. Require: length = 1
+#' @param string [chr] string length = 1
+#' @param output [chr] output mode: c("message", "print", "both")
 #'
-#' @return [stdout/stderr] user message to both stdout and stderr
-#' 
+#' @return [stderr/stdout] one or both
 #' @export
-msg_prt <- function(string = "No message supplied") {
+msg_prt <- function(string = "No message supplied", output = "message") {
+  
   stopifnot(is.character(string))
   stopifnot(length(string) == 1)
-  print(string)
-  message(string)
+  
+  valid_output   <- c("message", "print", "both")
+  validation_msg <- paste("Submit a valid output:", paste0(valid_output, collapse = ", "))
+  
+  if(!output %in% valid_output){
+    stop(validation_msg)
+  }
+  
+  switch(output,
+         "message" = {message(string)},
+         "print"   = {print(string)},
+         "both"    = {message(string); print(string)})
 }

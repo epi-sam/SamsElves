@@ -171,7 +171,7 @@ extract_submission_commands <- function(
   submit_command_list <- lapply(jobid_vec, function(job_id){
     
     submission_command <- system2(
-      command = "sacct",
+      command = "/opt/slurm/bin/sacct", # use full path to pass testing
       args    = glue("-j {job_id} -o submitline%{submitline_n_char}"), 
       stdout  = T
     )
@@ -216,20 +216,25 @@ job_finder <- function(system_user_name,
                        jobname_filter,
                        cluster_type = "slurm") {
   
-  valid_cluster_types <- c("slurm")
-  cluster_type        <- tolower(cluster_type)
-  valid_cluster_msg   <- paste0(valid_cluster_types, collapse = ", ")
-  
-  if(!cluster_type %in% valid_cluster_types) {
-    stop(paste("Enter a valid cluster type, options (case-insensitive):", valid_cluster_msg))
-  }
+  valid_cluster_types  <- c("slurm")
+  valid_cluster_msg    <- paste0(valid_cluster_types, collapse = ", ")
+  stop_msg_clusterType <- paste("Enter a valid cluster type, options (case-insensitive):", valid_cluster_msg)
+
+  if(is.null(cluster_type)) stop(stop_msg_clusterType)
+  if(!tolower(cluster_type) %in% valid_cluster_types) stop(stop_msg_clusterType)
   
   # read job accounting list from cluster
   jobs_txt <- system2(
-    command = "sacct",
-    args    = glue("-u {system_user_name} --format=JobID%16,JobName%16,State%10"),
-    stdout  = T
-  )
+    command = glue("/opt/slurm/bin/sacct"), # use full path to pass testing
+    args = glue("-u {system_user_name} --format=JobID%16,JobName%16,State%10"),
+    stdout = TRUE
+    )
+  
+  # jobs_txt <- system(
+  #   command = glue("/opt/slurm/bin/sacct -u {system_user_name} --format=JobID%16,JobName%16,State%10"),
+  #   intern = TRUE
+  #   )
+  
   jobs_df  <- read.table(text = jobs_txt, header = T, sep = "")
   
   # format, filter & extract jobids & jobnames in a table
@@ -257,29 +262,38 @@ job_finder <- function(system_user_name,
 #'   
 extract_command_string <- function (submit_command_text,
                                     regex_to_extract,
-                                    regex_to_ignore) {
+                                    regex_to_ignore = NULL) {
+  
+  # str_extract_all returns a list long by either string OR pattern
+  if(length(submit_command_text) > 1) stop ("Must submit text length == 1")
+  if(length(regex_to_extract) > 1) stop ("Must submit regex length == 1")
   
   extracted_strings <- stringr::str_extract_all(submit_command_text, regex_to_extract)
   
-  # str_extract_all returns a list - validate dimensions
+  # net to catch unexpected errors
   if(!length (extracted_strings) == 1) {
     stop("submit_command_list has more than one element - investigate. 
-             You likely have more than one pattern specified")
+             You likely have more than one string or pattern specified")
   }
+  
   extracted_strings <- extracted_strings[[1]]
   
-  # KEEP strings NOT found by regex_to_ignore
-  keep_filter <- lapply(extracted_strings, stringr::str_detect, pattern = regex_to_ignore, negate = TRUE)
-  keep_filter <- unlist(keep_filter)
+  if(is.null(regex_to_ignore)) {
+    keep_filter <- rep(TRUE, length(extracted_strings))
+  } else {
+    keep_filter <- lapply(extracted_strings, stringr::str_detect, pattern = regex_to_ignore, negate = TRUE)
+    keep_filter <- unlist(keep_filter)
+  }
   
-  # return only strings without chosen language (e.g. jpy)
-  return(extracted_strings[keep_filter])
+  return_strings <- extracted_strings[keep_filter]
+  if(length(return_strings) == 0) stop("No strings were extracted - inspect inputs and regex_to_ignore")
+  return(return_strings)
   
 }
 
 #' Extract number of interactive user cores
 #' 
-#' NOTE: This step finds cores with squeue, rather than sacct
+#' NOTE: This step finds cores with squeue, rather than sacct - eases formatting
 #'
 #' @param system_user_name [chr] how user is identified on the cluster
 #' @param jobname_filter [regex] filter to include for `job_finder()` call
@@ -289,13 +303,13 @@ extract_command_string <- function (submit_command_text,
 #' 
 #' @import glue
 #'
-extract_cores <- function(system_user_name = user_name,
-                          jobname_filter   = jobname_filter,
-                          cluster_type     = cluster_type) {
+extract_cores <- function(system_user_name,
+                          jobname_filter,
+                          cluster_type) {
   
   # Find number of cores for all the user's jobs
   job_threads_txt <- system2(
-    command = "squeue",
+    command = "/opt/slurm/bin/squeue", # use full path to pass testing
     args    = glue("-o '%.10A %.5C' -u {system_user_name}"),
     stdout  = T
   )
