@@ -52,7 +52,6 @@
 #' @param user_message Custom message if verbose = TRUE - locate your preflight_check stop location
 #'
 #' @return Output_list of diagnostics that may be assigned, or printed to console (\code{verbose = TRUE})
-#' @export
 #'
 #' @examples
 #'

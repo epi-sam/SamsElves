@@ -6,7 +6,6 @@
 #' @param x [file path] versioned output folder
 #'
 #' @return [char] "YYYY_MM_DD.VV" folder name
-#' @export
 #'
 get_version_from_path <- function(x) {
   

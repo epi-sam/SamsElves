@@ -2,18 +2,18 @@
 % Please edit documentation in R/msg_prt.R
 \name{msg_prt}
 \alias{msg_prt}
-\title{Send a user-message to both stdout and stderr}
+\title{Control how user-defined messages submit to std_err or std_out}
 \usage{
-msg_prt(string = "No message supplied")
+msg_prt(string = "No message supplied", output = "message")
 }
 \arguments{
-\item{string}{[character] message to the pipeline's user. Require: length = 1}
+\item{string}{[chr] string length = 1}
+
+\item{output}{[chr] output mode: c("message", "print", "both")}
 }
 \value{
-[stdout/stderr] user message to both stdout and stderr
+[stderr/stdout] one or both
 }
 \description{
-When using `sink()` on a pipeline, some context may be more useful in stdout
-or stderr, but it's difficult to know when.  This wrapper prints a message to
-both locations.
+Change this function's default output mode depending on how you debug / read logs
 }

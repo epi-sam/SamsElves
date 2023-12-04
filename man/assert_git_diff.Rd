@@ -7,7 +7,7 @@
 assert_git_diff(git_uncommitted)
 }
 \arguments{
-\item{git_uncommitted}{[character] output from git_diff function}
+\item{git_uncommitted}{[character] output from query_git_diff function}
 }
 \value{
 [NULL]

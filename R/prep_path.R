@@ -9,7 +9,10 @@
 #' @return correctly formatted filepath (`\` becomes `/`)
 #'
 #' @export
-prep_path <- function(path = "clipboard") {
+prep_windows_path_for_unix <- function(path = "clipboard") {
+  platform_name       <- tolower(Sys.info()[['sysname']])
+  platform_is_windows <- identical("windows", platform_name)
+  if(!platform_is_windows) stop("xClipboard functions are only available for the Windows Rstudio API.")
   y <- if (path == "clipboard") {
     readClipboard()
   } else {
