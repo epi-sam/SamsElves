@@ -7,9 +7,9 @@
 assert_git_hash(launch_hash, script_hash)
 }
 \arguments{
-\item{script_hash}{[character] daughter script hash to check against main}
+\item{launch_hash}{[character] launch script hash as gold standard}
 
-\item{metadata}{[list] metadata written in launch script}
+\item{script_hash}{[character] daughter script hash to check against main}
 }
 \value{
 passing statement or error message
