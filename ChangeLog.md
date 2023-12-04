@@ -2,7 +2,7 @@ ChangeLog for SamsElves Package
 
 --------------------------------------------------------------------------------
 
-2023-12-04
+## 2023-12-04
 
 - removed: 
   - define_roots
@@ -21,7 +21,7 @@ ChangeLog for SamsElves Package
   - wait_on_jobs
 
 
-2022-04-15
+## 2022-04-15
 
 - added
   - preflight_checks
