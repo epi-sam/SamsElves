@@ -145,6 +145,7 @@ wait_on_jobs <- function(job_pattern,
 #' @param dryrun [lgl] return a list of commands built by this function, but do not wait on jobs
 #'
 #' @return [std_out/std_err] std_out for sleep cycle duration & successful ending, std_err printing failed job ids
+#' @export
 wait_on_slurm_job_id <-
   function(
     job_id,
@@ -214,12 +215,12 @@ wait_on_slurm_job_id <-
       filter_regex <- paste0(filter_regex, " | grep -P ", rgx)
     }
     
-    #' trim column headers (start on 3rd row of sacct output)
-    #' trim out duplicated batch/extern lines for each job
-    #' trim extra whitespace, leaving a one-space-delimiter between fields, used by `cut`
-    #' select only filtering fields of choice 
-    #' - cut's `-f{filter_idx}` selects `1+n` fields (e.g. `1,2,3`)
-    #'   - `1` = "state" and `n` = the user-defined filtering field(s)
+    # trim column headers (start on 3rd row of sacct output)
+    # trim out duplicated batch/extern lines for each job
+    # trim extra whitespace, leaving a one-space-delimiter between fields, used by `cut`
+    # select only filtering fields of choice 
+    # - cut's `-f{filter_idx}` selects `1+n` fields (e.g. `1,2,3`)
+    #   - `1` = "state" and `n` = the user-defined filtering field(s)
     # add filter_regex 
     filter_str <- paste0(
       "| tail -n +3 ",

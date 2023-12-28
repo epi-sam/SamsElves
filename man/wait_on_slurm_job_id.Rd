@@ -31,12 +31,6 @@ wait_on_slurm_job_id(
 }
 \value{
 [std_out/std_err] std_out for sleep cycle duration & successful ending, std_err printing failed job ids
-trim column headers (start on 3rd row of sacct output)
-trim out duplicated batch/extern lines for each job
-trim extra whitespace, leaving a one-space-delimiter between fields, used by `cut`
-select only filtering fields of choice 
-- cut's `-f{filter_idx}` selects `1+n` fields (e.g. `1,2,3`)
-  - `1` = "state" and `n` = the user-defined filtering field(s)
 }
 \description{
 Option to break if some jobs fail (find `FAILED` State jobs).
