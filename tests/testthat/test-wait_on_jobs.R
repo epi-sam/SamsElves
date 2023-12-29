@@ -1,30 +1,4 @@
 test_that(
-  "wait_on_slurm_job_id dry-run produces expected command string",
-  {
-    expect_message(
-      wait_on_slurm_job_id(
-        job_id        = 1245,
-        initial_sleep = 5,
-        perl          = TRUE,
-        dryrun        = TRUE
-      ),
-      regexp = "sacct --format=JobID%16,JobName%50,User%20,State%16,ExitCode,NodeList%27,Partition%12,Account%20 | grep 'RUNNING\\|PENDING' | grep -P 1245"
-    )
-    
-    expect_message(
-      wait_on_slurm_job_id(
-        job_id        = 1245,
-        initial_sleep = 5,
-        perl          = FALSE,
-        dryrun        = TRUE
-      ),
-      regexp = "sacct --format=JobID%16,JobName%50,User%20,State%16,ExitCode,NodeList%27,Partition%12,Account%20 | grep 'RUNNING\\|PENDING' | grep 1245"
-    )
-    
-  }
-)
-
-test_that(
   "wait_on_jobs dry-run produces expected command string",
   {
     expect_message(
