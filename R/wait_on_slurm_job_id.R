@@ -116,9 +116,11 @@ wait_on_slurm_job_id <-
       
       print(paste("Waiting on batch_idx:", batch_idx))
       
-      job_id_first <- job_id[(batch_idx * batch_size - (batch_size - 1))]
-      job_id_last  <- job_id[min((batch_idx * batch_size), length(job_id))]
-      job_id_batch <- job_id_first:job_id_last
+      job_idx <- list(
+        first = batch_idx * batch_size - (batch_size - 1),
+        last  = min((batch_idx * batch_size), length(job_id))
+      )
+      job_id_batch  <- job_id[job_idx$first : job_idx$last]
 
       job_id_regex_raw          <- paste(job_id_batch, collapse = "|")
       job_id_regex_or_quoted    <- paste0("'", job_id_regex_raw, "'")
