@@ -134,7 +134,7 @@ wait_on_slurm_job_id <-
       # Format sacct output to flexibly filter by multiple fields
       filter_regex_list <- lapply(filter_by, function(flt){
         switch(
-          flt
+          flt,
           "state"    = "'.*'", # filter nothing - handles filter_by = NULL
           # "jobid"    = job_id_regex_or_quoted, # has no meaning - we're querying JobID directly
           "jobidraw" = job_id_regex_or_quoted,
