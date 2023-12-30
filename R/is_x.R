@@ -1,6 +1,7 @@
 #' Check that a vector/element is not empty
 #'
-#' vectorized check for is.null, is.na, empty string (""), optional whitespace only string
+#' Check for is.null & length 0. Vectorized check for is.na, empty string (""),
+#' optional check for whitespace only string.
 #'
 #' @param x [vec] some scalar element
 #' @param check_whitespace [lgl] check for all-whitespace strings?
@@ -12,6 +13,11 @@ is_empty <- function(x, check_whitespace = TRUE){
   if (is.null(x)) {
     warning("x is NULL")
     return (is.null(x))
+  }
+  
+  if (length(x) == 0) {
+    warning("x has length 0")
+    return(length(x) == 0)
   }
   
   if (any(is.na(x))) {

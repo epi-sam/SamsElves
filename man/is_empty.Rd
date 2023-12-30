@@ -15,5 +15,6 @@ is_empty(x, check_whitespace = TRUE)
 [lgl]
 }
 \description{
-vectorized check for is.null, is.na, empty string (""), optional whitespace only string
+Check for is.null & length 0. Vectorized check for is.na, empty string (""),
+optional check for whitespace only string.
 }
