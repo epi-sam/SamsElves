@@ -10,6 +10,14 @@ test_that("is_empty produces correct results and warnings", {
   
   expect_warning(
     expect_equal(
+      is_empty(character())
+      , c(TRUE)
+    )
+    , "x has length 0"
+  )
+  
+  expect_warning(
+    expect_equal(
       is_empty(c('a', '', 'c'))
       , c(FALSE, TRUE, FALSE)
     )
