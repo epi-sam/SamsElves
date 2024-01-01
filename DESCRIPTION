@@ -20,4 +20,5 @@ Imports:
     rhdf5,
     stringr,
     DescTools,
-    yaml
+    yaml,
+    XML
