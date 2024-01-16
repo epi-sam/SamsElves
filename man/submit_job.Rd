@@ -13,6 +13,7 @@ submit_job(
   job_name = NULL,
   partition = "all.q",
   Account = NULL,
+  hold_for_JobIDs = NULL,
   language = "R",
   shell_script_path = NULL,
   std_err_path = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
@@ -38,6 +39,8 @@ submit_job(
 \item{partition}{[chr] a.k.a. 'queue' - cluster resource requirement}
 
 \item{Account}{[chr] a.k.a. 'project' - cluster resource requirement}
+
+\item{hold_for_JobIDs}{vector of jobids that must complete successfully before running this job (https://slurm.schedmd.com/sbatch.html#OPT_dependency)}
 
 \item{language}{[chr] coding language for job (see valid_langs validation)}
 
