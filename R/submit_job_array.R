@@ -57,7 +57,9 @@ submit_job_array <- function(
   if(is.null(script_path))   stop("Please define a valid script path to submit")
   if(is.null(Account))       stop("Please define a Slurm Account e.g. proj_cov_vc")
   if(is.null(array_n_tasks)) stop("Please define number of jobs per array (1 to array_n_tasks)")
-  if(!is.vector(hold_for_JobIDs, mode = "integer")) stop("hold_for_JobIDs must be a simple integer vector")
+  if(!is.null(hold_for_JobIDs)){
+     if(!is.vector(hold_for_JobIDs, mode = "integer")) stop("hold_for_JobIDs must be a simple integer vector")
+  }
   
   # build log folders silently (dir.create fails naturally if directory exists)
   dir.create(std_err_path, recursive = TRUE, showWarnings = FALSE)
@@ -112,7 +114,7 @@ submit_job_array <- function(
     # , " -D ./" # FIXME SB - 2023 Oct 20 - I'm not sure I want this in here
   )
   
-  ## add hold_for_JobIDs if exists
+  # add hold_for_JobIDs if exists
   if(!is.null(hold_for_JobIDs)){
       hold_ids <- paste(hold_for_JobIDs, collapse = ":")
       command  <- paste0(command, " --dependency=afterok:", hold_ids)
