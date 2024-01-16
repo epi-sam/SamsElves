@@ -11,6 +11,7 @@
 #' @param job_name [chr] Will be name of script if NULL
 #' @param partition [chr] a.k.a. 'queue' - cluster resource requirement
 #' @param Account [chr] a.k.a. 'project' - cluster resource requirement
+#' @param hold_for_JobIDs vector of jobids that must complete successfully before running this job (https://slurm.schedmd.com/sbatch.html#OPT_dependency)
 #' @param language [chr] coding language for job (see valid_langs validation)
 #' @param shell_script_path [path] path to shell script (language-specific)
 #' @param std_err_path [path] path for Slurm std_err logs 
@@ -30,6 +31,7 @@ submit_job <- function(
     job_name          = NULL, 
     partition         = "all.q", 
     Account           = NULL, 
+    hold_for_JobIDs   = NULL,
     language          = "R",
     shell_script_path = NULL, 
     std_err_path      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
@@ -50,6 +52,9 @@ submit_job <- function(
   # build log folders silently (dir.create fails naturally if directory exists)
   dir.create(std_err_path, recursive = TRUE, showWarnings = FALSE)
   dir.create(std_out_path, recursive = TRUE, showWarnings = FALSE)
+  if(!is.null(hold_for_JobIDs)){
+     if(!is.vector(hold_for_JobIDs, mode = "integer")) stop("hold_for_JobIDs must be a simple integer vector")
+  }
   
   # Define commands
   if (is.null(job_name)) {
@@ -110,6 +115,12 @@ submit_job <- function(
     " "   ,    r_image_cmd,
     " -s ",    script_path
   )
+  
+  # add hold_for_JobIDs if exists
+  if(!is.null(hold_for_JobIDs)){
+     hold_ids <- paste(hold_for_JobIDs, collapse = ":")
+     command  <- paste0(command, " --dependency=afterok:", hold_ids)
+  }
   
   # append extra arguments - handles NULL input by default
   for (arg_name in names(args_list)) { 
