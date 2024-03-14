@@ -46,14 +46,12 @@ build_metadata_shell <- function(
     code_root,
     jobname_filter    = "^rst_ide|^vscode",
     submitline_n_char = 1000L,
-    regex_to_extract  = "ihme/singularity-images/rstudio/[:graph:]+",
+    regex_to_extract  = "singularity-images/rstudio/[:graph:]+\\.img$",
     regex_to_ignore   = "jpy",
     system_user_name  = Sys.info()[["user"]],
     cluster_type      = "slurm",
     send_user_msg     = FALSE
 ) {
-
-  # browser()
 
   # ensure path to .git folder exists
   normalizePath(file.path(code_root, ".git"), mustWork = T)
@@ -98,12 +96,13 @@ build_metadata_shell <- function(
   }
 
   # Only want to warn once from top level
-  jobs_df <- job_finder(system_user_name = system_user_name,
-                        jobname_filter = jobname_filter,
-                        cluster_type = cluster_type)
-
-  if(nrow(jobs_df) == 0) warning(glue(
-    "Matched no jobs to jobname_filter argument. User argument : '{jobname_filter}'
+  jobs_df <- job_finder(system_user_name = system_user_name, 
+                        jobname_filter   = jobname_filter, 
+                        cluster_type     = cluster_type)
+  
+  if(nrow(jobs_df) == 0) message(glue(
+    "Metadata warning:
+    Matched no jobs to jobname_filter argument. User argument : '{jobname_filter}'
     - Returning git information, but no system information (e.g. n_cores and rstudio image are unknown)
     - Please update: call 'sacct -u <your_username>' from the command line.
     - Use '^' with the beginning JobName string as your jobname_filter argument.
@@ -150,9 +149,7 @@ extract_submission_commands <- function(
   cluster_type
 
 ) {
-
-  # browser()
-
+  
   if (is.null(regex_to_extract)) {
     stop("You must specify a string to find and extract from command line submissions")
   }
@@ -271,13 +268,36 @@ extract_command_string <- function (submit_command_text,
   extracted_strings <- stringr::str_extract_all(submit_command_text, regex_to_extract)
 
   # net to catch unexpected errors
-  if(!length (extracted_strings) == 1) {
-    stop("submit_command_list has more than one element - investigate.
-             You likely have more than one string or pattern specified")
+  if(length (extracted_strings) != 1) {
+    stop("submit_command_list does not have only one element - investigate. 
+          You likely have more than one string or pattern specified. \n",
+         paste(capture.output(extracted_strings), collapse = "\n"))
   }
 
   extracted_strings <- extracted_strings[[1]]
-
+  
+  # net to catch unexpected errors
+  if(length (extracted_strings) != 1) {
+    stop("submit_command_list does not have only one element - investigate. 
+          You likely have more than one string or pattern specified. \n",
+         paste(capture.output(extracted_strings), collapse = "\n"))
+  }
+  
+  # By default this is for finding the Rstudio image - resolve latest.img if found in the string
+  # After August 2023 Slurm update, the resolved image path is no longer found.
+  if(grepl("latest.img$", extracted_strings)) {
+    img_path <- file.path("/mnt/share", extracted_strings)
+    if (!file.exists(img_path)) {
+      stop(
+        "
+        extract_command_string error -
+        latest.img path does not exist: ", img_path
+      )
+    }
+    # resolve the symlink latest.img points to
+    extracted_strings <- system(paste("realpath", img_path) , intern = TRUE)
+  }
+  
   if(is.null(regex_to_ignore)) {
     keep_filter <- rep(TRUE, length(extracted_strings))
   } else {
@@ -331,8 +351,9 @@ extract_cores <- function(system_user_name,
   # validate dimensions
   more_than_one_interactive_session <- ncol(n_cores_df) > 1 | nrow(n_cores_df) > 1
   if(more_than_one_interactive_session) {
-    warning ("Attempting to find # of cores produced more than one option (either # or jobs or # of columns) - please inspect.
-               Returning n_cores = 1, efficiency may be reduced.\n",
+    message ("Metadata warning:
+             Attempting to find # of cores produced more than one option (either # or jobs or # of columns) - please inspect.  
+             Returning n_cores = 1, efficiency may be reduced.\n",
              paste(capture.output(n_cores_df), collapse = "\n"))
     n_cores <- 1
   } else {

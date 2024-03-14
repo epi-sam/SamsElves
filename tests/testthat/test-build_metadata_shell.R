@@ -108,7 +108,7 @@ test_that(
 submit_command_list <- extract_submission_commands(
   jobname_filter = "^rst_ide",
   submitline_n_char = 500,
-  regex_to_extract = "ihme/singularity-images/rstudio/[:graph:]+",
+  regex_to_extract = "singularity-images/rstudio/[:graph:]+\\.img$",
   regex_to_ignore = "jpy",
   system_user_name = Sys.getenv()["USER"],
   cluster_type = "slurm"
