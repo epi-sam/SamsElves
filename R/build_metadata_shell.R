@@ -150,8 +150,6 @@ extract_submission_commands <- function(
   
 ) {
   
-  # browser()
-  
   if (is.null(regex_to_extract)) {
     stop("You must specify a string to find and extract from command line submissions")
   }
@@ -272,14 +270,21 @@ extract_command_string <- function (submit_command_text,
   # net to catch unexpected errors
   if(length (extracted_strings) != 1) {
     stop("submit_command_list does not have only one element - investigate. 
-             You likely have more than one string or pattern specified")
+          You likely have more than one string or pattern specified. \n",
+         paste(capture.output(extracted_strings), collapse = "\n"))
   }
   
   extracted_strings <- extracted_strings[[1]]
   
+  # net to catch unexpected errors
+  if(length (extracted_strings) != 1) {
+    stop("submit_command_list does not have only one element - investigate. 
+          You likely have more than one string or pattern specified. \n",
+         paste(capture.output(extracted_strings), collapse = "\n"))
+  }
+  
   # By default this is for finding the Rstudio image - resolve latest.img if found in the string
   # After August 2023 Slurm update, the resolved image path is no longer found.
-  browser()
   if(grepl("latest.img$", extracted_strings)) {
     img_path <- file.path("/mnt/share", extracted_strings)
     if (!file.exists(img_path)) {
