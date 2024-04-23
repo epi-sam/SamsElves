@@ -6,6 +6,7 @@
 #' @param hierarchy [data.table] Hierarchy. Must have columns location_id, path_to_top_parent, and level.
 #' @param parent_level [int] Single level of the hierarchy - find all parent location_ids of child location_ids at this level
 #' @export
+#' @import data.table
 parents_of_children <- function(
     child_loc_ids,
     hierarchy,
@@ -59,6 +60,8 @@ validate_parents_of_children_inputs <- function(child_location_id, hierarchy, pa
   }
 
   # Check for valid hierarchy
+  if(!"package:data.table" %in% search()) stop("data.table must be loaded for parents_of_children()")
+  if(!isTRUE(data.table::is.data.table(hierarchy))) stop("hierarchy must be a data.table")
   if (!all(c('path_to_top_parent', 'location_id', 'level') %in% names(hierarchy))){
     stop("Was passed an invalid hierarchy. Must have columns path_to_top_parent, location_id, and level.")
   }

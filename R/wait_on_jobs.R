@@ -5,8 +5,8 @@
 #' @param initial_sleep_sec [int] time to allow system time to find a submitted job
 #' @param jobname_nchar [int] (defualt: 50) how many characters of a JobName to display and search
 #' @param file_list [path/list] list of paths to files to wait on
-#' @param obj
-#' @param resub
+#' @param obj [chr] checks if rhdf5::h5ls(file_list)$name exists
+#' @param resub [int] if 0, return message about failures if missing_list has any items, else return 1
 #' @param dryrun (default FALSE) if TRUE, only message and return system command, but do not submit
 #'
 #' @return [std_out] message to user

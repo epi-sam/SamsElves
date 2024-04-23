@@ -8,7 +8,7 @@
 #' @param include_parent [logical] Do you want parent location_id included with children?
 #'   (FALSE by default). If FALSE, and using two parent IDs, be careful if the
 #'   parent location_ids are nested inside each other.
-#' @param hierarchy [data.frame] Which hierarchy to use? (Uses 'path_to_top_parent' to find all nested children)
+#' @param hierarchy [data.table] Which hierarchy to use? (Uses 'path_to_top_parent' to find all nested children)
 #' @param output [character] Output options:
 ##' \itemize{
 ##'  \item{\code{"boolean"} : mask for all rows in the hierarchy - useful for adding a new column}
@@ -16,6 +16,7 @@
 ##' }
 #' @return [logical/numeric] T/F mask for all hierarchy locs, or a vector of children location_ids?
 #' @export
+#' @import data.table
 #'
 #' @examples
 #'

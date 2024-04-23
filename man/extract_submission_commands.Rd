@@ -21,15 +21,15 @@ what `NAME` do you want to filter for?}
 from system (set this much longer than you'd think necessary)}
 
 \item{regex_to_extract}{[character|regex] What string do you want to extract
-after running  `sacct -j <jobid> -o submitline\%xxx` using
-`stringr::str_extract_all`}
+after running  `sacct -j <jobid> -o submitline\%xxx`}
 
 \item{regex_to_ignore}{[character|regex] If your `regex_to_extract` command
-finds more strings than you want, this removes all strings with}
+finds more strings than you want, this removes strings with the specified
+pattern}
 
 \item{system_user_name}{[chr] User's identifier, according to the cluster}
 
-\item{cluster_type}{this pattern anywhere inside using `stringr::str_detect`}
+\item{cluster_type}{e.g. "slurm"}
 }
 \value{
 [list] All desired submission commands, and specific extracted text
