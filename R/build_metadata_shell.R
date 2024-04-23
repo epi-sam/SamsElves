@@ -11,8 +11,8 @@
 #'   from system `sacct -j <jobid> -o submitline\%xxx` call (set this much
 #'   longer than you'd think necessary)
 #' @param regex_to_extract [regex] What string do you want to extract after
-#'   running  `sacct -j <jobid> -o submitline\%xxx` using
-#'   `stringr::str_extract_all`
+#'   running  `sacct -j <jobid> -o submitline\%xxx` (default - find Rstudio
+#'   image for provenance)
 #' @param regex_to_ignore [regex] If your `regex_to_extract` command finds more
 #'   strings than you want, this removes all strings matching this pattern
 #' @param system_user_name [chr] User's identifier, according to the cluster
@@ -121,12 +121,12 @@ build_metadata_shell <- function(
 #' @param submitline_n_char [int] Length of submitted command string to expect
 #'   from system (set this much longer than you'd think necessary)
 #' @param regex_to_extract [character|regex] What string do you want to extract
-#'   after running  `sacct -j <jobid> -o submitline\%xxx` using
-#'   `stringr::str_extract_all`
+#'   after running  `sacct -j <jobid> -o submitline\%xxx`
 #' @param regex_to_ignore [character|regex] If your `regex_to_extract` command
-#'   finds more strings than you want, this removes all strings with
+#'   finds more strings than you want, this removes strings with the specified
+#'   pattern
 #' @param system_user_name [chr] User's identifier, according to the cluster
-#' @param cluster_type this pattern anywhere inside using `stringr::str_detect`
+#' @param cluster_type e.g. "slurm"
 #'
 #' @return [list] All desired submission commands, and specific extracted text
 #'   from regex_to_extract
@@ -234,11 +234,12 @@ job_finder <- function(system_user_name,
 #' Search a cluster submitted command string for some pattern
 #'
 #' Intended to pull Rstudio image information
+#' - Currently only supports one valid string found per submission command
 #'
 #' @param submit_command_text [chr] the result of calling "sacct -j <INT> -o
 #'   submitline\%<INT>"
 #' @param regex_to_extract [regex] pattern to extract from `submit_command_text`
-#' @param regex_to_ignore [regex] patterns to not `stringr::str_detect()`
+#' @param regex_to_ignore [regex] ignore strings found with this pattern
 #'
 #' @return [chr] vector of strings extracting/ignoring as requested
 #'
