@@ -73,6 +73,4 @@ assert_git_hash <- function(launch_hash, script_hash) {
     )
   }
 
-  message(hashes_equal)
-
 }

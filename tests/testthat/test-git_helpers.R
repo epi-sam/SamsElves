@@ -39,5 +39,10 @@ test_that(
       assert_git_hash(launch_hash = "abcde", script_hash = "edcba"),
       regexp = "Launch script git hash does not match downstream script git hash - please inspect and do a clean run."
     )
+
+    expect_error(
+      assert_git_hash(launch_hash = "abcde", script_hash = c("edcba", "edcba")),
+      regexp = "You must submit exactly one character string per hash."
+    )
   }
 )
