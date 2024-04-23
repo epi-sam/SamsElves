@@ -24,11 +24,6 @@
 #' @return [list] Full metadata shell, including git info, cluster submission
 #'   commands
 #'
-#' @import readr
-#' @import data.table
-#' @import stringr
-#' @import glue
-#'
 #' @export
 #'
 #' @examples
@@ -46,7 +41,7 @@ build_metadata_shell <- function(
     code_root,
     jobname_filter    = "^rst_ide|^vscode",
     submitline_n_char = 1000L,
-    regex_to_extract  = "singularity-images/rstudio/[:graph:]+\\.img$",
+    regex_to_extract  = "singularity-images/rstudio/[[:graph:]]+\\.img",
     regex_to_ignore   = "jpy",
     system_user_name  = Sys.info()[["user"]],
     cluster_type      = "slurm",
@@ -54,14 +49,14 @@ build_metadata_shell <- function(
 ) {
 
   # ensure path to .git folder exists
-  normalizePath(file.path(code_root, ".git"), mustWork = T)
+  normalizePath(file.path(code_root, ".git"), mustWork = TRUE)
 
-  git_logs     <- data.table::fread(file.path(code_root, ".git/logs/HEAD"), header = F)
-  git_log_last <- git_logs[nrow(git_logs)]
-  git_hash     <- stringr::str_split_fixed(git_log_last[["V1"]], " ", n = Inf)[2]
+  git_logs     <- read.table(file.path(code_root, ".git/logs/HEAD"), sep = "\t")
+  git_log_last <- git_logs[nrow(git_logs), ]
+  git_hash     <- strsplit(x = git_log_last[["V1"]], split = "\\s", perl = TRUE)[[1]][2]
 
   GIT <- list(
-    git_branch      = gsub("\n", "", readr::read_file(file.path(code_root, ".git/HEAD"))),
+    git_branch      = gsub("\n", "", readLines(file.path(code_root, ".git/HEAD"))),
     git_log_last    = git_log_last,
     git_hash        = git_hash,
     git_uncommitted = SamsElves::query_git_diff(CODE_ROOT = code_root)
@@ -73,34 +68,35 @@ build_metadata_shell <- function(
     CODE_ROOT       = code_root,
     GIT             = GIT,
 
-    SUBMIT_COMMANDS =
-      SamsElves::extract_submission_commands(
-        jobname_filter    = jobname_filter,
-        submitline_n_char = submitline_n_char,
-        regex_to_extract  = regex_to_extract,
-        regex_to_ignore   = regex_to_ignore,
-        system_user_name  = system_user_name,
-        cluster_type      = cluster_type)
+    SUBMIT_COMMANDS = SamsElves::extract_submission_commands(
+      jobname_filter    = jobname_filter,
+      submitline_n_char = submitline_n_char,
+      regex_to_extract  = regex_to_extract,
+      regex_to_ignore   = regex_to_ignore,
+      system_user_name  = system_user_name,
+      cluster_type      = cluster_type
+    )
+
   )
 
   # Messaging
   if(send_user_msg){
-    message(glue(
+    message(glue::glue(
       "Metadata shell from code root: {code_root}
-      - user: {system_user_name}
-      - cluster type: {cluster_type}
-      - sacct JobName filter: {jobname_filter}
-      - extracting string: {regex_to_extract}
-      - ignoring string: {regex_to_ignore}"
+      - user:                  {system_user_name}
+      - cluster type:          {cluster_type}
+      - sacct JobName filter:  {jobname_filter}
+      - extracting string:     {regex_to_extract}
+      - ignoring string:       {regex_to_ignore}"
     ))
   }
 
   # Only want to warn once from top level
-  jobs_df <- job_finder(system_user_name = system_user_name, 
-                        jobname_filter   = jobname_filter, 
+  jobs_df <- job_finder(system_user_name = system_user_name,
+                        jobname_filter   = jobname_filter,
                         cluster_type     = cluster_type)
-  
-  if(nrow(jobs_df) == 0) message(glue(
+
+  if(nrow(jobs_df) == 0) message(glue::glue(
     "Metadata warning:
     Matched no jobs to jobname_filter argument. User argument : '{jobname_filter}'
     - Returning git information, but no system information (e.g. n_cores and rstudio image are unknown)
@@ -135,8 +131,6 @@ build_metadata_shell <- function(
 #' @return [list] All desired submission commands, and specific extracted text
 #'   from regex_to_extract
 #'
-#' @import glue
-#'
 #' @export
 #'
 extract_submission_commands <- function(
@@ -149,7 +143,7 @@ extract_submission_commands <- function(
   cluster_type
 
 ) {
-  
+
   if (is.null(regex_to_extract)) {
     stop("You must specify a string to find and extract from command line submissions")
   }
@@ -169,8 +163,8 @@ extract_submission_commands <- function(
 
     submission_command <- system2(
       command = "/opt/slurm/bin/sacct", # use full path to pass testing
-      args    = glue("-j {job_id} -o submitline%{submitline_n_char}"),
-      stdout  = T
+      args    = glue::glue("-j {job_id} -o submitline%{submitline_n_char}"),
+      stdout  = TRUE
     )
     submission_command <- tolower(submission_command[[3]])
     submission_command <- trimws(submission_command, which = "both")
@@ -207,8 +201,6 @@ extract_submission_commands <- function(
 #'
 #' @return [data.frame] long by jobid, wide by jobid and jobname
 #'
-#' @import glue
-#'
 job_finder <- function(system_user_name,
                        jobname_filter,
                        cluster_type = "slurm") {
@@ -222,17 +214,12 @@ job_finder <- function(system_user_name,
 
   # read job accounting list from cluster
   jobs_txt <- system2(
-    command = glue("/opt/slurm/bin/sacct"), # use full path to pass testing
-    args = glue("-u {system_user_name} --format=JobID%16,JobName%16,State%10"),
-    stdout = TRUE
-    )
+    command = glue::glue("/opt/slurm/bin/sacct"), # use full path to pass testing
+    args    = glue::glue("-u {system_user_name} --format=JobID%16,JobName%16,State%10"),
+    stdout  = TRUE
+  )
 
-  # jobs_txt <- system(
-  #   command = glue("/opt/slurm/bin/sacct -u {system_user_name} --format=JobID%16,JobName%16,State%10"),
-  #   intern = TRUE
-  #   )
-
-  jobs_df  <- read.table(text = jobs_txt, header = T, sep = "")
+  jobs_df  <- read.table(text = jobs_txt, header = TRUE, sep = "")
 
   # format, filter & extract jobids & jobnames in a table
   names(jobs_df)      <- tolower(names(jobs_df))
@@ -250,12 +237,10 @@ job_finder <- function(system_user_name,
 #'
 #' @param submit_command_text [chr] the result of calling "sacct -j <INT> -o
 #'   submitline\%<INT>"
-#' @param regex_to_extract [regex] pattern to `stringr::str_extract()`
+#' @param regex_to_extract [regex] pattern to extract from `submit_command_text`
 #' @param regex_to_ignore [regex] patterns to not `stringr::str_detect()`
 #'
 #' @return [chr] vector of strings extracting/ignoring as requested
-#'
-#' @import stringr
 #'
 extract_command_string <- function (submit_command_text,
                                     regex_to_extract,
@@ -265,24 +250,24 @@ extract_command_string <- function (submit_command_text,
   if(length(submit_command_text) > 1) stop ("Must submit text length == 1")
   if(length(regex_to_extract) > 1) stop ("Must submit regex length == 1")
 
-  extracted_strings <- stringr::str_extract_all(submit_command_text, regex_to_extract)
+  extracted_strings <- regmatches(submit_command_text, gregexpr(regex_to_extract, submit_command_text, perl = TRUE))
 
   # net to catch unexpected errors
   if(length (extracted_strings) != 1) {
-    stop("submit_command_list does not have only one element - investigate. 
+    stop("submit_command_list does not have only one element - investigate.
           You likely have more than one string or pattern specified. \n",
          paste(capture.output(extracted_strings), collapse = "\n"))
   }
 
   extracted_strings <- extracted_strings[[1]]
-  
+
   # net to catch unexpected errors
   if(length (extracted_strings) != 1) {
-    stop("submit_command_list does not have only one element - investigate. 
+    stop("submit_command_list does not have only one element - investigate.
           You likely have more than one string or pattern specified. \n",
          paste(capture.output(extracted_strings), collapse = "\n"))
   }
-  
+
   # By default this is for finding the Rstudio image - resolve latest.img if found in the string
   # After August 2023 Slurm update, the resolved image path is no longer found.
   if(grepl("latest.img$", extracted_strings)) {
@@ -297,15 +282,16 @@ extract_command_string <- function (submit_command_text,
     # resolve the symlink latest.img points to
     extracted_strings <- system(paste("realpath", img_path) , intern = TRUE)
   }
-  
+
   if(is.null(regex_to_ignore)) {
-    keep_filter <- rep(TRUE, length(extracted_strings))
+    keep_mask <- rep(TRUE, length(extracted_strings))
   } else {
-    keep_filter <- lapply(extracted_strings, stringr::str_detect, pattern = regex_to_ignore, negate = TRUE)
-    keep_filter <- unlist(keep_filter)
+    keep_mask <- unlist(
+      lapply(extracted_strings, function(x) !grepl(regex_to_ignore, x, perl = TRUE))
+    )
   }
 
-  return_strings <- extracted_strings[keep_filter]
+  return_strings <- extracted_strings[keep_mask]
   if(length(return_strings) == 0) stop("No strings were extracted - inspect inputs and regex_to_ignore")
   return(return_strings)
 
@@ -321,8 +307,6 @@ extract_command_string <- function (submit_command_text,
 #' @return [int] number of available cores for multithreading
 #' - if user has more than one interactive session, defaults to 1
 #'
-#' @import glue
-#'
 extract_cores <- function(system_user_name,
                           jobname_filter,
                           cluster_type) {
@@ -330,8 +314,8 @@ extract_cores <- function(system_user_name,
   # Find number of cores for all the user's jobs
   job_threads_txt <- system2(
     command = "/opt/slurm/bin/squeue", # use full path to pass testing
-    args    = glue("-o '%.10A %.5C' -u {system_user_name}"),
-    stdout  = T
+    args    = glue::glue("-o '%.10A %.5C' -u {system_user_name}"),
+    stdout  = TRUE
   )
   job_threads_df <- read.table(text = job_threads_txt, header = T, sep = "")
 
@@ -352,7 +336,7 @@ extract_cores <- function(system_user_name,
   more_than_one_interactive_session <- ncol(n_cores_df) > 1 | nrow(n_cores_df) > 1
   if(more_than_one_interactive_session) {
     message ("Metadata warning:
-             Attempting to find # of cores produced more than one option (either # or jobs or # of columns) - please inspect.  
+             Attempting to find # of cores produced more than one option (either # or jobs or # of columns) - please inspect.
              Returning n_cores = 1, efficiency may be reduced.\n",
              paste(capture.output(n_cores_df), collapse = "\n"))
     n_cores <- 1
