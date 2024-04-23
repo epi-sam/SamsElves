@@ -8,12 +8,12 @@
 query_git_diff <- function(CODE_ROOT) {
   current_dir <- getwd() # save to reset at the end
   on.exit(setwd(current_dir))
-  
+
   setwd(CODE_ROOT) # must set WD for system commands
   suppressWarnings(
     uncommitted_changes <- system("git diff HEAD | grep ^[@+-]", intern = T)
   )
-  
+
   git_uncommitted <- if(length(uncommitted_changes)) {
     # collapse for intuitive display
     uncommitted_changes <- paste(uncommitted_changes, collapse = "\n")
@@ -28,7 +28,7 @@ query_git_diff <- function(CODE_ROOT) {
 #'
 #' @param git_uncommitted [character] output from query_git_diff function
 #'
-#' @return [NULL] 
+#' @return [NULL]
 #' @export
 assert_git_diff <- function(git_uncommitted) {
   if (!is.null(git_uncommitted)) {
@@ -45,32 +45,34 @@ assert_git_diff <- function(git_uncommitted) {
 #' @param script_hash [character] daughter script hash to check against main
 #'
 #' @return passing statement or error message
-#' @import assertthat
-#' 
+#'
 #' @export
 assert_git_hash <- function(launch_hash, script_hash) {
-  
-  if(is.null(launch_hash)) stop("Your upstream launch script hash is null.") 
+
+  if(is.null(launch_hash)) stop("Your upstream launch script hash is null.")
   if(is.null(script_hash)) stop("Your downstream script hash is null.")
-  
+
   if (
-    length(script_hash) != 1 |
-    !is.character(script_hash) |
-    length(launch_hash) != 1 |
+    length(script_hash) != 1 ||
+    !is.character(script_hash) ||
+    length(launch_hash) != 1 ||
     !is.character(launch_hash)
   ) {
     stop("You must submit exactly one character string per hash.")
   }
-  
-  result <- assertthat::assert_that(
-    assertthat::are_equal(launch_hash, script_hash),
-    msg = paste(
-      "Launch script git hash does not match downstream script git hash - please inspect and do a clean run.", "\n",
-      "Launch hash = ", substr(launch_hash, 1, 8), "\n",
-      "Script hash = ", substr(script_hash, 1, 8), "\n"
+
+  hashes_equal <- isTRUE(all.equal(launch_hash, script_hash))
+
+  if(!hashes_equal){
+    stop(
+      paste(
+        "Launch script git hash does not match downstream script git hash - please inspect and do a clean run.", "\n",
+        "Launch hash = ", substr(launch_hash, 1, 8), "\n",
+        "Script hash = ", substr(script_hash, 1, 8), "\n"
+      )
     )
-  )
-  
-  message(result)
-  
+  }
+
+  message(hashes_equal)
+
 }
