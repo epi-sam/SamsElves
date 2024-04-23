@@ -1,3 +1,9 @@
+# This allows testthat to function properly
+# If testing ever breaks, add data.table to imports for BOTH:
+# - DESCRIPTION file
+# - NAMESPACE file
+.datatable.aware=TRUE
+
 #' @title parents_of_children
 #'
 #' @description Given a vector of location IDs, returns the vector of their unique parent IDs at a given level.
@@ -6,7 +12,6 @@
 #' @param hierarchy [data.table] Hierarchy. Must have columns location_id, path_to_top_parent, and level.
 #' @param parent_level [int] Single level of the hierarchy - find all parent location_ids of child location_ids at this level
 #' @export
-#' @import data.table
 parents_of_children <- function(
     child_loc_ids,
     hierarchy,

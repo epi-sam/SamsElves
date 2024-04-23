@@ -1,3 +1,9 @@
+# This allows testthat to function properly
+# If testing ever breaks, add data.table to imports for BOTH:
+# - DESCRIPTION file
+# - NAMESPACE file
+.datatable.aware=TRUE
+
 #' Get child locations given parent IDs from IHME hierarchies
 #'
 #' \code{children_of_parents()} finds children from IHME Hierarchies, given a
@@ -16,7 +22,6 @@
 ##' }
 #' @return [logical/numeric] T/F mask for all hierarchy locs, or a vector of children location_ids?
 #' @export
-#' @import data.table
 #'
 #' @examples
 #'

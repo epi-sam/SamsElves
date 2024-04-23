@@ -1,3 +1,9 @@
+# This allows testthat to function properly while not importing data.table formally
+# - must also add `.datatable.aware=TRUE` to at least one R/* file
+# If testing ever breaks, add data.table to imports for BOTH:
+# - DESCRIPTION file
+# - NAMESPACE file
+library(data.table)
 # Hierarchy with Washington, Arkansas, USA, Rajasthan, India, and Global
 test_hier = data.table::data.table(
   'location_id'        = c(570, 526, 102, 4868, 163, 1),
