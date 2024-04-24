@@ -42,9 +42,6 @@ parse_all_named_cli_args <- function(
     stop("assignment_env must be an environment")
   }
 
-  # Parser
-  # Add an arbitrary number of named key/value arguments to the parser
-
   # find arg names - all odd elements since args come in name/value pairs
   command_args <- commandArgs(trailingOnly = trailingOnly)
   arg_sequence <- seq_along(command_args)
@@ -56,11 +53,12 @@ parse_all_named_cli_args <- function(
          paste(c("COMMAND LINE ARGS:", command_args), collapse = ' '))
   }
 
+  # Parser
   parser <- argparse::ArgumentParser() # an R6 class object
 
   message(paste(c("COMMAND LINE ARGS:", command_args), collapse = ' '))
 
-  # Message that arguments are added to parser
+  # Add an arbitrary number of named key/value arguments to the parser
   message("Adding arguments to parser")
   for (idx in arg_name_idx) {
     message(paste("Arg idx:", idx, "Arg name:", command_args[idx], command_args[idx + 1]))
@@ -69,8 +67,9 @@ parse_all_named_cli_args <- function(
 
   args_list <- parser$parse_args(command_args)
 
-  message("Assigning logical type to TRUE/FALSE args (case-insensitive)")
-  message("Assigning integer type to solely numeric args (e.g. no decimals)")
+  if(assign_logical) message("Assigning logical type to TRUE/FALSE args (case-insensitive)")
+  if(assign_integer) message("Assigning integer type to solely numeric args (e.g. no decimals)")
+
   for (key in names(args_list)) {
 
     if (toupper(args_list[[key]]) %in% c("TRUE", "FALSE") & assign_logical) {
@@ -83,9 +82,17 @@ parse_all_named_cli_args <- function(
 
   }
 
-  message("Assigning args to environment")
-  message(paste(capture.output(print.data.frame(stack(args_list)[2:1], right = FALSE)), collapse = '\n'))
+  message("Assigning args to chosen environment.")
   list2env(args_list, envir = assignment_env)
+  message(
+    paste(
+      capture.output(
+        print.data.frame(
+          stack(args_list)[2:1], right = FALSE)
+      ),
+      collapse = '\n'
+    )
+  )
 
   return(args_list)
 }
