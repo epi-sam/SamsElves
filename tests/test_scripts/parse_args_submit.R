@@ -27,4 +27,5 @@ stopifnot(identical(flag2, 5L)) # integer
 stopifnot(identical(flag3, "happy_birthday")) # character
 stopifnot(identical(flag4, "1,3,5,7")) # comma-separated character string
 
+# Test is valid if this message throws to the logs (no prior errors).
 message("Done.")
