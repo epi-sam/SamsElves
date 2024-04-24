@@ -42,16 +42,17 @@ parse_all_named_cli_args <- function(
     stop("assignment_env must be an environment")
   }
 
-  # find arg names - all odd elements since args come in name/value pairs
+  # Grab CLI args
   command_args <- commandArgs(trailingOnly = trailingOnly)
-  arg_sequence <- seq_along(command_args)
-  arg_name_idx <- which(as.logical(arg_sequence %% 2))
 
-  # Validate that there are an even number of arguments
   if (length(command_args) %% 2 != 0){
     stop("There must be an even number of arguments in key/value pairs: \n",
          paste(c("COMMAND LINE ARGS:", command_args), collapse = ' '))
   }
+
+  # find arg names - all odd elements since args come in name/value pairs
+  arg_sequence <- seq_along(command_args)
+  arg_name_idx <- which(as.logical(arg_sequence %% 2))
 
   # Parser
   parser <- argparse::ArgumentParser() # an R6 class object
@@ -88,7 +89,8 @@ parse_all_named_cli_args <- function(
     paste(
       capture.output(
         print.data.frame(
-          stack(args_list)[2:1], right = FALSE)
+          stack(args_list)[2:1],
+          right = FALSE)
       ),
       collapse = '\n'
     )
