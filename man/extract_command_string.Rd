@@ -14,13 +14,14 @@ extract_command_string(
 \item{submit_command_text}{[chr] the result of calling "sacct -j <INT> -o
 submitline\%<INT>"}
 
-\item{regex_to_extract}{[regex] pattern to `stringr::str_extract()`}
+\item{regex_to_extract}{[regex] pattern to extract from `submit_command_text`}
 
-\item{regex_to_ignore}{[regex] patterns to not `stringr::str_detect()`}
+\item{regex_to_ignore}{[regex] ignore strings found with this pattern}
 }
 \value{
 [chr] vector of strings extracting/ignoring as requested
 }
 \description{
 Intended to pull Rstudio image information
+- Currently only supports one valid string found per submission command
 }

@@ -1,3 +1,9 @@
+# This allows testthat to function properly
+# If testing ever breaks, add data.table to imports for BOTH:
+# - DESCRIPTION file
+# - NAMESPACE file
+.datatable.aware=TRUE
+
 #' Get child locations given parent IDs from IHME hierarchies
 #'
 #' \code{children_of_parents()} finds children from IHME Hierarchies, given a
@@ -8,7 +14,7 @@
 #' @param include_parent [logical] Do you want parent location_id included with children?
 #'   (FALSE by default). If FALSE, and using two parent IDs, be careful if the
 #'   parent location_ids are nested inside each other.
-#' @param hierarchy [data.frame] Which hierarchy to use? (Uses 'path_to_top_parent' to find all nested children)
+#' @param hierarchy [data.table] Which hierarchy to use? (Uses 'path_to_top_parent' to find all nested children)
 #' @param output [character] Output options:
 ##' \itemize{
 ##'  \item{\code{"boolean"} : mask for all rows in the hierarchy - useful for adding a new column}

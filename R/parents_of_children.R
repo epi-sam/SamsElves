@@ -1,3 +1,9 @@
+# This allows testthat to function properly
+# If testing ever breaks, add data.table to imports for BOTH:
+# - DESCRIPTION file
+# - NAMESPACE file
+.datatable.aware=TRUE
+
 #' @title parents_of_children
 #'
 #' @description Given a vector of location IDs, returns the vector of their unique parent IDs at a given level.
@@ -59,6 +65,8 @@ validate_parents_of_children_inputs <- function(child_location_id, hierarchy, pa
   }
 
   # Check for valid hierarchy
+  if(!"package:data.table" %in% search()) stop("data.table must be loaded for parents_of_children()")
+  if(!isTRUE(data.table::is.data.table(hierarchy))) stop("hierarchy must be a data.table")
   if (!all(c('path_to_top_parent', 'location_id', 'level') %in% names(hierarchy))){
     stop("Was passed an invalid hierarchy. Must have columns path_to_top_parent, location_id, and level.")
   }

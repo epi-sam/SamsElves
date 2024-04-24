@@ -21,20 +21,20 @@ test_that(
   "extract_command_string throws proper error",
   {
     expect_error(
-      extract_command_string(test_str_2, test_regex_1), 
+      extract_command_string(test_str_2, test_regex_1),
       regexp = "Must submit text length == 1"
     )
-    
+
     expect_error(
-      extract_command_string(test_str_2, test_regex_2), 
+      extract_command_string(test_str_2, test_regex_2),
       regexp = "Must submit text length == 1"
     )
-    
+
     expect_error(
-      extract_command_string(test_str_1, test_regex_2), 
+      extract_command_string(test_str_1, test_regex_2),
       regexp = "Must submit regex length == 1"
     )
-    
+
     expect_error(
       extract_command_string(
         submit_command_text = test_str_1,
@@ -70,24 +70,13 @@ test_that(
                  cluster_type = NULL),
       regexp = "valid cluster type"
     )
-    
+
     expect_error(
       job_finder(system_user_name = Sys.getenv()["USER"],
                  jobname_filter = "rst",
                  cluster_type = "UGE"),
       regexp = "valid cluster type"
     )
-  }
-)
-
-
-test_that(
-  "metadata_shell produces a list with the correctly named top-level items",
-  {
-    metadata_shell <- build_metadata_shell(code_root = file.path("/mnt/share/code/", Sys.getenv()["USER"], "SamsElves"))
-    metadata_shell_names <- c("start_time", "user", "CODE_ROOT", "GIT", "SUBMIT_COMMANDS")
-    expect_type(metadata_shell, "list")
-    expect_equal(names(metadata_shell), metadata_shell_names)
   }
 )
 
@@ -108,22 +97,22 @@ test_that(
 submit_command_list <- extract_submission_commands(
   jobname_filter = "^rst_ide",
   submitline_n_char = 500,
-  regex_to_extract = "singularity-images/rstudio/[:graph:]+\\.img$",
+  regex_to_extract = "singularity-images/rstudio/[[:graph:]]+\\.img$",
   regex_to_ignore = "jpy",
   system_user_name = Sys.getenv()["USER"],
   cluster_type = "slurm"
 )
 
 test_that(
-  "extract_submission_commands returns a correctly shaped object",
+  "extract_submission_commands returns a correctly shaped object (will FAIL if you have >1 Rstudio session)",
   {
-    
+
     submit_command_template <- c(
       submission_commands   = 1,
       extracted_cmd_strings = 1,
       n_cores               = 1
     )
-    
+
     expect_equal(
       unlist(lapply(submit_command_list, length)),
       submit_command_template
@@ -132,10 +121,34 @@ test_that(
 )
 
 test_that(
-  "extract_submission_commands returns at least one character per item",
+  "extract_submission_commands returns at least one character per item (will FAIL if you have >1 Rstudio session)",
   {
     for(submit_command_item in submit_command_list){
       expect_gte(nchar(submit_command_item), 1)
     }
+  }
+)
+
+# build_metadata_shell  --------------------------------------------------------
+test_that(
+  "metadata_shell produces a list with the correctly named top-level items",
+  {
+    metadata_shell <- build_metadata_shell(code_root = file.path("/mnt/share/code/", Sys.getenv()["USER"], "SamsElves"))
+    metadata_shell_names <- c("start_time", "user", "CODE_ROOT", "GIT", "SUBMIT_COMMANDS")
+    expect_type(metadata_shell, "list")
+    expect_equal(names(metadata_shell), metadata_shell_names)
+  }
+)
+
+test_that(
+  "metadata_shell produces correct not-found message",
+  {
+    expect_message(
+      metadata_shell <- build_metadata_shell(code_root = file.path("/mnt/share/code/", Sys.getenv()["USER"], "SamsElves"),
+                                             jobname_filter = "JUNK_JOBNAME_FILTER"),
+      regexp = "Metadata warning:
+Matched no jobs to jobname_filter argument."
+
+    )
   }
 )
