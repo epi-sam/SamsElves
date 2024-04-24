@@ -33,8 +33,9 @@ test_that("parse_all_named_cli_args works",
             wait_on_slurm_job_id(job_id              = job_id
                                  , initial_sleep_sec = 5
                                  , cycle_sleep_sec   = 5)
-            message("Sleeping 30s while logs write to disk")
-            Sys.sleep(30)
+            sleep_sec <- 15
+            message("Sleeping ", sleep_sec, " seconds while logs write to disk.")
+            Sys.sleep(sleep_sec)
 
             # Read std_err log from disk
             std_err_log_path <- file.path(std_err_path, paste0("test_arg_parse_e", job_id, ".log"))
