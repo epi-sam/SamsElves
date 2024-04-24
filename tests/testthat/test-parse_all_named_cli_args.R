@@ -1,7 +1,10 @@
 
-root_code   <- getwd()
+root_code   <- dirname(dirname(getwd()))
 path_script <- file.path(root_code, "tests/test_scripts/parse_args_submit.R")
 std_err_path <- file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error")
+message(root_code)
+message(path_script)
+message(std_err_path)
 
 test_that("parse_all_named_cli_args works",
           {
