@@ -1,10 +1,10 @@
 
-root_code   <- dirname(dirname(getwd()))
-path_script <- file.path(root_code, "tests/test_scripts/parse_args_submit.R")
+root_code    <- dirname(dirname(getwd()))
+path_script  <- file.path(root_code, "tests/test_scripts/parse_args_submit.R")
 std_err_path <- file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error")
-message(root_code)
-message(path_script)
-message(std_err_path)
+message("root_code:    ", root_code)
+message("path_script:  ", path_script)
+message("std_err_path: ", std_err_path)
 
 test_that("parse_all_named_cli_args works",
           {
@@ -12,9 +12,9 @@ test_that("parse_all_named_cli_args works",
             args_list <- list(
               root_code = root_code
               , flag1   = "true"
-              , flag2 = 5
-              , flag3 = "happy_birthday"
-              , flag4 = paste(seq(1,8,2), collapse = ",")
+              , flag2   = 5
+              , flag3   = "happy_birthday"
+              , flag4   = paste(seq(1,8,2), collapse = ",")
             )
 
             job_id <- submit_job(
@@ -30,9 +30,9 @@ test_that("parse_all_named_cli_args works",
               , args_list    = args_list
             )
 
-            wait_on_slurm_job_id(job_id = job_id
+            wait_on_slurm_job_id(job_id              = job_id
                                  , initial_sleep_sec = 5
-                                 , cycle_sleep_sec = 5)
+                                 , cycle_sleep_sec   = 5)
             message("Sleeping 30s while logs write to disk")
             Sys.sleep(30)
 
