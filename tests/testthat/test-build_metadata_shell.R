@@ -80,17 +80,6 @@ test_that(
   }
 )
 
-
-test_that(
-  "metadata_shell produces a list with the correctly named top-level items",
-  {
-    metadata_shell <- build_metadata_shell(code_root = file.path("/mnt/share/code/", Sys.getenv()["USER"], "SamsElves"))
-    metadata_shell_names <- c("start_time", "user", "CODE_ROOT", "GIT", "SUBMIT_COMMANDS")
-    expect_type(metadata_shell, "list")
-    expect_equal(names(metadata_shell), metadata_shell_names)
-  }
-)
-
 # extract_cores ----------------------------------------------------------------
 
 test_that(
@@ -137,5 +126,29 @@ test_that(
     for(submit_command_item in submit_command_list){
       expect_gte(nchar(submit_command_item), 1)
     }
+  }
+)
+
+# build_metadata_shell  --------------------------------------------------------
+test_that(
+  "metadata_shell produces a list with the correctly named top-level items",
+  {
+    metadata_shell <- build_metadata_shell(code_root = file.path("/mnt/share/code/", Sys.getenv()["USER"], "SamsElves"))
+    metadata_shell_names <- c("start_time", "user", "CODE_ROOT", "GIT", "SUBMIT_COMMANDS")
+    expect_type(metadata_shell, "list")
+    expect_equal(names(metadata_shell), metadata_shell_names)
+  }
+)
+
+test_that(
+  "metadata_shell produces correct not-found message",
+  {
+    expect_message(
+      metadata_shell <- build_metadata_shell(code_root = file.path("/mnt/share/code/", Sys.getenv()["USER"], "SamsElves"),
+                                             jobname_filter = "JUNK_JOBNAME_FILTER"),
+      regexp = "Metadata warning:
+Matched no jobs to jobname_filter argument."
+
+    )
   }
 )
