@@ -8,7 +8,7 @@ build_metadata_shell(
   code_root,
   jobname_filter = "^rst_ide|^vscode",
   submitline_n_char = 1000L,
-  regex_to_extract = "ihme/singularity-images/rstudio/[:graph:]+",
+  regex_to_extract = "singularity-images/rstudio/[[:graph:]]+\\\\.img",
   regex_to_ignore = "jpy",
   system_user_name = Sys.info()[["user"]],
   cluster_type = "slurm",
@@ -28,8 +28,8 @@ from system `sacct -j <jobid> -o submitline\%xxx` call (set this much
 longer than you'd think necessary)}
 
 \item{regex_to_extract}{[regex] What string do you want to extract after
-running  `sacct -j <jobid> -o submitline\%xxx` using
-`stringr::str_extract_all`}
+running  `sacct -j <jobid> -o submitline\%xxx` (default - find Rstudio
+image for provenance)}
 
 \item{regex_to_ignore}{[regex] If your `regex_to_extract` command finds more
 strings than you want, this removes all strings matching this pattern}
@@ -50,14 +50,14 @@ function?}
 Defaults currently designed for interactive Rstudio sessions.
 }
 \examples{
-# Make metadata shell, and message the function's key arguments to console 
+# Make metadata shell, and message the function's key arguments to console
 (or std_err logs)
 metadata_shell <- build_metadata_shell(
-  code_root = "/mnt/share/code/hiv_tb_selectid/rt-shared-functions/", 
+  code_root = "/mnt/share/code/hiv_tb_selectid/rt-shared-functions/",
   send_user_msg = T
 )
 
-# Extract readable git diff to see any uncommitted code changes 
+# Extract readable git diff to see any uncommitted code changes
 # (NULL is good - no uncommitted changes, prints nothing)
 cat(metadata_shell$GIT$git_uncommitted)
 }

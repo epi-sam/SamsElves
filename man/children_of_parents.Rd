@@ -14,7 +14,7 @@ children_of_parents(
 \arguments{
 \item{parent_loc_ids}{[numeric] vector of parent location_ids}
 
-\item{hierarchy}{[data.frame] Which hierarchy to use? (Uses 'path_to_top_parent' to find all nested children)}
+\item{hierarchy}{[data.table] Which hierarchy to use? (Uses 'path_to_top_parent' to find all nested children)}
 
 \item{output}{[character] Output options:
 \itemize{
