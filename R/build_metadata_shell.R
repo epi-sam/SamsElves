@@ -59,13 +59,13 @@ build_metadata_shell <- function(
     git_branch      = gsub("\n", "", readLines(file.path(code_root, ".git/HEAD"))),
     git_log_last    = git_log_last,
     git_hash        = git_hash,
-    git_uncommitted = SamsElves::query_git_diff(CODE_ROOT = code_root)
+    git_uncommitted = SamsElves::query_git_diff(code_root = code_root)
   )
 
   metadata_shell <- list(
     start_time      = as.character(Sys.time()),
     user            = Sys.info()[["user"]],
-    CODE_ROOT       = code_root,
+    code_root       = code_root,
     GIT             = GIT,
 
     SUBMIT_COMMANDS = SamsElves::extract_submission_commands(

@@ -4,10 +4,10 @@
 \alias{query_git_diff}
 \title{Record uncommitted git changes}
 \usage{
-query_git_diff(CODE_ROOT)
+query_git_diff(code_root)
 }
 \arguments{
-\item{CODE_ROOT}{[path] path to code root containing a .git folder}
+\item{code_root}{[path] path to code root containing a .git folder}
 }
 \value{
 [character] succinct git diff vector length 1 with newlines for
