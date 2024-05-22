@@ -20,7 +20,7 @@ source(file.path(root_code, "R/assertions.R"))
 required_flag_list <- list(
   flag1 = "logical",
   flag2 = "integer",
-  flag3 = "character",
+  flag3 = NA, # if you don't care about the data type
   flag4 = "character"
 )
 
