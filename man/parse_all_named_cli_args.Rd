@@ -5,6 +5,7 @@
 \title{Parse command-line arguments to global environment}
 \usage{
 parse_all_named_cli_args(
+  required_args = NULL,
   trailingOnly = TRUE,
   assign_logical = TRUE,
   assign_integer = TRUE,
@@ -12,6 +13,13 @@ parse_all_named_cli_args(
 )
 }
 \arguments{
+\item{required_args}{[list] (optional; default = NULL) Named list of required
+arguments to parse, with data types if desired. If you do not wish to check
+data types, supply `NA`.  e.g. `list(arg1 = "character", arg2 = NA)`.
+**NOTE:** Parsed args are all "character" by default. If you wish the
+parser to assign integer or logical data types, set `assign_integer` or
+`assign_logical` to `TRUE`, and then you may check those types as well.}
+
 \item{trailingOnly}{[lgl] if TRUE, only the trailing arguments are used -
 passed to `commandArgs()`}
 
