@@ -27,7 +27,6 @@
 #' @return [named list] named list of CLI arguments
 #' @export
 #'
-#' @examples
 parse_all_named_cli_args <- function(
     required_args  = NULL,
     trailingOnly   = TRUE,

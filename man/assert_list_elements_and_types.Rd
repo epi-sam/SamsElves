@@ -19,6 +19,9 @@ If you don't wish to check data type, save as `NA` e.g. `list(arg1 = NA)`}
 \item{allow_data_frame}{[lgl] TRUE if `check_list` is a data.frame (allows
 checking column presence and type).}
 }
+\value{
+none
+}
 \description{
 Each check_items list name is an element that should exist in check_list. The
 value of each check_items list element is the data type that the

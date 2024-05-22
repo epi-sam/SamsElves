@@ -40,7 +40,7 @@ assert_no_null_arguments <- function(as_list_env = NULL) {
 #'
 #' @param x [list] object to be checked
 #'
-#' @return
+#' @return none
 #' @export
 #'
 #' @examples
@@ -70,7 +70,7 @@ assert_named_list = function(x, allow_data_frame = FALSE){
 #' @param allow_data_frame [lgl] TRUE if `check_list` is a data.frame (allows
 #'   checking column presence and type).
 #'
-#' @return
+#' @return none
 #' @export
 #'
 #' @examples
