@@ -45,7 +45,7 @@ build_metadata_shell <- function(
     regex_to_ignore   = "jpy",
     system_user_name  = Sys.info()[["user"]],
     cluster_type      = "slurm",
-    verbose     = FALSE
+    verbose           = FALSE
 ) {
 
   # ensure path to .git folder exists
