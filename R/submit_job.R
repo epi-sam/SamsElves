@@ -132,7 +132,7 @@ submit_job <- function(
     return(0L)
   }
 
-  submission_return <- system(command, intern = T)
+  submission_return <- system(command, intern = TRUE)
   job_id <- regmatches(submission_return,
                        gregexpr("\\d+$", submission_return))
   if(length(job_id) > 1) warning("job_id from submitted job '",  job_name ,"' is longer than 1, inspect before use.")

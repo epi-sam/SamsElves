@@ -2,6 +2,8 @@
 
 export(assert_git_diff)
 export(assert_git_hash)
+export(assert_list_elements_and_types)
+export(assert_named_list)
 export(assert_no_null_arguments)
 export(build_metadata_shell)
 export(children_of_parents)
