@@ -134,7 +134,7 @@ test_that(
   "metadata_shell produces a list with the correctly named top-level items",
   {
     metadata_shell <- build_metadata_shell(code_root = file.path("/mnt/share/code/", Sys.getenv()["USER"], "SamsElves"))
-    metadata_shell_names <- c("start_time", "user", "CODE_ROOT", "GIT", "SUBMIT_COMMANDS")
+    metadata_shell_names <- c("start_time", "user", "code_root", "GIT", "SUBMIT_COMMANDS")
     expect_type(metadata_shell, "list")
     expect_equal(names(metadata_shell), metadata_shell_names)
   }

@@ -1,15 +1,15 @@
 #' Record uncommitted git changes
 #'
-#' @param CODE_ROOT [path] path to code root containing a .git folder
+#' @param code_root [path] path to code root containing a .git folder
 #'
 #' @return [character] succinct git diff vector length 1 with newlines for
 #'   console printing with `cat()`, `glue::glue()` or `message()`
 #' @export
-query_git_diff <- function(CODE_ROOT) {
+query_git_diff <- function(code_root) {
   current_dir <- getwd() # save to reset at the end
   on.exit(setwd(current_dir))
 
-  setwd(CODE_ROOT) # must set WD for system commands
+  setwd(code_root) # must set WD for system commands
   suppressWarnings(
     uncommitted_changes <- system("git diff HEAD | grep ^[@+-]", intern = T)
   )
