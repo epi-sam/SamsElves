@@ -8,6 +8,7 @@
 #' @export
 #'
 #' @examples
+#' vec_to_comma_string(1:10) # '1,2,3,4,5,6,7,8,9,10'
 vec_to_comma_string <- function(vec){
   return(paste(vec, collapse = ","))
 }
@@ -23,6 +24,7 @@ vec_to_comma_string <- function(vec){
 #' @export
 #'
 #' @examples
+#' comma_string_to_vec("1,2,3,4,5") # c("1", "2", "3", "4", "5")
 comma_string_to_vec <- function(string){
   return(strsplit(string, ",")[[1]])
 }

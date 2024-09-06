@@ -11,59 +11,46 @@ wait_on_slurm_job_id(
   filter_by = c("jobidraw"),
   filter_regex = NULL,
   break_on_failure = FALSE,
-  dryrun = FALSE,
-  batch_size = 500
+  dryrun = FALSE
 )
 }
 \arguments{
 \item{job_id}{[int] a Slurm `JobID` (single or vector)}
 
-\item{initial_sleep_sec}{[int] how long to sleep before initial check for
-jobs on cluster}
+\item{initial_sleep_sec}{[int] how long to sleep before initial check for jobs on cluster}
 
 \item{cycle_sleep_sec}{[int] how long to wait between checks}
 
-\item{filter_by}{[chr] vector of sacct fields to search e.g. `c("User",
-"JobName")` (case insensitive)}
+\item{filter_by}{[chr] vector of sacct fields to search e.g. `c("User", "JobName")` (case insensitive)}
 
-\item{filter_regex}{[regex] required if `filter_by %in% c("JobName",
-"Account")`}
+\item{filter_regex}{[regex] required if `filter_by %in% c("JobName", "Account")`}
 
-\item{break_on_failure}{[lgl] if _any_ of your jobs fail, should this
-function break?  Failure itself is always determined based on the user's
-filters, but failure _feedback_ always returns JobID, regardless of
-filtering. This is due to how jobs are initially queried.  This may
-included unwanted recycled `JobID`s, and it is **_up to the user_** to
-determine which are relevant to their work.}
+\item{break_on_failure}{[lgl] if _any_ of your jobs fail, should this function break?}
 
-\item{dryrun}{[lgl] return a list of commands built by this function, but do
-not wait on jobs (only returns command for the first batch - see
-`batch_size`)}
-
-\item{batch_size}{[int] how many jobs to group together to wait on (grep
-limitation in max number, 500 is a good default, could increase near 900).
-All jobs in batch 1 must finish before batch 2 is checked.}
+\item{dryrun}{[lgl] return a list of commands built by this function, but do not wait on jobs}
 }
 \value{
-[std_out/std_err] std_out for sleep cycle duration & successful
-  ending, std_err printing failed job ids
+[std_out/std_err] std_out for sleep cycle duration & successful ending, std_err printing failed job ids
+trim column headers (start on 3rd row of sacct output)
+trim out duplicated batch/extern lines for each job
+trim extra whitespace, leaving a one-space-delimiter between fields, used by `cut`
+select only filtering fields of choice
+- cut's `-f{filter_idx}` selects `1+n` fields (e.g. `1,2,3`)
+  - `1` = "state" and `n` = the user-defined filtering field(s)
 }
 \description{
 Option to break if some jobs fail (find `FAILED` State jobs).
 }
 \details{
-Option to filter `sacct` results by multiple fields with `grep -P`.
-
-Works in batches to accommodate grep limitations (default 500 `job_id`s) 
-- All batch 1 jobs are checked before moving to batch 2.
+Option to filter `sacct` results by multiple fields with `grep -P`
 
 First find all jobs with a given base `JobID` (fastest search method)
- - default behavior: next filter for `JobID` matching `JobIDRaw` 
+ - default behavior: next filter for `JobID` matching `JobIDRaw`
  - there may be duplicate `JobIDRaw`, so you could also filter by active `User`
 
 If you are submitting _array jobs_ they may overlap with old `JobID`s:
  - you'll get one `JobID` back from the system when you submit an `sbatch` for an array
-   - it will only match a single `JobIDRaw` 
+   - it will only match a single `JobIDRaw`
      - e.g. `1234` is returned for an array of `1234_1` and `1234_2`, which have `JobIDRaw` of `1234` and `1235` under the hood
      - if you filtered on `JobIDRaw`, you'd only find the first array job, and miss the others
  - instead of filtering on `JobIDRaw`, it's probably more helpful to filter on `User` and/or `JobName`
@@ -73,22 +60,22 @@ Slurm recycles the `JobID` field, which may cause ambiguity between the
 user's current job, and another user's prior job.  This `JobID` may further
 share an ID with a prior, recycled array job. To resolve this fundamental
 weakness, the user may filter on various `sacct` fields. Supported fields are
-listed below (case-insensitive). 
+listed below (case-insensitive).
 - filtering is somewhat limited compared to data.frames (`grep` limitation)
-- all specified fields are filtered simultaneously, rather than individually 
+- all specified fields are filtered simultaneously, rather than individually
 
-Currently supported: 
+Currently supported:
 - `NULL`       - apply no filters
 - `"JobIDRaw"` - **default option** - strictly filter for specified `JobID` = `JobIDRaw`
                - filter to strictly include single jobs and _exclude any array jobs_ that may match the base `JobID`
                - will filter to the most recent unique `JobIDRaw` if duplicates exist (Slurm behavior at time of writing)
 - `"User"`     - filter to only the current active user's jobs
-               - **NOTE:** The `User` field can only find the active user in Rstudio 
+               - **NOTE:** The `User` field can only find the active user in Rstudio
                - Cannot find other `User`s - Singularity container limitation (returns `nobody`)
 - `"JobName"`  - filter according to a `filter_regex` regex pattern
 - `"Account"`  - filter according to a `filter_regex` regex pattern
 
-Slurm sacct field documentation: 
+Slurm sacct field documentation:
 - https://slurm.schedmd.com/sacct.html#OPT_format
 - https://slurm.schedmd.com/sacct.html#OPT_helpformat
 }

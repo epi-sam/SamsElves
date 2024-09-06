@@ -38,3 +38,13 @@ among CLI arguments, e.g. 'true' is assigned as `TRUE` and 5 is assigned as
 This does not take advantage of argument defaults or types.  See
 https://github.com/trevorld/r-argparse for documentation.
 }
+\examples{
+\dontrun{
+cli_args <- parse_all_named_cli_args(
+   trailingOnly   = TRUE,
+   assign_logical = TRUE,
+   assign_integer = TRUE,
+   assignment_env = globalenv()
+)
+}
+}

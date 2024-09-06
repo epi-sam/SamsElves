@@ -22,6 +22,14 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' cli_args <- parse_all_named_cli_args(
+#'    trailingOnly   = TRUE,
+#'    assign_logical = TRUE,
+#'    assign_integer = TRUE,
+#'    assignment_env = globalenv()
+#' )
+#' }
 parse_all_named_cli_args <- function(
     trailingOnly   = TRUE,
     assign_logical = TRUE,

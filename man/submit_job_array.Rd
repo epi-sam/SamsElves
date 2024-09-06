@@ -5,67 +5,75 @@
 \title{Submit an array job to the slurm cluster (only R supported 2023-10-16)}
 \usage{
 submit_job_array(
-  language = "R",
-  shell_script_path = NULL,
   script_path = NULL,
-  std_err_path = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
-  std_out_path = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
+  threads = 2L,
+  mem = "10G",
+  runtime_min = 15L,
+  array_tasks_int = NULL,
   job_name = NULL,
-  archiveTF = FALSE,
-  mem_GB = "10G",
-  threads = "2",
-  runtime_min = "15",
+  archive_tf = FALSE,
   partition = "all.q",
-  Account = NULL,
-  array_first_task = "1",
-  array_n_tasks = NULL,
+  account = NULL,
   hold_for_JobIDs = NULL,
+  language = "R",
   r_image = NULL,
+  shell_script_path = NULL,
+  std_err_root = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
+  std_out_root = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
+  console_style_log_tf = FALSE,
   args_list = NULL,
-  dry_runTF = FALSE
+  verbose = TRUE,
+  v_verbose = FALSE,
+  dry_run_tf = FALSE
 )
 }
 \arguments{
-\item{language}{[chr] coding language for job (see valid_langs validation)}
+\item{script_path}{[chr] full path to submitted script}
 
-\item{shell_script_path}{[path] path to shell script (language-specific)}
+\item{threads}{[int] cluster resource requirement}
 
-\item{script_path}{[path] full path to submitted script}
+\item{mem}{[chr] cluster resource requirement}
 
-\item{std_err_path}{[path] path for Slurm std_err logs}
+\item{runtime_min}{[num] cluster resource requirement}
 
-\item{std_out_path}{[path] path for Slurm std_out logs}
+\item{array_tasks_int}{[int] vector of integers for you array (e.g. c(1L:10L))}
 
 \item{job_name}{[chr] Will be name of script if NULL}
 
-\item{archiveTF}{[lgl] (default FALSE) do you need an archive node?}
-
-\item{mem_GB}{[chr] cluster resource requirement}
-
-\item{threads}{[chr] cluster resource requirement}
-
-\item{runtime_min}{[chr] cluster resource requirement}
+\item{archive_tf}{[lgl] (default FALSE) do you need an archive node?}
 
 \item{partition}{[chr] a.k.a. 'queue' - cluster resource requirement}
 
-\item{Account}{[chr] a.k.a. 'project' - cluster resource requirement}
-
-\item{array_first_task}{[chr] (default "1") index of first array task ID}
-
-\item{array_n_tasks}{[chr] number of tasks per array}
+\item{account}{[chr] a.k.a. 'project' - cluster resource requirement}
 
 \item{hold_for_JobIDs}{[int] vector of jobids that must complete successfully before running this job (https://slurm.schedmd.com/sbatch.html#OPT_dependency)}
 
+\item{language}{[chr] coding language for job (see valid_langs validation)}
+
 \item{r_image}{[chr] (default "latest.img") e.g. "/ihme/singularity-images/rstudio/ihme_rstudio_4214.img"}
+
+\item{shell_script_path}{[chr] path to shell script (language-specific)}
+
+\item{std_err_root}{[chr] path for Slurm std_err logs}
+
+\item{std_out_root}{[chr] path for Slurm std_out logs}
+
+\item{console_style_log_tf}{[lgl] if TRUE, combine std_err and std_out into one log in the std_out_root}
 
 \item{args_list}{[list, chr] optional list() of arguments, e.g. list("--arg1" = arg1, "--arg2" = arg2)}
 
-\item{dry_runTF}{[lgl] (default FALSE) if TRUE, only message and return submission command, no job submission}
+\item{verbose}{[lgl] print submission command and job_id}
+
+\item{v_verbose}{[lgl] print log paths}
+
+\item{dry_run_tf}{[lgl] (default FALSE) if TRUE, only message and return submission command, no job submission}
 }
 \value{
 [list] 2 items - list(command submitted to cluster, cluster submission reply)
 }
 \description{
 See implementation here:
-https://stash.ihme.washington.edu/projects/HIVTBID/repos/hiv_sdg_analyses/browse/launch_sdg.R?at=develop#385-428
+https://stash.ihme.washington.edu/projects/HIVTBID/repos/hiv_sdg_analyses/browse/launch_sdg.R?at=develop#372-422
+See Slurm array documentation here:
+https://slurm.schedmd.com/job_array.html
 }
