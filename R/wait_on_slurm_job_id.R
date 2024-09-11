@@ -133,7 +133,7 @@ wait_on_slurm_job_id <- function(
 
   # Build submission commands
   cmd_base <- paste("sacct -j", job_id_regex_comma_quoted, formatting_str, filter_str)
-  cmd_pass <- paste0(cmd_base, " | grep -P  'RUNNING|PENDING'")
+  cmd_pass <- paste0(cmd_base, " | grep -P 'RUNNING|PENDING'")
   cmd_fail <- paste0(cmd_base, " | grep -vP 'RUNNING|PENDING|COMPLETED'")
 
   if(dryrun) return(list(cmd_base = cmd_base, cmd_pass = cmd_pass, cmd_fail = cmd_fail))
