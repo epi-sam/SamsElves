@@ -243,7 +243,7 @@ test_that("Submitted array job works",
             wait_on_slurm_job_id(job_id              = job_id
                                  , initial_sleep_sec = 5
                                  , cycle_sleep_sec   = 5)
-            sleep_sec <- 15
+            sleep_sec <- 10
             message("Sleeping ", sleep_sec, " seconds while logs write to disk.")
             Sys.sleep(sleep_sec)
 
