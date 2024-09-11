@@ -1,5 +1,6 @@
 
-root_code    <- dirname(dirname(getwd()))
+root_code    <- dirname(dirname(getwd())) # devtools::test()
+# root_code    <- getwd()                 # interactive
 path_script  <- file.path(root_code, "tests/test_scripts/parse_args_submit.R")
 std_err_root <- file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error")
 message("\nroot_code:    ", root_code)

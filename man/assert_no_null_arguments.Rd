@@ -22,6 +22,6 @@ called with NULL arguments if they'll be problematic.
 test_fun <- function(arg_a){return(5 *arg_a)}
 test_fun(NULL) # produces NULL, but maybe you prefer an error
 test_fun2 <- function(arg_b){assert_no_null_arguments(); return(5 * arg_b)}
-test_fun2(NULL) # produces an error rather than NULL 
+test_fun2(NULL) # produces an error rather than NULL
 test_fun2() # informs user of _all_ missing arguments rather than only the first missing arg found (base R behavior)
 }

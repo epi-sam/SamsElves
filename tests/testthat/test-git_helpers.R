@@ -11,7 +11,7 @@ test_that(
 
 # query_git_diff ---------------------------------------------------------------
 
-# query_git_diff(CODE_ROOT = root_SamsElves)
+# query_git_diff(code_root = root_SamsElves)
 
 test_that(
   "query_git_diff does not error out", # hard to test - currently returns NULL if it finds nothing

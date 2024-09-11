@@ -12,7 +12,7 @@ build_metadata_shell(
   regex_to_ignore = "jpy",
   system_user_name = Sys.info()[["user"]],
   cluster_type = "slurm",
-  send_user_msg = FALSE
+  verbose = FALSE
 )
 }
 \arguments{
@@ -39,7 +39,7 @@ strings than you want, this removes all strings matching this pattern}
 \item{cluster_type}{[chr] Only 'slurm' currently available - methods/calls
 may differ by system in the future. (case-insensitive)}
 
-\item{send_user_msg}{[lgl] Do you want a std_err message of arguments to this
+\item{verbose}{[lgl] Do you want a std_err message of arguments to this
 function?}
 }
 \value{
@@ -54,7 +54,7 @@ Defaults currently designed for interactive Rstudio sessions.
 (or std_err logs)
 metadata_shell <- build_metadata_shell(
   code_root = "/mnt/share/code/hiv_tb_selectid/rt-shared-functions/",
-  send_user_msg = T
+  verbose = TRUE
 )
 
 # Extract readable git diff to see any uncommitted code changes

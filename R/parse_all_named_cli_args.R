@@ -9,6 +9,12 @@
 #' This does not take advantage of argument defaults or types.  See
 #' https://github.com/trevorld/r-argparse for documentation.
 #'
+#' @param required_args [list] (optional; default = NULL) Named list of required
+#'   arguments to parse, with data types if desired. If you do not wish to check
+#'   data types, supply `NA`.  e.g. `list(arg1 = "character", arg2 = NA)`.
+#'   **NOTE:** Parsed args are all "character" by default. If you wish the
+#'   parser to assign integer or logical data types, set `assign_integer` or
+#'   `assign_logical` to `TRUE`, and then you may check those types as well.
 #' @param trailingOnly [lgl] if TRUE, only the trailing arguments are used -
 #'   passed to `commandArgs()`
 #' @param assignment_env [env] which environment to assign CLI arguments to as
@@ -31,12 +37,16 @@
 #' )
 #' }
 parse_all_named_cli_args <- function(
+    required_args  = NULL,
     trailingOnly   = TRUE,
     assign_logical = TRUE,
     assign_integer = TRUE,
     assignment_env = globalenv()
 ) {
   # Validate inputs
+  if (!is.null(required_args)) {
+    assert_named_list(required_args)
+  }
   if (!is.logical(trailingOnly) | length(trailingOnly) != 1) {
     stop("trailingOnly must be a logical")
   }
@@ -80,7 +90,6 @@ parse_all_named_cli_args <- function(
   if(assign_integer) message("Assigning integer type to solely numeric args (e.g. no decimals)")
 
   for (key in names(args_list)) {
-
     if (toupper(args_list[[key]]) %in% c("TRUE", "FALSE") & assign_logical) {
       args_list[[key]] <- as.logical(args_list[[key]])
     }
@@ -88,7 +97,15 @@ parse_all_named_cli_args <- function(
     if (grepl("^[0-9]+$", args_list[[key]]) & assign_integer) {
       args_list[[key]] <- as.integer(args_list[[key]])
     }
+  }
 
+  if (!is.null(required_args)) {
+    message("Checking for required arguments and types: ", toString(names(required_args)))
+    assert_list_elements_and_types(
+      check_list       = args_list,
+      check_items      = required_args,
+      allow_data_frame = FALSE
+    )
   }
 
   message("Assigning args to chosen environment.")
@@ -106,3 +123,4 @@ parse_all_named_cli_args <- function(
 
   return(args_list)
 }
+

@@ -18,7 +18,7 @@
 #' @param system_user_name [chr] User's identifier, according to the cluster
 #' @param cluster_type [chr] Only 'slurm' currently available - methods/calls
 #'   may differ by system in the future. (case-insensitive)
-#' @param send_user_msg [lgl] Do you want a std_err message of arguments to this
+#' @param verbose [lgl] Do you want a std_err message of arguments to this
 #'   function?
 #'
 #' @return [list] Full metadata shell, including git info, cluster submission
@@ -31,7 +31,7 @@
 #' (or std_err logs)
 #' metadata_shell <- build_metadata_shell(
 #'   code_root = "/mnt/share/code/hiv_tb_selectid/rt-shared-functions/",
-#'   send_user_msg = T
+#'   verbose = TRUE
 #' )
 #'
 #' # Extract readable git diff to see any uncommitted code changes
@@ -45,7 +45,7 @@ build_metadata_shell <- function(
     regex_to_ignore   = "jpy",
     system_user_name  = Sys.info()[["user"]],
     cluster_type      = "slurm",
-    send_user_msg     = FALSE
+    verbose           = FALSE
 ) {
 
   # ensure path to .git folder exists
@@ -59,13 +59,13 @@ build_metadata_shell <- function(
     git_branch      = gsub("\n", "", readLines(file.path(code_root, ".git/HEAD"))),
     git_log_last    = git_log_last,
     git_hash        = git_hash,
-    git_uncommitted = SamsElves::query_git_diff(CODE_ROOT = code_root)
+    git_uncommitted = SamsElves::query_git_diff(code_root = code_root)
   )
 
   metadata_shell <- list(
     start_time      = as.character(Sys.time()),
     user            = Sys.info()[["user"]],
-    CODE_ROOT       = code_root,
+    code_root       = code_root,
     GIT             = GIT,
 
     SUBMIT_COMMANDS = SamsElves::extract_submission_commands(
@@ -80,7 +80,7 @@ build_metadata_shell <- function(
   )
 
   # Messaging
-  if(send_user_msg){
+  if(verbose){
     message(glue::glue(
       "Metadata shell from code root: {code_root}
       - user:                  {system_user_name}
@@ -318,7 +318,7 @@ extract_cores <- function(system_user_name,
     args    = glue::glue("-o '%.10A %.5C' -u {system_user_name}"),
     stdout  = TRUE
   )
-  job_threads_df <- read.table(text = job_threads_txt, header = T, sep = "")
+  job_threads_df <- read.table(text = job_threads_txt, header = TRUE, sep = "")
 
   # Find jobids matching the user's desired string
   jobs_selected_df <- job_finder(system_user_name = system_user_name,
@@ -331,7 +331,7 @@ extract_cores <- function(system_user_name,
   jobid_mask      <- jobids_threads %in% jobids_selected
 
   # Filter the thread table for jobids matching user's chosen interactive session
-  n_cores_df <- job_threads_df[jobid_mask, "CPUS", drop = F]
+  n_cores_df <- job_threads_df[jobid_mask, "CPUS", drop = FALSE]
 
   # validate dimensions
   more_than_one_interactive_session <- ncol(n_cores_df) > 1 | nrow(n_cores_df) > 1
