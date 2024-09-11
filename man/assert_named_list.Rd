@@ -9,6 +9,9 @@ assert_named_list(x, allow_data_frame = FALSE)
 \arguments{
 \item{x}{[list] object to be checked}
 }
+\value{
+none
+}
 \description{
 Assert that an object is a list, and that all top level items have names
 }

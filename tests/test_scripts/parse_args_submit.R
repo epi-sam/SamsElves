@@ -3,11 +3,11 @@
 
 message("Starting pre-parser.")
 pre_parser <- argparse::ArgumentParser()
+pre_parser$add_argument('--root_code')
 pre_parser$add_argument('--flag1')
 pre_parser$add_argument('--flag2')
 pre_parser$add_argument('--flag3')
 pre_parser$add_argument('--flag4')
-pre_parser$add_argument('--root_code')
 args      <- pre_parser$parse_args(commandArgs(trailingOnly = TRUE))
 root_code <- args$root_code
 message("code_root from per-parser: ", root_code)

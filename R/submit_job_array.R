@@ -1,49 +1,55 @@
 #' Submit an array job to the slurm cluster (only R supported 2023-10-16)
 #'
 #' See implementation here:
-#' https://stash.ihme.washington.edu/projects/HIVTBID/repos/hiv_sdg_analyses/browse/launch_sdg.R?at=develop#385-428
+#' https://stash.ihme.washington.edu/projects/HIVTBID/repos/hiv_sdg_analyses/browse/launch_sdg.R?at=develop#372-422
+#' See Slurm array documentation here:
+#' https://slurm.schedmd.com/job_array.html
 #'
 #'
-#' @param language [chr] coding language for job (see valid_langs validation)
-#' @param shell_script_path [path] path to shell script (language-specific)
-#' @param script_path [path] full path to submitted script
-#' @param std_err_path [path] path for Slurm std_err logs
-#' @param std_out_path [path] path for Slurm std_out logs
+#' @param script_path [chr] full path to submitted script
+#' @param threads [int] cluster resource requirement
+#' @param mem [chr] cluster resource requirement
+#' @param runtime_min [num] cluster resource requirement
+#' @param array_tasks_int [int] vector of integers for you array (e.g. c(1L:10L))
 #' @param job_name [chr] Will be name of script if NULL
-#' @param archiveTF [lgl] (default FALSE) do you need an archive node?
-#' @param mem_GB [chr] cluster resource requirement
-#' @param threads [chr] cluster resource requirement
-#' @param runtime_min [chr] cluster resource requirement
+#' @param archive_tf [lgl] (default FALSE) do you need an archive node?
 #' @param partition [chr] a.k.a. 'queue' - cluster resource requirement
-#' @param Account [chr] a.k.a. 'project' - cluster resource requirement
-#' @param array_first_task [chr] (default "1") index of first array task ID
-#' @param array_n_tasks [chr] number of tasks per array
+#' @param account [chr] a.k.a. 'project' - cluster resource requirement
 #' @param hold_for_JobIDs [int] vector of jobids that must complete successfully before running this job (https://slurm.schedmd.com/sbatch.html#OPT_dependency)
+#' @param language [chr] coding language for job (see valid_langs validation)
 #' @param r_image [chr] (default "latest.img") e.g. "/ihme/singularity-images/rstudio/ihme_rstudio_4214.img"
+#' @param shell_script_path [chr] path to shell script (language-specific)
+#' @param std_err_root [chr] path for Slurm std_err logs
+#' @param std_out_root [chr] path for Slurm std_out logs
+#' @param console_style_log_tf [lgl] if TRUE, combine std_err and std_out into one log in the std_out_root
 #' @param args_list [list, chr] optional list() of arguments, e.g. list("--arg1" = arg1, "--arg2" = arg2)
-#' @param dry_runTF [lgl] (default FALSE) if TRUE, only message and return submission command, no job submission
+#' @param verbose [lgl] print submission command and job_id
+#' @param v_verbose [lgl] print log paths
+#' @param dry_run_tf [lgl] (default FALSE) if TRUE, only message and return submission command, no job submission
 #'
 #' @return [list] 2 items - list(command submitted to cluster, cluster submission reply)
 #' @export
 submit_job_array <- function(
-    language          = "R",
-    shell_script_path = NULL,
-    script_path       = NULL,
-    std_err_path      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),  # default to /ihme/temp/[cluster]/usr
-    std_out_path      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"), # default to /ihme/temp/[cluster]/usr
-    job_name          = NULL,
-    archiveTF         = FALSE,
-    mem_GB            = "10G",
-    threads           = "2",
-    runtime_min       = "15",
-    partition         = "all.q",
-    Account           = NULL,
-    array_first_task  = "1",
-    array_n_tasks     = NULL,
-    hold_for_JobIDs   = NULL,
-    r_image           = NULL,
-    args_list         = NULL,
-    dry_runTF         = FALSE
+    script_path          = NULL,
+    threads              = 2L,
+    mem                  = "10G",
+    runtime_min          = 15L,
+    array_tasks_int      = NULL,
+    job_name             = NULL,
+    archive_tf           = FALSE,
+    partition            = "all.q",
+    account              = NULL,
+    hold_for_JobIDs      = NULL,
+    language             = "R",
+    r_image              = NULL,
+    shell_script_path    = NULL,
+    std_err_root         = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),  # default to /ihme/temp/[cluster]/usr
+    std_out_root         = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"), # default to /ihme/temp/[cluster]/usr
+    console_style_log_tf = FALSE,
+    args_list            = NULL,
+    verbose              = TRUE,
+    v_verbose            = FALSE,
+    dry_run_tf           = FALSE
 ){
 
   # Argument validation
@@ -54,16 +60,26 @@ submit_job_array <- function(
   language        <- tolower(language)
   if(!language %in% valid_langs) stop("Input a valid language (case insensitive): ", valid_langs_msg)
   ## others
-  if(is.null(script_path))   stop("Please define a valid script path to submit")
-  if(is.null(Account))       stop("Please define a Slurm Account e.g. proj_cov_vpd")
-  if(is.null(array_n_tasks)) stop("Please define number of jobs per array (1 to array_n_tasks)")
+  if(is.null(script_path))     stop("Please define a valid script path to submit")
+  if(is.null(account))         stop("Please define a Slurm account e.g. proj_cov_vpd")
+  if(is.null(partition))       stop("Please define a Slurm partition e.g. all.q")
+  if(is.null(threads))         stop("Please define a number of threads")
+  if(is.null(mem))             stop("Please define a memory requirement e.g. '30G' or '300M'")
+  if(is.null(runtime_min))     stop("Please define a runtime requirement")
+  if(is.null(array_tasks_int)) stop("Please define a vector of integers for you array e.g. 1L:10L")
+  stopifnot(is.integer(array_tasks_int))
+  stopifnot(is.logical(console_style_log_tf))
+  stopifnot(is.logical(archive_tf))
+  stopifnot(is.logical(verbose))
+  stopifnot(is.logical(v_verbose))
+  stopifnot(is.logical(dry_run_tf))
   if(!is.null(hold_for_JobIDs)){
      if(!is.vector(hold_for_JobIDs, mode = "integer")) stop("hold_for_JobIDs must be a simple integer vector")
   }
 
   # build log folders silently (dir.create fails naturally if directory exists)
-  dir.create(std_err_path, recursive = TRUE, showWarnings = FALSE)
-  dir.create(std_out_path, recursive = TRUE, showWarnings = FALSE)
+  dir.create(std_err_root, recursive = TRUE, showWarnings = FALSE)
+  dir.create(std_out_root, recursive = TRUE, showWarnings = FALSE)
 
   # temp fix for the image not being able to find the singularity 2/8/22
   # old_path <- Sys.getenv("PATH")
@@ -91,27 +107,49 @@ submit_job_array <- function(
   }
 
   ## format for scheduler
-  std_err_path <- file.path(std_err_path, "%x_e%j.log")
-  std_out_path <- file.path(std_out_path, "%x_o%j.log")
-  archive_cmd  <- ifelse(archiveTF, " -C archive", "")
+  # https://slurm.schedmd.com/sbatch.html#SECTION_FILENAME-PATTERN
+  if(console_style_log_tf){
+    std_err_path <- std_out_path <- file.path(std_out_root, "%x_%A_%a_console.log")
+  } else {
+    std_err_path <- file.path(std_err_root, "%x_%A_%a.log")
+    std_out_path <- file.path(std_out_root, "%x_%A_%a.log")
+  }
+  archive_cmd  <- ifelse(archive_tf, " -C archive", "")
+
+  # deal with args_list as a block
+  if(!is.null(args_list)){
+    if(!is.list(args_list)) stop("args_list must be a named list")
+    if(is.null(names(args_list))) stop("args_list must be a named list")
+    if(any(nchar(names(args_list)) == 0)) stop("args_list must be a named list")
+    # don't break backward compatibility
+    names(args_list) <- gsub("^--", "", names(args_list))
+    # format for scheduler
+    names(args_list) <- paste0("--", names(args_list))
+  }
+
+  ## Build array string
+  array_tasks_string <- ifelse(
+    is_sequential_int_vec(array_tasks_int),
+    paste0(min(array_tasks_int), "-", max(array_tasks_int)), # concise if sequential
+    vec_to_comma_string(array_tasks_int) # specific integers otherwise
+  )
 
   # build system command string
   command <- paste0(
     "sbatch",
     " -J ",    job_name,
     "",        archive_cmd,
-    " --mem=", mem_GB,
+    " --mem=", mem,
     " -c ",    threads,
     " -t ",    runtime_min,
     " -p ",    partition,
-    " -A ",    Account,
+    " -A ",    account,
+    paste0(" --array=", array_tasks_string),
     " -e ",    std_err_path,
     " -o ",    std_out_path,
     " "   ,    shell_script_path,
     " "   ,    r_image_cmd,
-    " -s ",    script_path,
-    paste0("--array=", array_first_task, "-", array_n_tasks)
-    # , " -D ./" # FIXME SB - 2023 Oct 20 - I'm not sure I want this in here
+    " -s ",    script_path
   )
 
   # add hold_for_JobIDs if exists
@@ -121,19 +159,24 @@ submit_job_array <- function(
   }
 
   # append extra arguments - handles NULL input by default
-  for (arg_name in names(args_list)) {
+  for(arg_name in names(args_list)) {
     command <- paste(command, arg_name, args_list[arg_name])
   }
 
-  message(command, "\n")
+  if(dry_run_tf) {
+    message(command, "\n")
+    return(0L)
+  }
 
-  if(dry_runTF) return(command)
+  submission_return <- system(command, intern = TRUE)
 
-  submission_return <- system(command, intern = T)
-  message(paste("Cluster job submitted:", job_name, "; Submission return code:", submission_return))
+  job_id <- regmatches(submission_return, gregexpr("\\d+$", submission_return))
+  job_id <- as.integer(unlist(job_id))
+  if(length(job_id) > 1) warning("job_id from submitted array job '",  job_name ,"' is longer than 1, inspect before use.")
 
-  ## and return jid
-  out_list <- list(command           = command,
-                   submission_return = submission_return)
-  return(out_list)
+  if(verbose)   message(paste("\n", submission_return, " : ", job_name, "\n"))
+  if(v_verbose) message("Logs saved to: \n", paste0(unique(c(std_out_path, std_err_path)), collapse = "\n"), "\n")
+
+  return(job_id)
+
 }

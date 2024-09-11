@@ -3,86 +3,86 @@ test_that(
    {
       expect_error(
          submit_job(
-            language               = "R",
-            shell_script_path      = NULL,
-            script_path            = NULL,
-            std_err_path           = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
-            std_out_path           = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
-            job_name               = NULL,
-            archiveTF              = FALSE,
-            mem_GB                 = "10G",
-            threads                = "2",
-            runtime_min            = "15",
-            partition              = "all.q",
-            Account                = NULL,
-            r_image                = NULL,
-            args_list              = NULL,
-            dry_runTF              = TRUE
+            language          = "R",
+            shell_script_path = NULL,
+            script_path       = NULL,
+            std_err_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
+            std_out_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
+            job_name          = NULL,
+            archive_tf        = FALSE,
+            mem               = "10G",
+            threads           = "2",
+            runtime_min       = "15",
+            partition         = "all.q",
+            account           = NULL,
+            r_image           = NULL,
+            args_list         = NULL,
+            dry_run_tf        = TRUE
          ),
          regexp = "Please define a valid script path to submit"
       )
 
       expect_error(
          submit_job(
-            language               = NULL,
-            shell_script_path      = NULL,
-            script_path            = "some/script/path/scriptname.R",
-            std_err_path           = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
-            std_out_path           = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
-            job_name               = NULL,
-            archiveTF              = FALSE,
-            mem_GB                 = "10G",
-            threads                = "2",
-            runtime_min            = "15",
-            partition              = "all.q",
-            Account                = NULL,
-            r_image                = NULL,
-            args_list              = NULL,
-            dry_runTF              = TRUE
+            language          = NULL,
+            shell_script_path = NULL,
+            script_path       = "some/script/path/scriptname.R",
+            std_err_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
+            std_out_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
+            job_name          = NULL,
+            archive_tf        = FALSE,
+            mem               = "10G",
+            threads           = "2",
+            runtime_min       = "15",
+            partition         = "all.q",
+            account           = NULL,
+            r_image           = NULL,
+            args_list         = NULL,
+            dry_run_tf        = TRUE
          ),
          regexp = "Input a valid language \\(case insensitive\\): r, python"
       )
 
       expect_error(
          submit_job(
-            language               = "ruby",
-            shell_script_path      = NULL,
-            script_path            = "some/script/path/scriptname.R",
-            std_err_path           = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
-            std_out_path           = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
-            job_name               = NULL,
-            archiveTF              = FALSE,
-            mem_GB                 = "10G",
-            threads                = "2",
-            runtime_min            = "15",
-            partition              = "all.q",
-            Account                = NULL,
-            r_image                = NULL,
-            args_list              = NULL,
-            dry_runTF              = TRUE
+            language          = "ruby",
+            shell_script_path = NULL,
+            script_path       = "some/script/path/scriptname.R",
+            std_err_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
+            std_out_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
+            job_name          = NULL,
+            archive_tf        = FALSE,
+            mem               = "10G",
+            threads           = "2",
+            runtime_min       = "15",
+            partition         = "all.q",
+            account           = NULL,
+            r_image           = NULL,
+            args_list         = NULL,
+            dry_run_tf        = TRUE
          ),
          regexp = "Input a valid language \\(case insensitive\\): r, python"
       )
 
       expect_error(
          submit_job(
-            language               = "R",
-            shell_script_path      = NULL,
-            script_path            = "some/script/path/scriptname.R",
-            std_err_path           = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
-            std_out_path           = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
-            job_name               = NULL,
-            archiveTF              = FALSE,
-            mem_GB                 = "10G",
-            threads                = "2",
-            runtime_min            = "15",
-            partition              = "all.q",
-            Account                = NULL,
-            r_image                = NULL,
-            args_list              = NULL,
-            dry_runTF              = TRUE
+            language          = "R",
+            shell_script_path = NULL,
+            script_path       = "some/script/path/scriptname.R",
+            std_err_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
+            std_out_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
+            job_name          = NULL,
+            archive_tf        = FALSE,
+            mem               = "10G",
+            threads           = "2",
+            runtime_min       = "15",
+            partition         = "all.q",
+            account           = NULL,
+            r_image           = NULL,
+            args_list         = NULL,
+            dry_run_tf        = TRUE
          ),
-         regexp = "Please define a Slurm Account e.g. proj_cov_vpd"
+         regexp = "Please define a Slurm account e.g. proj_cov_vpd"
       )
    }
 )
@@ -94,70 +94,91 @@ test_that(
       # no args
       expect_message(
          submit_job(
-            language               = "R",
-            shell_script_path      = NULL,
-            script_path            = "some/script/path/scriptname.R",
-            std_err_path           = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
-            std_out_path           = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
-            job_name               = NULL,
-            archiveTF              = FALSE,
-            mem_GB                 = "10G",
-            threads                = "2",
-            runtime_min            = "15",
-            partition              = "all.q",
-            Account                = "proj_cov_vpd",
-            r_image                = NULL,
-            args_list              = NULL,
-            dry_runTF              = TRUE
+            language          = "R",
+            shell_script_path = NULL,
+            script_path       = "some/script/path/scriptname.R",
+            std_err_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
+            std_out_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
+            job_name          = NULL,
+            archive_tf        = FALSE,
+            mem               = "10G",
+            threads           = "2",
+            runtime_min       = "15",
+            partition         = "all.q",
+            account           = "proj_cov_vpd",
+            r_image           = NULL,
+            args_list         = NULL,
+            dry_run_tf        = TRUE
          ),
-         regexp = "sbatch -J scriptname --mem=10G -c 2 -t 15 -p all.q -A proj_cov_vpd -e /mnt/share/temp/slurmoutput/ssbyrne/error/%x_e%j.log -o /mnt/share/temp/slurmoutput/ssbyrne/output/%x_o%j.log /ihme/singularity-images/rstudio/shells/execRscript.sh -i /ihme/singularity-images/rstudio/latest.img -s some/script/path/scriptname.R"
+         regexp = "sbatch -J scriptname --mem=10G -c 2 -t 15 -p all.q -A proj_cov_vpd -e /mnt/share/temp/slurmoutput/ssbyrne/error/%x_e%j.log -o /mnt/share/temp/slurmoutput/ssbyrne/output/%x_o%j.log /mnt/share/singularity-images/rstudio/shells/execRscript.sh -i /mnt/share/singularity-images/rstudio/latest.img -s some/script/path/scriptname.R"
       )
 
       # adding args
       expect_message(
          submit_job(
-            language               = "R",
-            shell_script_path      = NULL,
-            script_path            = "some/script/path/scriptname.R",
-            std_err_path           = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
-            std_out_path           = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
-            job_name               = NULL,
-            archiveTF              = FALSE,
-            mem_GB                 = "10G",
-            threads                = "2",
-            runtime_min            = "15",
-            partition              = "all.q",
-            Account                = "proj_cov_vpd",
-            r_image                = NULL,
-            args_list              = list(a = 'arg_a',
-                                          b = 'arg_b'),
-            dry_runTF              = TRUE
+            language          = "R",
+            shell_script_path = NULL,
+            script_path       = "some/script/path/scriptname.R",
+            std_err_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
+            std_out_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
+            job_name          = NULL,
+            archive_tf        = FALSE,
+            mem               = "10G",
+            threads           = "2",
+            runtime_min       = "15",
+            partition         = "all.q",
+            account           = "proj_cov_vpd",
+            r_image           = NULL,
+            args_list         = list(a = 'arg_a', b = 'arg_b'),
+            dry_run_tf        = TRUE
          ),
-         regexp = "sbatch -J scriptname --mem=10G -c 2 -t 15 -p all.q -A proj_cov_vpd -e /mnt/share/temp/slurmoutput/ssbyrne/error/%x_e%j.log -o /mnt/share/temp/slurmoutput/ssbyrne/output/%x_o%j.log /ihme/singularity-images/rstudio/shells/execRscript.sh -i /ihme/singularity-images/rstudio/latest.img -s some/script/path/scriptname.R --a arg_a --b arg_b"
+         regexp = "sbatch -J scriptname --mem=10G -c 2 -t 15 -p all.q -A proj_cov_vpd -e /mnt/share/temp/slurmoutput/ssbyrne/error/%x_e%j.log -o /mnt/share/temp/slurmoutput/ssbyrne/output/%x_o%j.log /mnt/share/singularity-images/rstudio/shells/execRscript.sh -i /mnt/share/singularity-images/rstudio/latest.img -s some/script/path/scriptname.R --a arg_a --b arg_b"
       )
 
       # adding job holds before args
       expect_message(
          submit_job(
-            language               = "R",
-            shell_script_path      = NULL,
-            script_path            = "some/script/path/scriptname.R",
-            std_err_path           = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
-            std_out_path           = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
-            job_name               = NULL,
-            archiveTF              = FALSE,
-            mem_GB                 = "10G",
-            threads                = "2",
-            runtime_min            = "15",
-            partition              = "all.q",
-            Account                = "proj_cov_vpd",
-            hold_for_JobIDs        = c(1L:5L),
-            r_image                = NULL,
-            args_list              = list(a = 'arg_a',
-                                          b = 'arg_b'),
-            dry_runTF              = TRUE
+            language          = "R",
+            shell_script_path = NULL,
+            script_path       = "some/script/path/scriptname.R",
+            std_err_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
+            std_out_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
+            job_name          = NULL,
+            archive_tf        = FALSE,
+            mem               = "10G",
+            threads           = "2",
+            runtime_min       = "15",
+            partition         = "all.q",
+            account           = "proj_cov_vpd",
+            hold_for_JobIDs   = c(1L:5L),
+            r_image           = NULL,
+            args_list         = list(a = 'arg_a', b = 'arg_b'),
+            dry_run_tf        = TRUE
          ),
-         regexp = "sbatch -J scriptname --mem=10G -c 2 -t 15 -p all.q -A proj_cov_vpd -e /mnt/share/temp/slurmoutput/ssbyrne/error/%x_e%j.log -o /mnt/share/temp/slurmoutput/ssbyrne/output/%x_o%j.log /ihme/singularity-images/rstudio/shells/execRscript.sh -i /ihme/singularity-images/rstudio/latest.img -s some/script/path/scriptname.R --dependency=afterok:1:2:3:4:5 --a arg_a --b arg_b"
+         regexp = "sbatch -J scriptname --mem=10G -c 2 -t 15 -p all.q -A proj_cov_vpd -e /mnt/share/temp/slurmoutput/ssbyrne/error/%x_e%j.log -o /mnt/share/temp/slurmoutput/ssbyrne/output/%x_o%j.log /mnt/share/singularity-images/rstudio/shells/execRscript.sh -i /mnt/share/singularity-images/rstudio/latest.img -s some/script/path/scriptname.R --dependency=afterok:1:2:3:4:5 --a arg_a --b arg_b"
+      )
+
+      # console-style log (stderr and stdout go to same log)
+      expect_message(
+         submit_job(
+            language             = "R",
+            shell_script_path    = NULL,
+            script_path          = "some/script/path/scriptname.R",
+            std_err_root         = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
+            std_out_root         = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
+            job_name             = NULL,
+            archive_tf           = TRUE,
+            mem                  = "10G",
+            threads              = "2",
+            runtime_min          = "15",
+            partition            = "all.q",
+            account              = "proj_cov_vpd",
+            hold_for_JobIDs      = c(1L:5L),
+            r_image              = NULL,
+            console_style_log_tf = TRUE,
+            dry_run_tf           = TRUE
+         ),
+         regexp = "batch -J scriptname -C archive --mem=10G -c 2 -t 15 -p all.q -A proj_cov_vpd -e /mnt/share/temp/slurmoutput/ssbyrne/output/%x_%j_console.log -o /mnt/share/temp/slurmoutput/ssbyrne/output/%x_%j_console.log /mnt/share/singularity-images/rstudio/shells/execRscript.sh -i /mnt/share/singularity-images/rstudio/latest.img -s some/script/path/scriptname.R --dependency=afterok:1:2:3:4:5"
       )
    }
 )

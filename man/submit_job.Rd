@@ -6,55 +6,64 @@
 \usage{
 submit_job(
   script_path = NULL,
-  threads = "2",
-  mem_GB = "10G",
-  runtime_min = "15",
-  archiveTF = FALSE,
+  threads = 2L,
+  mem = "10G",
+  runtime_min = 15L,
+  archive_tf = TRUE,
   job_name = NULL,
   partition = "all.q",
-  Account = NULL,
+  account = NULL,
   hold_for_JobIDs = NULL,
   language = "R",
-  shell_script_path = NULL,
-  std_err_path = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
-  std_out_path = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
   r_image = NULL,
+  shell_script_path = NULL,
+  std_err_root = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
+  std_out_root = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
+  console_style_log_tf = FALSE,
   args_list = NULL,
-  dry_runTF = FALSE
+  verbose = TRUE,
+  v_verbose = FALSE,
+  dry_run_tf = FALSE
 )
 }
 \arguments{
-\item{script_path}{[path] full path to submitted script}
+\item{script_path}{[chr] full path to submitted script}
 
-\item{threads}{[chr] cluster resource requirement}
+\item{threads}{[int] cluster resource requirement}
 
-\item{mem_GB}{[chr] cluster resource requirement}
+\item{mem}{[chr] cluster resource requirement}
 
-\item{runtime_min}{[chr] cluster resource requirement}
+\item{runtime_min}{[num] cluster resource requirement}
 
-\item{archiveTF}{[lgl] (default FALSE) do you need an archive node?}
+\item{archive_tf}{[lgl] (default FALSE) do you need an archive node?}
 
 \item{job_name}{[chr] Will be name of script if NULL}
 
 \item{partition}{[chr] a.k.a. 'queue' - cluster resource requirement}
 
-\item{Account}{[chr] a.k.a. 'project' - cluster resource requirement}
+\item{account}{[chr] a.k.a. 'project' - cluster resource requirement}
 
 \item{hold_for_JobIDs}{vector of jobids that must complete successfully before running this job (https://slurm.schedmd.com/sbatch.html#OPT_dependency)}
 
 \item{language}{[chr] coding language for job (see valid_langs validation)}
 
+\item{r_image}{[chr] (default "latest.img") e.g. "/ihme/singularity-images/rstudio/ihme_rstudio_4214.img"}
+
 \item{shell_script_path}{[path] path to shell script (language-specific)}
 
-\item{std_err_path}{[path] path for Slurm std_err logs}
+\item{std_err_root}{[chr] path for Slurm std_err logs}
 
-\item{std_out_path}{[path] path for Slurm std_out logs}
+\item{std_out_root}{[chr] path for Slurm std_out logs}
 
-\item{r_image}{[chr] (default "latest.img") e.g. "/ihme/singularity-images/rstudio/ihme_rstudio_4214.img"}
+\item{console_style_log_tf}{[lgl] if TRUE, combine std_err and std_out into one log in the std_out_root}
 
 \item{args_list}{[list, chr] optional named list() of arguments, e.g. list("arg1" = arg1, "arg2" = arg2)}
 
-\item{dry_runTF}{[lgl] (default FALSE) if TRUE, only message and return submission command, no job submission}
+\item{verbose}{[lgl] print submission command and job_id}
+
+\item{v_verbose}{[lgl] print log paths}
+
+\item{dry_run_tf}{[lgl] (default FALSE) if TRUE, only message and return submission command, no job submission}
 }
 \value{
 [int] job_id of submitted job, also messsage with job_id and job_name
