@@ -11,38 +11,51 @@ wait_on_slurm_job_id(
   filter_by = c("jobidraw"),
   filter_regex = NULL,
   break_on_failure = FALSE,
-  dryrun = FALSE
+  dryrun = FALSE,
+  batch_size = 500
 )
 }
 \arguments{
 \item{job_id}{[int] a Slurm `JobID` (single or vector)}
 
-\item{initial_sleep_sec}{[int] how long to sleep before initial check for jobs on cluster}
+\item{initial_sleep_sec}{[int] how long to sleep before initial check for
+jobs on cluster}
 
 \item{cycle_sleep_sec}{[int] how long to wait between checks}
 
-\item{filter_by}{[chr] vector of sacct fields to search e.g. `c("User", "JobName")` (case insensitive)}
+\item{filter_by}{[chr] vector of sacct fields to search e.g. `c("User",
+"JobName")` (case insensitive)}
 
-\item{filter_regex}{[regex] required if `filter_by %in% c("JobName", "Account")`}
+\item{filter_regex}{[regex] required if `filter_by %in% c("JobName",
+"Account")`}
 
-\item{break_on_failure}{[lgl] if _any_ of your jobs fail, should this function break?}
+\item{break_on_failure}{[lgl] if _any_ of your jobs fail, should this
+function break?  Failure itself is always determined based on the user's
+filters, but failure _feedback_ always returns JobID, regardless of
+filtering. This is due to how jobs are initially queried.  This may
+included unwanted recycled `JobID`s, and it is **_up to the user_** to
+determine which are relevant to their work.}
 
-\item{dryrun}{[lgl] return a list of commands built by this function, but do not wait on jobs}
+\item{dryrun}{[lgl] return a list of commands built by this function, but do
+not wait on jobs (only returns command for the first batch - see
+`batch_size`)}
+
+\item{batch_size}{[int] how many jobs to group together to wait on (grep
+limitation in max number, 500 is a good default, could increase near 900).
+All jobs in batch 1 must finish before batch 2 is checked.}
 }
 \value{
-[std_out/std_err] std_out for sleep cycle duration & successful ending, std_err printing failed job ids
-trim column headers (start on 3rd row of sacct output)
-trim out duplicated batch/extern lines for each job
-trim extra whitespace, leaving a one-space-delimiter between fields, used by `cut`
-select only filtering fields of choice
-- cut's `-f{filter_idx}` selects `1+n` fields (e.g. `1,2,3`)
-  - `1` = "state" and `n` = the user-defined filtering field(s)
+[std_out/std_err] std_out for sleep cycle duration & successful
+  ending, std_err printing failed job ids
 }
 \description{
 Option to break if some jobs fail (find `FAILED` State jobs).
 }
 \details{
-Option to filter `sacct` results by multiple fields with `grep -P`
+Option to filter `sacct` results by multiple fields with `grep -P`.
+
+Works in batches to accommodate grep limitations (default 500 `job_id`s)
+- All batch 1 jobs are checked before moving to batch 2.
 
 First find all jobs with a given base `JobID` (fastest search method)
  - default behavior: next filter for `JobID` matching `JobIDRaw`
