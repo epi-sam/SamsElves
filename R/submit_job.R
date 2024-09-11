@@ -7,7 +7,7 @@
 #' @param threads [int] cluster resource requirement
 #' @param mem [chr] cluster resource requirement
 #' @param runtime_min [num] cluster resource requirement
-#' @param archive_tf [lgl] (default FALSE) do you need an archive node?
+#' @param archiveTF [lgl] (default FALSE) do you need an archive node?
 #' @param job_name [chr] Will be name of script if NULL
 #' @param partition [chr] a.k.a. 'queue' - cluster resource requirement
 #' @param account [chr] a.k.a. 'project' - cluster resource requirement
@@ -21,7 +21,7 @@
 #' @param args_list [list, chr] optional named list() of arguments, e.g. list("arg1" = arg1, "arg2" = arg2)
 #' @param verbose [lgl] print submission command and job_id
 #' @param v_verbose [lgl] print log paths
-#' @param dry_run_tf [lgl] (default FALSE) if TRUE, only message and return submission command, no job submission
+#' @param dry_runTF [lgl] (default FALSE) if TRUE, only message and return submission command, no job submission
 #'
 #' @return [int] job_id of submitted job, also messsage with job_id and job_name
 #' @export
@@ -30,7 +30,7 @@ submit_job <- function(
     threads              = 2L,
     mem                  = "10G",
     runtime_min          = 15L,
-    archive_tf           = TRUE,
+    archiveTF            = TRUE,
     job_name             = NULL,
     partition            = "all.q",
     account              = NULL,
@@ -44,7 +44,7 @@ submit_job <- function(
     args_list            = NULL,
     verbose              = TRUE,
     v_verbose            = FALSE,
-    dry_run_tf           = FALSE
+    dry_runTF            = FALSE
 ) {
 
   # Argument validation
@@ -62,10 +62,10 @@ submit_job <- function(
   if(is.null(mem))         stop("Please define a memory requirement e.g. '30G' or '300M'")
   if(is.null(runtime_min)) stop("Please define a runtime requirement")
   stopifnot(is.logical(console_style_log_tf))
-  stopifnot(is.logical(archive_tf))
+  stopifnot(is.logical(archiveTF))
   stopifnot(is.logical(verbose))
   stopifnot(is.logical(v_verbose))
-  stopifnot(is.logical(dry_run_tf))
+  stopifnot(is.logical(dry_runTF))
   # build log folders silently (dir.create fails naturally if directory exists)
   dir.create(std_err_root, recursive = TRUE, showWarnings = FALSE)
   dir.create(std_out_root, recursive = TRUE, showWarnings = FALSE)
@@ -108,7 +108,7 @@ submit_job <- function(
     std_err_path <- file.path(std_err_root, "%x_e%j.log")
     std_out_path <- file.path(std_out_root, "%x_o%j.log")
   }
-  archive_cmd  <- ifelse(archive_tf, " -C archive", "")
+  archive_cmd  <- ifelse(archiveTF, " -C archive", "")
 
   # deal with args_list as a block
   if(!is.null(args_list)){
@@ -149,7 +149,7 @@ submit_job <- function(
     command <- paste(command, arg_name, args_list[arg_name])
   }
 
-  if(dry_run_tf) {
+  if(dry_runTF) {
     message(command, "\n")
     return(0L)
   }
@@ -175,7 +175,7 @@ submit_job <- function(
 # job_name               = .job_name
 # mem                 = "40G"
 # shell_script_path      = NULL
-# archive_tf              = T
+# archiveTF              = T
 # use_paths_file_r_image = T
 # account                = "proj_hiv"
 # partition              = "all.q"

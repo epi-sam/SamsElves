@@ -12,7 +12,7 @@
 #' @param runtime_min [num] cluster resource requirement
 #' @param array_tasks_int [int] vector of integers for you array (e.g. c(1L:10L))
 #' @param job_name [chr] Will be name of script if NULL
-#' @param archive_tf [lgl] (default FALSE) do you need an archive node?
+#' @param archiveTF [lgl] (default FALSE) do you need an archive node?
 #' @param partition [chr] a.k.a. 'queue' - cluster resource requirement
 #' @param account [chr] a.k.a. 'project' - cluster resource requirement
 #' @param hold_for_JobIDs [int] vector of jobids that must complete successfully before running this job (https://slurm.schedmd.com/sbatch.html#OPT_dependency)
@@ -25,7 +25,7 @@
 #' @param args_list [list, chr] optional list() of arguments, e.g. list("--arg1" = arg1, "--arg2" = arg2)
 #' @param verbose [lgl] print submission command and job_id
 #' @param v_verbose [lgl] print log paths
-#' @param dry_run_tf [lgl] (default FALSE) if TRUE, only message and return submission command, no job submission
+#' @param dry_runTF [lgl] (default FALSE) if TRUE, only message and return submission command, no job submission
 #'
 #' @return [list] 2 items - list(command submitted to cluster, cluster submission reply)
 #' @export
@@ -36,7 +36,7 @@ submit_job_array <- function(
     runtime_min          = 15L,
     array_tasks_int      = NULL,
     job_name             = NULL,
-    archive_tf           = FALSE,
+    archiveTF            = FALSE,
     partition            = "all.q",
     account              = NULL,
     hold_for_JobIDs      = NULL,
@@ -49,7 +49,7 @@ submit_job_array <- function(
     args_list            = NULL,
     verbose              = TRUE,
     v_verbose            = FALSE,
-    dry_run_tf           = FALSE
+    dry_runTF            = FALSE
 ){
 
   # Argument validation
@@ -69,10 +69,10 @@ submit_job_array <- function(
   if(is.null(array_tasks_int)) stop("Please define a vector of integers for you array e.g. 1L:10L")
   stopifnot(is.integer(array_tasks_int))
   stopifnot(is.logical(console_style_log_tf))
-  stopifnot(is.logical(archive_tf))
+  stopifnot(is.logical(archiveTF))
   stopifnot(is.logical(verbose))
   stopifnot(is.logical(v_verbose))
-  stopifnot(is.logical(dry_run_tf))
+  stopifnot(is.logical(dry_runTF))
   if(!is.null(hold_for_JobIDs)){
      if(!is.vector(hold_for_JobIDs, mode = "integer")) stop("hold_for_JobIDs must be a simple integer vector")
   }
@@ -114,7 +114,7 @@ submit_job_array <- function(
     std_err_path <- file.path(std_err_root, "%x_%A_%a.log")
     std_out_path <- file.path(std_out_root, "%x_%A_%a.log")
   }
-  archive_cmd  <- ifelse(archive_tf, " -C archive", "")
+  archive_cmd  <- ifelse(archiveTF, " -C archive", "")
 
   # deal with args_list as a block
   if(!is.null(args_list)){
@@ -163,7 +163,7 @@ submit_job_array <- function(
     command <- paste(command, arg_name, args_list[arg_name])
   }
 
-  if(dry_run_tf) {
+  if(dry_runTF) {
     message(command, "\n")
     return(0L)
   }

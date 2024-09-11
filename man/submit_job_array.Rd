@@ -11,7 +11,7 @@ submit_job_array(
   runtime_min = 15L,
   array_tasks_int = NULL,
   job_name = NULL,
-  archive_tf = FALSE,
+  archiveTF = FALSE,
   partition = "all.q",
   account = NULL,
   hold_for_JobIDs = NULL,
@@ -24,7 +24,7 @@ submit_job_array(
   args_list = NULL,
   verbose = TRUE,
   v_verbose = FALSE,
-  dry_run_tf = FALSE
+  dry_runTF = FALSE
 )
 }
 \arguments{
@@ -40,7 +40,7 @@ submit_job_array(
 
 \item{job_name}{[chr] Will be name of script if NULL}
 
-\item{archive_tf}{[lgl] (default FALSE) do you need an archive node?}
+\item{archiveTF}{[lgl] (default FALSE) do you need an archive node?}
 
 \item{partition}{[chr] a.k.a. 'queue' - cluster resource requirement}
 
@@ -66,7 +66,7 @@ submit_job_array(
 
 \item{v_verbose}{[lgl] print log paths}
 
-\item{dry_run_tf}{[lgl] (default FALSE) if TRUE, only message and return submission command, no job submission}
+\item{dry_runTF}{[lgl] (default FALSE) if TRUE, only message and return submission command, no job submission}
 }
 \value{
 [list] 2 items - list(command submitted to cluster, cluster submission reply)

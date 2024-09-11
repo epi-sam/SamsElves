@@ -9,7 +9,7 @@ submit_job(
   threads = 2L,
   mem = "10G",
   runtime_min = 15L,
-  archive_tf = TRUE,
+  archiveTF = TRUE,
   job_name = NULL,
   partition = "all.q",
   account = NULL,
@@ -23,7 +23,7 @@ submit_job(
   args_list = NULL,
   verbose = TRUE,
   v_verbose = FALSE,
-  dry_run_tf = FALSE
+  dry_runTF = FALSE
 )
 }
 \arguments{
@@ -35,7 +35,7 @@ submit_job(
 
 \item{runtime_min}{[num] cluster resource requirement}
 
-\item{archive_tf}{[lgl] (default FALSE) do you need an archive node?}
+\item{archiveTF}{[lgl] (default FALSE) do you need an archive node?}
 
 \item{job_name}{[chr] Will be name of script if NULL}
 
@@ -63,7 +63,7 @@ submit_job(
 
 \item{v_verbose}{[lgl] print log paths}
 
-\item{dry_run_tf}{[lgl] (default FALSE) if TRUE, only message and return submission command, no job submission}
+\item{dry_runTF}{[lgl] (default FALSE) if TRUE, only message and return submission command, no job submission}
 }
 \value{
 [int] job_id of submitted job, also messsage with job_id and job_name

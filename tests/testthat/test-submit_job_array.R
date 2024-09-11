@@ -9,7 +9,7 @@ test_that(
         std_err_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
         std_out_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
         job_name          = NULL,
-        archive_tf        = FALSE,
+        archiveTF         = FALSE,
         mem               = "10G",
         threads           = "2",
         runtime_min       = "15",
@@ -17,7 +17,7 @@ test_that(
         account           = NULL,
         r_image           = NULL,
         args_list         = NULL,
-        dry_run_tf        = TRUE
+        dry_runTF         = TRUE
       ),
       regexp = "Please define a valid script path to submit"
     )
@@ -30,7 +30,7 @@ test_that(
         std_err_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
         std_out_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
         job_name          = NULL,
-        archive_tf        = FALSE,
+        archiveTF         = FALSE,
         mem               = "10G",
         threads           = "2",
         runtime_min       = "15",
@@ -38,7 +38,7 @@ test_that(
         account           = NULL,
         r_image           = NULL,
         args_list         = NULL,
-        dry_run_tf        = TRUE
+        dry_runTF         = TRUE
       ),
       regexp = "Input a valid language \\(case insensitive\\):"
     )
@@ -51,7 +51,7 @@ test_that(
         std_err_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
         std_out_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
         job_name          = NULL,
-        archive_tf        = FALSE,
+        archiveTF         = FALSE,
         mem               = "10G",
         threads           = "2",
         runtime_min       = "15",
@@ -59,7 +59,7 @@ test_that(
         account           = NULL,
         r_image           = NULL,
         args_list         = NULL,
-        dry_run_tf        = TRUE
+        dry_runTF         = TRUE
       ),
       regexp = "Input a valid language \\(case insensitive\\):"
     )
@@ -72,7 +72,7 @@ test_that(
         std_err_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
         std_out_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
         job_name          = NULL,
-        archive_tf        = FALSE,
+        archiveTF         = FALSE,
         mem               = "10G",
         threads           = "2",
         runtime_min       = "15",
@@ -81,7 +81,7 @@ test_that(
         account           = NULL,
         r_image           = NULL,
         args_list         = NULL,
-        dry_run_tf        = TRUE
+        dry_runTF         = TRUE
       ),
       regexp = "Please define a Slurm account e.g. proj_cov_vpd"
     )
@@ -94,7 +94,7 @@ test_that(
         std_err_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
         std_out_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
         job_name          = NULL,
-        archive_tf        = FALSE,
+        archiveTF         = FALSE,
         mem               = "10G",
         threads           = "2",
         runtime_min       = "15",
@@ -104,7 +104,7 @@ test_that(
         args_list         = NULL,
         array_tasks_int   = 1L:10L,
         hold_for_JobIDs   = 12345,
-        dry_run_tf        = TRUE
+        dry_runTF         = TRUE
       ),
       regexp = "hold_for_JobIDs must be a simple integer vector"
     )
@@ -117,7 +117,7 @@ test_that(
         std_err_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
         std_out_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
         job_name          = NULL,
-        archive_tf        = FALSE,
+        archiveTF         = FALSE,
         mem               = "10G",
         threads           = "2",
         runtime_min       = "15",
@@ -127,7 +127,7 @@ test_that(
         args_list         = NULL,
         array_tasks_int   = 1L:10L,
         hold_for_JobIDs   = list(12345L),
-        dry_run_tf        = TRUE
+        dry_runTF         = TRUE
       ),
       regexp = "hold_for_JobIDs must be a simple integer vector"
     )
@@ -140,7 +140,7 @@ test_that(
         std_err_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
         std_out_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
         job_name          = NULL,
-        archive_tf        = FALSE,
+        archiveTF         = FALSE,
         mem               = "10G",
         threads           = "2",
         runtime_min       = "15",
@@ -150,7 +150,7 @@ test_that(
         args_list         = NULL,
         array_tasks_int   = NULL,
         hold_for_JobIDs   = NULL,
-        dry_run_tf        = TRUE
+        dry_runTF         = TRUE
       ),
       regexp = "Please define a vector of integers for you array e.g. 1L:10L"
     )
@@ -169,7 +169,7 @@ test_that(
         std_err_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
         std_out_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
         job_name          = NULL,
-        archive_tf        = FALSE,
+        archiveTF         = FALSE,
         mem               = "10G",
         threads           = "2",
         runtime_min       = "15",
@@ -179,7 +179,7 @@ test_that(
         args_list         = NULL,
         array_tasks_int   = 1L:10L,
         hold_for_JobIDs   = 12345L,
-        dry_run_tf        = TRUE
+        dry_runTF         = TRUE
       ),
       regexp = "sbatch -J scriptname --mem=10G -c 2 -t 15 -p all.q -A proj_cov_vpd --array=1-10 -e /mnt/share/temp/slurmoutput/ssbyrne/error/%x_%A_%a.log -o /mnt/share/temp/slurmoutput/ssbyrne/output/%x_%A_%a.log /ihme/singularity-images/rstudio/shells/execRscript.sh -i /ihme/singularity-images/rstudio/latest.img -s some/script/path/scriptname.R --dependency=afterok:12345"
     )
@@ -193,7 +193,7 @@ test_that(
         std_err_root         = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
         std_out_root         = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
         job_name             = NULL,
-        archive_tf           = TRUE,
+        archiveTF            = TRUE,
         mem                  = "10G",
         threads              = "2",
         runtime_min          = "15",
@@ -203,7 +203,7 @@ test_that(
         r_image              = NULL,
         console_style_log_tf = TRUE,
         array_tasks_int      = 1L:10L,
-        dry_run_tf           = TRUE
+        dry_runTF            = TRUE
       ),
       regexp = "sbatch -J scriptname -C archive --mem=10G -c 2 -t 15 -p all.q -A proj_cov_vpd --array=1-10 -e /mnt/share/temp/slurmoutput/ssbyrne/output/%x_%A_%a_console.log -o /mnt/share/temp/slurmoutput/ssbyrne/output/%x_%A_%a_console.log /ihme/singularity-images/rstudio/shells/execRscript.sh -i /ihme/singularity-images/rstudio/latest.img -s some/script/path/scriptname.R --dependency=afterok:1:2:3:4:5"
     )
@@ -228,7 +228,7 @@ test_that("Submitted array job works",
               script_path       = path_script,
               threads           = 1L,
               array_tasks_int   = array_tasks_int,
-              archive_tf        = FALSE,
+              archiveTF         = FALSE,
               mem               = "100M",
               runtime_min       = 5L,
               partition         = "all.q,long.q",
@@ -237,7 +237,7 @@ test_that("Submitted array job works",
               std_out_root      = std_out_root,
               console_style_log_tf = TRUE,
               args_list         = list(root_code = root_code),
-              dry_run_tf        = FALSE
+              dry_runTF         = FALSE
             )
 
             wait_on_slurm_job_id(job_id              = job_id

@@ -24,11 +24,11 @@ test_that("parse_all_named_cli_args works",
               , threads      = 1L
               , mem          = "100M"
               , runtime_min  = 1
-              , archive_tf   = FALSE
+              , archiveTF   = FALSE
               , job_name     = "test_arg_parse"
               , account      = "proj_cov_vpd"
               , std_err_root = std_err_root
-              , dry_run_tf   = FALSE
+              , dry_runTF   = FALSE
               , args_list    = args_list
             )
 

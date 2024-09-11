@@ -9,7 +9,7 @@ test_that(
             std_err_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
             std_out_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
             job_name          = NULL,
-            archive_tf        = FALSE,
+            archiveTF         = FALSE,
             mem               = "10G",
             threads           = "2",
             runtime_min       = "15",
@@ -17,7 +17,7 @@ test_that(
             account           = NULL,
             r_image           = NULL,
             args_list         = NULL,
-            dry_run_tf        = TRUE
+            dry_runTF         = TRUE
          ),
          regexp = "Please define a valid script path to submit"
       )
@@ -30,7 +30,7 @@ test_that(
             std_err_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
             std_out_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
             job_name          = NULL,
-            archive_tf        = FALSE,
+            archiveTF         = FALSE,
             mem               = "10G",
             threads           = "2",
             runtime_min       = "15",
@@ -38,7 +38,7 @@ test_that(
             account           = NULL,
             r_image           = NULL,
             args_list         = NULL,
-            dry_run_tf        = TRUE
+            dry_runTF         = TRUE
          ),
          regexp = "Input a valid language \\(case insensitive\\): r, python"
       )
@@ -51,7 +51,7 @@ test_that(
             std_err_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
             std_out_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
             job_name          = NULL,
-            archive_tf        = FALSE,
+            archiveTF         = FALSE,
             mem               = "10G",
             threads           = "2",
             runtime_min       = "15",
@@ -59,7 +59,7 @@ test_that(
             account           = NULL,
             r_image           = NULL,
             args_list         = NULL,
-            dry_run_tf        = TRUE
+            dry_runTF         = TRUE
          ),
          regexp = "Input a valid language \\(case insensitive\\): r, python"
       )
@@ -72,7 +72,7 @@ test_that(
             std_err_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
             std_out_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
             job_name          = NULL,
-            archive_tf        = FALSE,
+            archiveTF         = FALSE,
             mem               = "10G",
             threads           = "2",
             runtime_min       = "15",
@@ -80,7 +80,7 @@ test_that(
             account           = NULL,
             r_image           = NULL,
             args_list         = NULL,
-            dry_run_tf        = TRUE
+            dry_runTF         = TRUE
          ),
          regexp = "Please define a Slurm account e.g. proj_cov_vpd"
       )
@@ -100,7 +100,7 @@ test_that(
             std_err_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
             std_out_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
             job_name          = NULL,
-            archive_tf        = FALSE,
+            archiveTF         = FALSE,
             mem               = "10G",
             threads           = "2",
             runtime_min       = "15",
@@ -108,7 +108,7 @@ test_that(
             account           = "proj_cov_vpd",
             r_image           = NULL,
             args_list         = NULL,
-            dry_run_tf        = TRUE
+            dry_runTF         = TRUE
          ),
          regexp = "sbatch -J scriptname --mem=10G -c 2 -t 15 -p all.q -A proj_cov_vpd -e /mnt/share/temp/slurmoutput/ssbyrne/error/%x_e%j.log -o /mnt/share/temp/slurmoutput/ssbyrne/output/%x_o%j.log /mnt/share/singularity-images/rstudio/shells/execRscript.sh -i /mnt/share/singularity-images/rstudio/latest.img -s some/script/path/scriptname.R"
       )
@@ -122,7 +122,7 @@ test_that(
             std_err_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
             std_out_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
             job_name          = NULL,
-            archive_tf        = FALSE,
+            archiveTF         = FALSE,
             mem               = "10G",
             threads           = "2",
             runtime_min       = "15",
@@ -130,7 +130,7 @@ test_that(
             account           = "proj_cov_vpd",
             r_image           = NULL,
             args_list         = list(a = 'arg_a', b = 'arg_b'),
-            dry_run_tf        = TRUE
+            dry_runTF         = TRUE
          ),
          regexp = "sbatch -J scriptname --mem=10G -c 2 -t 15 -p all.q -A proj_cov_vpd -e /mnt/share/temp/slurmoutput/ssbyrne/error/%x_e%j.log -o /mnt/share/temp/slurmoutput/ssbyrne/output/%x_o%j.log /mnt/share/singularity-images/rstudio/shells/execRscript.sh -i /mnt/share/singularity-images/rstudio/latest.img -s some/script/path/scriptname.R --a arg_a --b arg_b"
       )
@@ -144,7 +144,7 @@ test_that(
             std_err_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
             std_out_root      = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
             job_name          = NULL,
-            archive_tf        = FALSE,
+            archiveTF         = FALSE,
             mem               = "10G",
             threads           = "2",
             runtime_min       = "15",
@@ -153,7 +153,7 @@ test_that(
             hold_for_JobIDs   = c(1L:5L),
             r_image           = NULL,
             args_list         = list(a = 'arg_a', b = 'arg_b'),
-            dry_run_tf        = TRUE
+            dry_runTF         = TRUE
          ),
          regexp = "sbatch -J scriptname --mem=10G -c 2 -t 15 -p all.q -A proj_cov_vpd -e /mnt/share/temp/slurmoutput/ssbyrne/error/%x_e%j.log -o /mnt/share/temp/slurmoutput/ssbyrne/output/%x_o%j.log /mnt/share/singularity-images/rstudio/shells/execRscript.sh -i /mnt/share/singularity-images/rstudio/latest.img -s some/script/path/scriptname.R --dependency=afterok:1:2:3:4:5 --a arg_a --b arg_b"
       )
@@ -167,7 +167,7 @@ test_that(
             std_err_root         = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
             std_out_root         = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
             job_name             = NULL,
-            archive_tf           = TRUE,
+            archiveTF            = TRUE,
             mem                  = "10G",
             threads              = "2",
             runtime_min          = "15",
@@ -176,7 +176,7 @@ test_that(
             hold_for_JobIDs      = c(1L:5L),
             r_image              = NULL,
             console_style_log_tf = TRUE,
-            dry_run_tf           = TRUE
+            dry_runTF            = TRUE
          ),
          regexp = "batch -J scriptname -C archive --mem=10G -c 2 -t 15 -p all.q -A proj_cov_vpd -e /mnt/share/temp/slurmoutput/ssbyrne/output/%x_%j_console.log -o /mnt/share/temp/slurmoutput/ssbyrne/output/%x_%j_console.log /mnt/share/singularity-images/rstudio/shells/execRscript.sh -i /mnt/share/singularity-images/rstudio/latest.img -s some/script/path/scriptname.R --dependency=afterok:1:2:3:4:5"
       )
