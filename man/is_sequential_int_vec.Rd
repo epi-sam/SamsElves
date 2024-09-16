@@ -7,7 +7,8 @@
 is_sequential_int_vec(x)
 }
 \arguments{
-\item{x}{[int] an integer vector}
+\item{x}{[int] an integer vector
+::}
 }
 \value{
 [lgl] TRUE if all elements are contiguous integers

@@ -23,6 +23,8 @@
 #'   `TRUE`/`FALSE`
 #' @param assign_integer [lgl] if TRUE, assign solely numeric args to integer
 #'   e.g. 5 to `5L`
+#' @param split_comma_str [lgl] if TRUE, split comma-separated strings into
+#'  vectors
 #'
 #' @return [named list] named list of CLI arguments
 #' @export
@@ -37,11 +39,12 @@
 #' )
 #' }
 parse_all_named_cli_args <- function(
-    required_args  = NULL,
-    trailingOnly   = TRUE,
-    assign_logical = TRUE,
-    assign_integer = TRUE,
-    assignment_env = globalenv()
+    required_args   = NULL,
+    trailingOnly    = TRUE,
+    assign_logical  = TRUE,
+    assign_integer  = TRUE,
+    split_comma_str = TRUE,
+    assignment_env  = globalenv()
 ) {
   # Validate inputs
   if (!is.null(required_args)) {
@@ -56,9 +59,13 @@ parse_all_named_cli_args <- function(
   if (!is.logical(assign_integer) | length(assign_integer) != 1) {
     stop("assign_integer must be a single logical")
   }
+  if (!is.logical(split_comma_str) | length(split_comma_str) != 1) {
+    stop("split_comma_str must be a single logical")
+  }
   if (!is.environment(assignment_env)) {
     stop("assignment_env must be an environment")
   }
+
 
   # Grab CLI args
   command_args <- commandArgs(trailingOnly = trailingOnly)
@@ -86,15 +93,21 @@ parse_all_named_cli_args <- function(
 
   args_list <- parser$parse_args(command_args)
 
+  if(split_comma_str) message("Splitting comma-separated strings into vectors.")
   if(assign_logical) message("Assigning logical type to TRUE/FALSE args (case-insensitive)")
   if(assign_integer) message("Assigning integer type to solely numeric args (e.g. no decimals)")
 
   for (key in names(args_list)) {
-    if (toupper(args_list[[key]]) %in% c("TRUE", "FALSE") & assign_logical) {
+
+    if (split_comma_str & grepl(",", args_list[[key]])) {
+      args_list[[key]] <- comma_string_to_vec(args_list[[key]])
+    }
+
+    if (all(grepl("^TRUE$|^FALSE$", toupper(args_list[[key]]))) & assign_logical) {
       args_list[[key]] <- as.logical(args_list[[key]])
     }
 
-    if (grepl("^[0-9]+$", args_list[[key]]) & assign_integer) {
+    if (all(grepl("^[0-9]+$", args_list[[key]])) & assign_integer) {
       args_list[[key]] <- as.integer(args_list[[key]])
     }
   }
@@ -103,23 +116,24 @@ parse_all_named_cli_args <- function(
     message("Checking for required arguments and types: ", toString(names(required_args)))
     assert_list_elements_and_types(
       check_list       = args_list,
-      check_items      = required_args,
+      truth_list       = required_args,
       allow_data_frame = FALSE
     )
   }
 
   message("Assigning args to chosen environment.")
   list2env(args_list, envir = assignment_env)
-  message(
-    paste(
-      capture.output(
-        print.data.frame(
-          stack(args_list)[2:1],
-          right = FALSE)
-      ),
-      collapse = '\n'
-    )
-  )
+  message(paste(capture.output(args_list), collapse = "\n"))
+  # message(
+  #   paste(
+  #     capture.output(
+  #       print.data.frame(
+  #         stack(args_list)[2:1],
+  #         right = FALSE)
+  #     ),
+  #     collapse = '\n'
+  #   )
+  # )
 
   return(args_list)
 }

@@ -6,14 +6,15 @@
 \usage{
 assert_list_elements_and_types(
   check_list,
-  check_items,
+  truth_list,
   allow_data_frame = FALSE
 )
 }
 \arguments{
-\item{check_list}{[list] named list of items to check for presence and data type.}
+\item{check_list}{[list] named list of items to check for presence and data
+type.}
 
-\item{check_items}{[list] named list of pre-determined items with data types.
+\item{truth_list}{[list] named list of pre-determined items with data types.
 If you don't wish to check data type, save as `NA` e.g. `list(arg1 = NA)`}
 
 \item{allow_data_frame}{[lgl] TRUE if `check_list` is a data.frame (allows
@@ -23,10 +24,10 @@ checking column presence and type).}
 none
 }
 \description{
-Each check_items list name is an element that should exist in check_list. The
-value of each check_items list element is the data type that the
-corresponding check_list element should be. If you don't wish to check data type,
-save as `NA` e.g. `list(arg1 = NA)`.
+Each `truth_list` list element name is an element that should exist in
+`check_list.` The value of each `truth_list` list element is the data type
+that the corresponding `check_list` element should be. If you don't wish to
+check data type, save as `NA` e.g. `list(arg1 = NA)`.
 }
 \examples{
 assert_list_element_and_type(list(a = 1, b = "2"), list(a = "double", b = "character"))

@@ -59,13 +59,14 @@ assert_named_list = function(x, allow_data_frame = FALSE){
 
 #' Assert that a list contains all the element from a _named_ check list.
 #'
-#' Each check_items list name is an element that should exist in check_list. The
-#' value of each check_items list element is the data type that the
-#' corresponding check_list element should be. If you don't wish to check data type,
-#' save as `NA` e.g. `list(arg1 = NA)`.
+#' Each `truth_list` list element name is an element that should exist in
+#' `check_list.` The value of each `truth_list` list element is the data type
+#' that the corresponding `check_list` element should be. If you don't wish to
+#' check data type, save as `NA` e.g. `list(arg1 = NA)`.
 #'
-#' @param check_list [list] named list of items to check for presence and data type.
-#' @param check_items [list] named list of pre-determined items with data types.
+#' @param check_list [list] named list of items to check for presence and data
+#'   type.
+#' @param truth_list [list] named list of pre-determined items with data types.
 #'   If you don't wish to check data type, save as `NA` e.g. `list(arg1 = NA)`
 #' @param allow_data_frame [lgl] TRUE if `check_list` is a data.frame (allows
 #'   checking column presence and type).
@@ -76,35 +77,35 @@ assert_named_list = function(x, allow_data_frame = FALSE){
 #' @examples
 #' assert_list_element_and_type(list(a = 1, b = "2"), list(a = "double", b = "character"))
 #' assert_list_element_and_type(mtcars, list(mpg = "double", cyl = "double"), allow_data_frame = TRUE)
-assert_list_elements_and_types <- function(check_list, check_items, allow_data_frame = FALSE){
+assert_list_elements_and_types <- function(check_list, truth_list, allow_data_frame = FALSE){
   assert_named_list(check_list, allow_data_frame = allow_data_frame)
-  assert_named_list(check_items)
-  found_mask    <- names(check_items) %in% names(check_list)
-  found_items   <- names(check_items)[found_mask]
-  unfound_items <- names(check_items)[!found_mask]
+  assert_named_list(truth_list)
+  found_mask    <- names(truth_list) %in% names(check_list)
+  found_items   <- names(truth_list)[found_mask]
+  unfound_items <- names(truth_list)[!found_mask]
   if(length(unfound_items) > 0){
-    stop("The following check_items were not found in check_list: ", toString(unfound_items))
+    stop("The following truth_list were not found in check_list: ", toString(unfound_items))
   }
 
   type_check <- unlist(
-    lapply(seq_along(check_items), function(idx){
-      name_i <- names(check_items)[idx]
-      type_i <- check_items[[idx]]
+    lapply(seq_along(truth_list), function(idx){
+      name_i <- names(truth_list)[idx]
+      type_i <- truth_list[[idx]]
       if(is.na(type_i)) return(TRUE)
       return(typeof(check_list[[name_i]]) == type_i)
     })
   )
-  names(type_check) <- names(check_items)
+  names(type_check) <- names(truth_list)
   type_fail_names   <- names(type_check)[!type_check]
   type_fail_df      <- data.frame(
     item            = type_fail_names
     , type_supplied = unlist(lapply(type_fail_names, function(x) typeof(check_list[[x]])))
-    , type_required = unlist(lapply(type_fail_names, function(x) check_items[[x]]))
+    , type_required = unlist(lapply(type_fail_names, function(x) truth_list[[x]]))
   )
 
   if(!all(type_check)){
     message(paste(capture.output(type_fail_df), collapse = "\n"))
-    stop("The following check_list data types did not match the check_items data types: ", toString(type_fail_names))
+    stop("The following check_list data types did not match the truth_list data types: ", toString(type_fail_names))
   }
 
 }

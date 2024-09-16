@@ -23,6 +23,7 @@
 #' @param std_out_root [chr] path for Slurm std_out logs
 #' @param console_style_log_tf [lgl] if TRUE, combine std_err and std_out into one log in the std_out_root
 #' @param args_list [list, chr] optional list() of arguments, e.g. list("--arg1" = arg1, "--arg2" = arg2)
+#' @param arg_vecs_to_comma_str [lgl] if TRUE, convert atomic elements of args_list to comma-separated strings
 #' @param verbose [lgl] print submission command and job_id
 #' @param v_verbose [lgl] print log paths
 #' @param dry_runTF [lgl] (default FALSE) if TRUE, only message and return submission command, no job submission
@@ -30,26 +31,27 @@
 #' @return [list] 2 items - list(command submitted to cluster, cluster submission reply)
 #' @export
 submit_job_array <- function(
-    script_path          = NULL,
-    threads              = 2L,
-    mem                  = "10G",
-    runtime_min          = 15L,
-    array_tasks_int      = NULL,
-    job_name             = NULL,
-    archiveTF            = FALSE,
-    partition            = "all.q",
-    account              = NULL,
-    hold_for_JobIDs      = NULL,
-    language             = "R",
-    r_image              = NULL,
-    shell_script_path    = NULL,
-    std_err_root         = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),  # default to /ihme/temp/[cluster]/usr
-    std_out_root         = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"), # default to /ihme/temp/[cluster]/usr
-    console_style_log_tf = FALSE,
-    args_list            = NULL,
-    verbose              = TRUE,
-    v_verbose            = FALSE,
-    dry_runTF            = FALSE
+    script_path           = NULL,
+    threads               = 2L,
+    mem                   = "10G",
+    runtime_min           = 15L,
+    array_tasks_int       = NULL,
+    job_name              = NULL,
+    archiveTF             = FALSE,
+    partition             = "all.q",
+    account               = NULL,
+    hold_for_JobIDs       = NULL,
+    language              = "R",
+    r_image               = NULL,
+    shell_script_path     = NULL,
+    std_err_root          = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),  # default to /ihme/temp/[cluster]/usr
+    std_out_root          = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"), # default to /ihme/temp/[cluster]/usr
+    console_style_log_tf  = FALSE,
+    args_list             = NULL,
+    arg_vecs_to_comma_str = TRUE,
+    verbose               = TRUE,
+    v_verbose             = FALSE,
+    dry_runTF             = FALSE
 ){
 
   # Argument validation
@@ -73,6 +75,7 @@ submit_job_array <- function(
   stopifnot(is.logical(verbose))
   stopifnot(is.logical(v_verbose))
   stopifnot(is.logical(dry_runTF))
+  stopifnot(is.logical(arg_vecs_to_comma_str))
   if(!is.null(hold_for_JobIDs)){
      if(!is.vector(hold_for_JobIDs, mode = "integer")) stop("hold_for_JobIDs must be a simple integer vector")
   }
@@ -118,13 +121,13 @@ submit_job_array <- function(
 
   # deal with args_list as a block
   if(!is.null(args_list)){
-    if(!is.list(args_list)) stop("args_list must be a named list")
-    if(is.null(names(args_list))) stop("args_list must be a named list")
-    if(any(nchar(names(args_list)) == 0)) stop("args_list must be a named list")
+    assert_named_list(args_list)
     # don't break backward compatibility
     names(args_list) <- gsub("^--", "", names(args_list))
     # format for scheduler
     names(args_list) <- paste0("--", names(args_list))
+    # auto-convert simple vectors to comma-separated strings
+    if(arg_vecs_to_comma_str) args_list <- apply_comma_string_to_list(args_list)
   }
 
   ## Build array string
