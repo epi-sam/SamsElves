@@ -4,14 +4,14 @@
 #'
 #' @param code_root [path] Path to top-level code repo folder, require: path
 #'   contains a `.git` subfolder
-#' @param jobname_filter [regex] When you run `sacct -u <username>`, what
+#' @param jobname_filter [regex] When you run `squeue -u <username>`, what
 #'   `JobName` indicates your interactive Rstudio session? (case-sensitive)
 #'   - see defaults
 #' @param submitline_n_char [int] Length of submitted command string to expect
-#'   from system `sacct -j <jobid> -o submitline\%xxx` call (set this much
+#'   from system `squeue -j <jobid> -o submitline\%xxx` call (set this much
 #'   longer than you'd think necessary)
 #' @param regex_to_extract [regex] What string do you want to extract after
-#'   running  `sacct -j <jobid> -o submitline\%xxx` (default - find Rstudio
+#'   running  `squeue -j <jobid> -o submitline\%xxx` (default - find Rstudio
 #'   image for provenance)
 #' @param regex_to_ignore [regex] If your `regex_to_extract` command finds more
 #'   strings than you want, this removes all strings matching this pattern
@@ -85,7 +85,7 @@ build_metadata_shell <- function(
       "Metadata shell from code root: {code_root}
       - user:                  {system_user_name}
       - cluster type:          {cluster_type}
-      - sacct JobName filter:  {jobname_filter}
+      - squeue JobName filter:  {jobname_filter}
       - extracting string:     {regex_to_extract}
       - ignoring string:       {regex_to_ignore}"
     ))
@@ -101,7 +101,7 @@ build_metadata_shell <- function(
 
     Matched no jobs to jobname_filter argument. User argument : '{jobname_filter}'
     - Returning git information, but no system information (e.g. n_cores and rstudio image are unknown)
-    - Please update: call 'sacct -u <your_username>' from the command line.
+    - Please update: call 'squeue -u <your_username>' from the command line.
     - Use '^' with the beginning JobName string as your jobname_filter argument.
     - e.g. '^rst_ide' or '^vscode'
 
@@ -115,19 +115,19 @@ build_metadata_shell <- function(
 
 }
 
-#' Find a string in a user's recent Slurm sacct
+#' Find a string in a user's recent Slurm squeue
 #'
 #' Intended to find Rstudio singularity image versions for metadata.  Finds a
 #' user-defined string from the submission command you used to start your
 #' Rstudio singularity image (or something else you desire).  Extracts this
-#' informtion from ALL jobs you currently have active in your sacct.
+#' informtion from ALL jobs you currently have active in your squeue.
 #'
-#' @param jobname_filter [character|regex] When you run `sacct -u <username>`,
+#' @param jobname_filter [character|regex] When you run `squeue -u <username>`,
 #'   what `NAME` do you want to filter for?
 #' @param submitline_n_char [int] Length of submitted command string to expect
 #'   from system (set this much longer than you'd think necessary)
 #' @param regex_to_extract [character|regex] What string do you want to extract
-#'   after running  `sacct -j <jobid> -o submitline\%xxx`
+#'   after running  `squeue -j <jobid> -o submitline\%xxx`
 #' @param regex_to_ignore [character|regex] If your `regex_to_extract` command
 #'   finds more strings than you want, this removes strings with the specified
 #'   pattern
@@ -161,7 +161,7 @@ extract_submission_commands <- function(
                         cluster_type     = cluster_type)
   jobid_vec <- jobs_df$jobid
 
-  # use sacct to extract original rstudio image submission commands
+  # use squeue to extract original rstudio image submission commands
   # only works if rstudio was started from CLI, not from API
   # https://ihme.slack.com/archives/C01MPBPJ37U/p1659111543571669
 
@@ -203,7 +203,7 @@ extract_submission_commands <- function(
 #' @param system_user_name [chr] string identifying user on the cluster
 #' @param jobname_filter [regex] filter the user's jobs to include this string
 #' @param cluster_type [chr] allows methods by cluster type, if multiple are
-#'   applicable - "slurm" uses `sacct`
+#'   applicable - "slurm" uses `squeue`
 #'
 #' @return [data.frame] long by jobid, wide by jobid and jobname
 #'
@@ -220,8 +220,9 @@ job_finder <- function(system_user_name,
 
   # read job accounting list from cluster
   jobs_txt <- system2(
-    command = glue::glue("/opt/slurm/bin/sacct"), # use full path to pass testing
-    args    = glue::glue("-u {system_user_name} --format=JobID%16,JobName%16,State%10"),
+    command = glue::glue("/opt/slurm/bin/squeue"), # use full path to pass testing
+    # args    = glue::glue("-u {system_user_name} --format=JobID%16,JobName%16,State%10"), # sacct formatting
+    args    = glue::glue("-u {system_user_name} --format='%.18i %.40j %.10T'"), # squeue formatting
     stdout  = TRUE
   )
 
@@ -230,7 +231,8 @@ job_finder <- function(system_user_name,
   # format, filter & extract jobids & jobnames in a table
   names(jobs_df)      <- tolower(names(jobs_df))
   jobs_df             <- jobs_df[jobs_df$state == 'RUNNING', ]
-  jobname_filter_mask <- grepl(jobname_filter, jobs_df[["jobname"]])
+  # jobname_filter_mask <- grepl(jobname_filter, jobs_df[["jobname"]]) # sacct name
+  jobname_filter_mask <- grepl(jobname_filter, jobs_df[["name"]]) # squeue name
   jobs_df             <- jobs_df[jobname_filter_mask, ]
 
   return(jobs_df)
@@ -242,7 +244,7 @@ job_finder <- function(system_user_name,
 #' Intended to pull Rstudio image information
 #' - Currently only supports one valid string found per submission command
 #'
-#' @param submit_command_text [chr] the result of calling "sacct -j <INT> -o
+#' @param submit_command_text [chr] the result of calling "squeue -j <INT> -o
 #'   submitline\%<INT>"
 #' @param regex_to_extract [regex] pattern to extract from `submit_command_text`
 #' @param regex_to_ignore [regex] ignore strings found with this pattern
@@ -306,7 +308,7 @@ extract_command_string <- function (submit_command_text,
 
 #' Extract number of interactive user cores
 #'
-#' NOTE: This step finds cores with squeue, rather than sacct - eases formatting
+#' NOTE: This step finds cores with squeue, rather than squeue - eases formatting
 #'
 #' @param system_user_name [chr] how user is identified on the cluster
 #' @param jobname_filter [regex] filter to include for `job_finder()` call
