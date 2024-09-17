@@ -147,6 +147,7 @@ test_that(
       metadata_shell <- build_metadata_shell(code_root = file.path("/mnt/share/code/", Sys.getenv()["USER"], "SamsElves"),
                                              jobname_filter = "JUNK_JOBNAME_FILTER"),
       regexp = "Metadata warning:
+
 Matched no jobs to jobname_filter argument."
 
     )

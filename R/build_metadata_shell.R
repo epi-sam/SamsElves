@@ -59,7 +59,7 @@ build_metadata_shell <- function(
     git_branch      = gsub("\n", "", readLines(file.path(code_root, ".git/HEAD"))),
     git_log_last    = git_log_last,
     git_hash        = git_hash,
-    git_uncommitted = SamsElves::query_git_diff(code_root = code_root)
+    git_uncommitted = query_git_diff(code_root = code_root)
   )
 
   metadata_shell <- list(
@@ -68,7 +68,7 @@ build_metadata_shell <- function(
     code_root       = code_root,
     GIT             = GIT,
 
-    SUBMIT_COMMANDS = SamsElves::extract_submission_commands(
+    SUBMIT_COMMANDS = extract_submission_commands(
       jobname_filter    = jobname_filter,
       submitline_n_char = submitline_n_char,
       regex_to_extract  = regex_to_extract,
@@ -98,11 +98,17 @@ build_metadata_shell <- function(
 
   if(nrow(jobs_df) == 0) message(glue::glue(
     "Metadata warning:
+
     Matched no jobs to jobname_filter argument. User argument : '{jobname_filter}'
     - Returning git information, but no system information (e.g. n_cores and rstudio image are unknown)
     - Please update: call 'sacct -u <your_username>' from the command line.
     - Use '^' with the beginning JobName string as your jobname_filter argument.
-    - e.g. '^rst_ide' or '^vscode' "
+    - e.g. '^rst_ide' or '^vscode'
+
+    IMPORTANT:
+    - build_metadata_shell DOES NOT SUPPORT OR ENDORSE the Rstudio GUI launcher:
+       - Impossible to capture the Rstudio Singularity Image version (you will not have provenance)
+    "
   ))
 
   return(metadata_shell)
@@ -336,8 +342,8 @@ extract_cores <- function(system_user_name,
   # validate dimensions
   more_than_one_interactive_session <- ncol(n_cores_df) > 1 | nrow(n_cores_df) > 1
   if(more_than_one_interactive_session) {
-    message ("Metadata warning:
-             Attempting to find # of cores produced more than one option (either # or jobs or # of columns) - please inspect.
+    message ("\nMetadata warning:
+             Attempting to find # of cores did not produce a single option (either # or jobs or # of columns) - please inspect.
              Returning n_cores = 1, efficiency may be reduced.\n",
              paste(capture.output(n_cores_df), collapse = "\n"))
     n_cores <- 1
