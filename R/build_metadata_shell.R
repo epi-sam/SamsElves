@@ -1,3 +1,7 @@
+# TODO SB - 2024 Sep 17
+# Consider and renv:: lockfile
+# https://rstudio.github.io/renv/articles/renv.html
+
 #' Build metadata from a template
 #'
 #' Defaults currently designed for interactive Rstudio sessions.
@@ -75,7 +79,9 @@ build_metadata_shell <- function(
       regex_to_ignore   = regex_to_ignore,
       system_user_name  = system_user_name,
       cluster_type      = cluster_type
-    )
+    ),
+
+    sessionInfo = extract_sessionInfo()
 
   )
 
@@ -353,4 +359,46 @@ extract_cores <- function(system_user_name,
     n_cores <- n_cores_df$CPUS
   }
   return(as.integer(n_cores))
+}
+
+#' Extract key pieces of session info to avoid metadata bloat
+#'
+#' @param fields [chr] package info fields to extract from sessionInfo
+#'
+#' @return [list] sessionInfo with only the specified fields
+#' @export
+#'
+#' @examples
+#' extract_sessionInfo()
+extract_sessionInfo <- function(
+    fields = c(
+      "Package"
+      , "Title"
+      , "Version"
+      , "Depends"
+      , "Imports"
+      , "Date/Publication"
+    )
+){
+  si <- sessionInfo()
+  # Pull out necessary bits of package info
+  pkg_list <- si$loadedOnly
+
+  pkg_extract <- lapply(pkg_list, function(pkg){
+
+    pkg_fields <- lapply(seq_along(fields), function(idx) {
+      if(fields[idx] %in% names(pkg)) {
+        field_info <- pkg[[fields[idx]]]
+      } else {
+        field_info <- NA_character_
+      }
+      return(field_info)
+    })
+
+    names(pkg_fields) <- fields
+    return(pkg_fields)
+  })
+
+  si$loadedOnly <- pkg_extract
+  return(si)
 }
