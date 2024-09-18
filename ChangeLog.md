@@ -18,10 +18,9 @@ build_metadata_shell
 
 - added:
   - utils
-- refined (warning - some old args updated for consistency):
+- refined 
   - submit_job
   - submit_job_array
-    - all T/F args updated to `arg_tf` syntax
     - added console-style log option (combine stderr and stdout)
 
 ## 2023-12-04
