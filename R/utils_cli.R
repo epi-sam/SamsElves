@@ -29,13 +29,34 @@ comma_string_to_vec <- function(string){
   return(strsplit(string, ",")[[1]])
 }
 
+#' Convert atomic list elements to comma strings
+#'
+#' Facilitates arg-parsing at the command line.
+#'
+#' @param lst [list] a list of (potentially) atomic vectors
+#'
+#' @return [list] a list with atomic elements converted to comma-separated strings
+#' @export
+#'
+#' @examples
+#' apply_comma_string_to_list(list(1:5, c("a")))
+#' [[1]]
+#' [1] "1,2,3,4,5"
+#'
+#' [[2]]
+#' [1] "a"
+apply_comma_string_to_list <- function(lst){
+  if(!all(unlist(lapply(lst, is.atomic)))) stop("All elements of the list must be atomic vectors - no nested lists allowed.")
+  return(lapply(lst, vec_to_comma_string))
+}
+
 #' Are all elements of a vector contiguous integers?
 #'
 #' Useful for checking if a vector is a valid array task list.
 #' - uses user-submitted order
 #'
 #' @param x [int] an integer vector
-#'
+#'::
 #' @return [lgl] TRUE if all elements are contiguous integers
 #' @export
 #'
@@ -47,3 +68,4 @@ is_sequential_int_vec <- function(x){
   if(anyNA(x)) stop("NA values are not allowed")
   return(all(diff(x, lag = 1, differences = 1) == 1))
 }
+

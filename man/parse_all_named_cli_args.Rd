@@ -9,6 +9,7 @@ parse_all_named_cli_args(
   trailingOnly = TRUE,
   assign_logical = TRUE,
   assign_integer = TRUE,
+  split_comma_str = TRUE,
   assignment_env = globalenv()
 )
 }
@@ -28,6 +29,9 @@ passed to `commandArgs()`}
 
 \item{assign_integer}{[lgl] if TRUE, assign solely numeric args to integer
 e.g. 5 to `5L`}
+
+\item{split_comma_str}{[lgl] if TRUE, split comma-separated strings into
+vectors}
 
 \item{assignment_env}{[env] which environment to assign CLI arguments to as
 named variables}

@@ -8,7 +8,7 @@ message("path_script:  ", path_script)
 message("std_err_root: ", std_err_root)
 stopifnot(file.exists(path_script))
 
-test_that("parse_all_named_cli_args works",
+test_that("parse_all_named_cli_args works and submit_job produces the correct std_err log.",
           {
 
             args_list <- list(
@@ -16,20 +16,22 @@ test_that("parse_all_named_cli_args works",
               , flag1   = "true"
               , flag2   = 5
               , flag3   = "happy_birthday"
-              , flag4   = vec_to_comma_string(seq(1,8,2))
+              # , flag4   = vec_to_comma_string(seq(1,8,2)) # not required if using `arg_vecs_to_comma_str` argument
+              , flag4   = seq(1,8,2)
             )
 
             job_id <- submit_job(
-              script_path    = path_script
-              , threads      = 1L
-              , mem          = "100M"
-              , runtime_min  = 1
-              , archiveTF   = FALSE
-              , job_name     = "test_arg_parse"
-              , account      = "proj_cov_vpd"
-              , std_err_root = std_err_root
-              , dry_runTF   = FALSE
-              , args_list    = args_list
+              script_path             = path_script
+              , threads               = 1L
+              , mem                   = "100M"
+              , runtime_min           = 1
+              , archiveTF             = FALSE
+              , job_name              = "test_arg_parse"
+              , account               = "proj_cov_vpd"
+              , std_err_root          = std_err_root
+              , dry_runTF             = FALSE
+              , args_list             = args_list
+              , arg_vecs_to_comma_str = TRUE
             )
 
             wait_on_slurm_job_id(job_id              = job_id

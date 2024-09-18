@@ -22,6 +22,7 @@ submit_job_array(
   std_out_root = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
   console_style_log_tf = FALSE,
   args_list = NULL,
+  arg_vecs_to_comma_str = TRUE,
   verbose = TRUE,
   v_verbose = FALSE,
   dry_runTF = FALSE
@@ -61,6 +62,8 @@ submit_job_array(
 \item{console_style_log_tf}{[lgl] if TRUE, combine std_err and std_out into one log in the std_out_root}
 
 \item{args_list}{[list, chr] optional list() of arguments, e.g. list("--arg1" = arg1, "--arg2" = arg2)}
+
+\item{arg_vecs_to_comma_str}{[lgl] if TRUE, convert atomic elements of args_list to comma-separated strings}
 
 \item{verbose}{[lgl] print submission command and job_id}
 

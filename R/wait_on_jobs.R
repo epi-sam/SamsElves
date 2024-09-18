@@ -1,4 +1,4 @@
-# Given string pattern matching job name, wait while jobs are running or pending (SLURM)
+#' Given string pattern matching job name, wait while jobs are running or pending (SLURM)
 #'
 #' @param job_pattern [regex] a (perl) regular expression - submitted to `gnu grep` system commend
 #'
@@ -12,6 +12,10 @@
 #' @return [std_out] message to user
 #' @export
 #'
+#' @examples
+#' \dontrun{
+#' wait_on_jobs(job_pattern = "my_job_name")
+#' }
 wait_on_jobs <- function(job_pattern,
                          jobname_nchar     = 50L,
                          initial_sleep_sec = 5L,

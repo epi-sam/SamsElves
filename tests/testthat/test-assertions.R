@@ -116,19 +116,19 @@ test_that(
 
     expect_error(
       assert_list_elements_and_types(list(a = 1, b = 2), list("numeric", b = "character")),
-      regexp = "check_items must be a named list, not vector or data.frame \\(list names may not be whitespace\\).  If you want to allow a data.frame, set allow_data_frame = TRUE."
+      regexp = "truth_list must be a named list, not vector or data.frame \\(list names may not be whitespace\\).  If you want to allow a data.frame, set allow_data_frame = TRUE."
     )
 
     expect_message(
       expect_error(
         assert_list_elements_and_types(list(a = 1, b = 2), list(a = "numeric", b = "character")),
-        regexp = "The following check_list data types did not match the check_items data types: a, b"
+        regexp = "The following check_list data types did not match the truth_list data types: a, b"
       )
     )
 
     expect_error(
       assert_list_elements_and_types(list(a = 1, b = 2), list(a = "double", b = "double", c = "double")),
-      regexp = "The following check_items were not found in check_list: c"
+      regexp = "The following truth_list were not found in check_list: c"
     )
 
   }
