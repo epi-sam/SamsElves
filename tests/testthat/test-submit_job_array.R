@@ -211,7 +211,7 @@ test_that(
 )
 
 
-test_that("Submitted array job works",
+test_that("Submitted array job works and produces the correct std_out logs.",
           {
             root_code    <- dirname(dirname(getwd())) # devtools::test()
             # root_code    <- getwd()                 # interactive
@@ -225,19 +225,19 @@ test_that("Submitted array job works",
             stopifnot(file.exists(path_script))
 
             job_id <- submit_job_array(
-              script_path       = path_script,
-              threads           = 1L,
-              array_tasks_int   = array_tasks_int,
-              archiveTF         = FALSE,
-              mem               = "100M",
-              runtime_min       = 5L,
-              partition         = "all.q,long.q",
-              account           = "proj_cov_vpd",
-              std_err_root      = std_err_root,
-              std_out_root      = std_out_root,
+              script_path          = path_script,
+              threads              = 1L,
+              array_tasks_int      = array_tasks_int,
+              archiveTF            = FALSE,
+              mem                  = "100M",
+              runtime_min          = 5L,
+              partition            = "all.q,long.q",
+              account              = "proj_cov_vpd",
+              std_err_root         = std_err_root,
+              std_out_root         = std_out_root,
               console_style_log_tf = TRUE,
-              args_list         = list(root_code = root_code),
-              dry_runTF         = FALSE
+              args_list            = list(root_code = root_code),
+              dry_runTF            = FALSE
             )
 
             wait_on_slurm_job_id(job_id              = job_id

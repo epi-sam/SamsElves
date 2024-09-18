@@ -8,7 +8,7 @@ message("path_script:  ", path_script)
 message("std_err_root: ", std_err_root)
 stopifnot(file.exists(path_script))
 
-test_that("parse_all_named_cli_args works",
+test_that("parse_all_named_cli_args works and submit_job produces the correct std_err log.",
           {
 
             args_list <- list(

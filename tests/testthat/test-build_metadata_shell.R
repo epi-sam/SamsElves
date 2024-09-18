@@ -5,6 +5,8 @@ test_str_list <- list(first = "my_string", second = "bacon")
 test_regex_1 <- "string"
 test_regex_2 <- c("string", "bacon")
 
+n_rstudio_sessions <- length(system(paste0("squeue -u ", Sys.info()[["user"]], " | grep 'rst_ide' "), intern = TRUE))
+
 # extract_command_string -------------------------------------------------------
 
 test_that(
@@ -104,12 +106,12 @@ submit_command_list <- extract_submission_commands(
 )
 
 test_that(
-  "extract_submission_commands returns a correctly shaped object (will FAIL if you have >1 Rstudio session)",
+  "extract_submission_commands returns a correctly shaped object (may FAIL if you have >1 Rstudio session, or need to define how your rstudio session jobs are named (see how n_rstudio_sessions is defined))",
   {
 
     submit_command_template <- c(
-      submission_commands   = 1,
-      extracted_cmd_strings = 1,
+      submission_commands   = n_rstudio_sessions,
+      extracted_cmd_strings = n_rstudio_sessions,
       n_cores               = 1
     )
 
@@ -121,9 +123,9 @@ test_that(
 )
 
 test_that(
-  "extract_submission_commands returns at least one character per item (will FAIL if you have >1 Rstudio session)",
+  "extract_submission_commands returns at least one character per item.",
   {
-    for(submit_command_item in submit_command_list){
+    for(submit_command_item in unlist(submit_command_list)){
       expect_gte(nchar(submit_command_item), 1)
     }
   }
@@ -134,7 +136,7 @@ test_that(
   "metadata_shell produces a list with the correctly named top-level items",
   {
     metadata_shell <- build_metadata_shell(code_root = file.path("/mnt/share/code/", Sys.getenv()["USER"], "SamsElves"))
-    metadata_shell_names <- c("start_time", "user", "code_root", "GIT", "SUBMIT_COMMANDS")
+    metadata_shell_names <- c("start_time", "user", "code_root", "GIT", "SUBMIT_COMMANDS", "sessionInfo")
     expect_type(metadata_shell, "list")
     expect_equal(names(metadata_shell), metadata_shell_names)
   }
