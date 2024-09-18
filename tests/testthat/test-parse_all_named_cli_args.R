@@ -22,12 +22,12 @@ test_that("parse_all_named_cli_args works and submit_job produces the correct st
 
             job_id <- submit_job(
               script_path             = path_script
+              , job_name              = "test_arg_parse"
               , threads               = 1L
               , mem                   = "100M"
               , runtime_min           = 1
               , archiveTF             = FALSE
               , array_tasks_int       = NULL
-              , job_name              = "test_arg_parse"
               , account               = "proj_cov_vpd"
               , std_err_root          = std_err_root
               , dry_runTF             = FALSE
@@ -39,12 +39,13 @@ test_that("parse_all_named_cli_args works and submit_job produces the correct st
             wait_on_slurm_job_id(job_id              = job_id
                                  , initial_sleep_sec = 5
                                  , cycle_sleep_sec   = 5)
-            sleep_sec <- 10
+            sleep_sec <- 20
             message("Sleeping ", sleep_sec, " seconds while logs write to disk.")
             Sys.sleep(sleep_sec)
 
             # Read std_err log from disk
-            std_err_log_path <- file.path(std_err_root, paste0("test_arg_parse_e", job_id, ".log"))
+            std_err_log_path <- file.path(std_err_root, paste0("test_arg_parse_", job_id, "e.log"))
+            msg_multiline(std_err_log_path)
             stopifnot(file.exists(std_err_log_path))
             std_err_log <- readLines(std_err_log_path)
 

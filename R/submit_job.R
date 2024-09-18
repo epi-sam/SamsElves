@@ -7,7 +7,7 @@
 #' @param threads [int] cluster resource requirement
 #' @param mem [chr] cluster resource requirement
 #' @param runtime_min [num] cluster resource requirement
-#' @param array_tasks_int [int] vector of integers for you array (e.g. c(1L:10L))
+#' @param array_tasks_int [int] (default: NULL - if not NULL, array job is assumed) - vector of integers for you array (e.g. c(1L:10L))
 #' @param archiveTF [lgl] (default FALSE) do you need an archive node?
 #' @param job_name [chr] Will be name of script if NULL
 #' @param partition [chr] a.k.a. 'queue' - cluster resource requirement
@@ -67,8 +67,8 @@ submit_job <- function(
   if(is.null(threads))         stop("Please define a number of threads")
   if(is.null(mem))             stop("Please define a memory requirement e.g. '30G' or '300M'")
   if(is.null(runtime_min))     stop("Please define a runtime requirement")
-  # if(is.null(array_tasks_int)) stop("Please define a vector of integers for you array e.g. 1L:10L")
-  if(!is.null(array_tasks_int)) stopifnot(is.integer(array_tasks_int))
+  is_array_job <- ifelse(!is.null(array_tasks_int), TRUE, FALSE)
+  if(is_array_job) stopifnot(is.integer(array_tasks_int))
   stopifnot(is.logical(console_style_log_tf))
   stopifnot(is.logical(archiveTF))
   stopifnot(is.logical(verbose))
@@ -113,7 +113,7 @@ submit_job <- function(
   ## format for scheduler
   # https://slurm.schedmd.com/sbatch.html#SECTION_FILENAME-PATTERN
 
-  log_format <- ifelse(!is.null(array_tasks_int), "%x_%A_%a", "%x_%j")
+  log_format <- ifelse(is_array_job, "%x_%A_%a", "%x_%j")
 
   if(console_style_log_tf){
     std_err_path <- std_out_path <- file.path(std_out_root, paste0(log_format, "_console.log"))
@@ -145,7 +145,7 @@ submit_job <- function(
   }
 
   array_cmd_string <-
-    if(!is.null(array_tasks_int)){
+    if(is_array_job){
       ## Build array string
       array_tasks_string <-
         paste0(
@@ -205,7 +205,7 @@ submit_job <- function(
   submission_return <- system(command, intern = TRUE)
   job_id <- regmatches(submission_return, gregexpr("\\d+$", submission_return))
 
-  array_message <- ifelse(is.null(array_tasks_string), "", "array")
+  array_message <- ifelse(is_array_job, "array", "")
 
   if(length(job_id) > 1) warning("job_id from submitted job '",  job_name ,"' is longer than 1, inspect before use.")
   job_id <- as.integer(unlist(job_id))
