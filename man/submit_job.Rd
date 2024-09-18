@@ -26,6 +26,7 @@ submit_job(
   verbose = TRUE,
   v_verbose = FALSE,
   send_email = FALSE,
+  email_address = paste0(Sys.getenv()[["USER"]], "@uw.edu"),
   dry_runTF = FALSE
 )
 }

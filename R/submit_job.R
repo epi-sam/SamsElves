@@ -50,6 +50,7 @@ submit_job <- function(
     verbose               = TRUE,
     v_verbose             = FALSE,
     send_email            = FALSE,
+    email_address         = paste0(Sys.getenv()[["USER"]], "@uw.edu"),
     dry_runTF             = FALSE
 ) {
 
@@ -162,7 +163,7 @@ submit_job <- function(
 
   email_cmd_string <-
     if(send_email){
-      paste0(" --mail-type=END --mail-user=", Sys.getenv()[["USER"]], "@uw.edu")
+      paste0(" --mail-type=END --mail-user=", email_address)
     } else {
       ""
     }
