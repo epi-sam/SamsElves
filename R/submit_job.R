@@ -7,13 +7,14 @@
 #' @param threads [int] cluster resource requirement
 #' @param mem [chr] cluster resource requirement
 #' @param runtime_min [num] cluster resource requirement
+#' @param array_tasks_int [int] vector of integers for you array (e.g. c(1L:10L))
 #' @param archiveTF [lgl] (default FALSE) do you need an archive node?
 #' @param job_name [chr] Will be name of script if NULL
 #' @param partition [chr] a.k.a. 'queue' - cluster resource requirement
 #' @param account [chr] a.k.a. 'project' - cluster resource requirement
 #' @param hold_for_JobIDs vector of jobids that must complete successfully before running this job (https://slurm.schedmd.com/sbatch.html#OPT_dependency)
 #' @param language [chr] coding language for job (see valid_langs validation)
-#' @param r_image [chr] (default "latest.img") e.g. "/ihme/singularity-images/rstudio/ihme_rstudio_4214.img"
+#' @param r_image [chr] (default "latest.img") e.g. "/mnt/share/singularity-images/rstudio/ihme_rstudio_4214.img"
 #' @param shell_script_path [path] path to shell script (language-specific)
 #' @param std_err_root [chr] path for Slurm std_err logs
 #' @param std_out_root [chr] path for Slurm std_out logs
@@ -22,6 +23,7 @@
 #' @param arg_vecs_to_comma_str [lgl] if TRUE, convert atomic elements of args_list to comma-separated strings
 #' @param verbose [lgl] print submission command and job_id
 #' @param v_verbose [lgl] print log paths
+#' @param send_email [lgl] send email on job completion?
 #' @param dry_runTF [lgl] (default FALSE) if TRUE, only message and return submission command, no job submission
 #'
 #' @return [int] job_id of submitted job, also messsage with job_id and job_name
@@ -31,6 +33,7 @@ submit_job <- function(
     threads               = 2L,
     mem                   = "10G",
     runtime_min           = 15L,
+    array_tasks_int       = NULL,
     archiveTF             = TRUE,
     job_name              = NULL,
     partition             = "all.q",
@@ -46,6 +49,7 @@ submit_job <- function(
     arg_vecs_to_comma_str = TRUE,
     verbose               = TRUE,
     v_verbose             = FALSE,
+    send_email            = FALSE,
     dry_runTF             = FALSE
 ) {
 
@@ -57,23 +61,26 @@ submit_job <- function(
   language        <- tolower(language)
   if(!language %in% valid_langs) stop("Input a valid language (case insensitive): ", valid_langs_msg)
   ## others
-  if(is.null(script_path)) stop("Please define a valid script path to submit")
-  if(is.null(account))     stop("Please define a Slurm account e.g. proj_cov_vpd")
-  if(is.null(partition))   stop("Please define a Slurm partition e.g. all.q")
-  if(is.null(threads))     stop("Please define a number of threads")
-  if(is.null(mem))         stop("Please define a memory requirement e.g. '30G' or '300M'")
-  if(is.null(runtime_min)) stop("Please define a runtime requirement")
+  if(is.null(script_path))     stop("Please define a valid script path to submit")
+  if(is.null(account))         stop("Please define a Slurm account e.g. proj_cov_vpd")
+  if(is.null(partition))       stop("Please define a Slurm partition e.g. all.q")
+  if(is.null(threads))         stop("Please define a number of threads")
+  if(is.null(mem))             stop("Please define a memory requirement e.g. '30G' or '300M'")
+  if(is.null(runtime_min))     stop("Please define a runtime requirement")
+  # if(is.null(array_tasks_int)) stop("Please define a vector of integers for you array e.g. 1L:10L")
+  if(!is.null(array_tasks_int)) stopifnot(is.integer(array_tasks_int))
   stopifnot(is.logical(console_style_log_tf))
   stopifnot(is.logical(archiveTF))
   stopifnot(is.logical(verbose))
   stopifnot(is.logical(v_verbose))
-  stopifnot(is.logical(dry_runTF))
   stopifnot(is.logical(arg_vecs_to_comma_str))
+  stopifnot(is.logical(send_email))
+  stopifnot(is.logical(dry_runTF))
   # build log folders silently (dir.create fails naturally if directory exists)
   dir.create(std_err_root, recursive = TRUE, showWarnings = FALSE)
   dir.create(std_out_root, recursive = TRUE, showWarnings = FALSE)
   if(!is.null(hold_for_JobIDs)){
-     if(!is.vector(hold_for_JobIDs, mode = "integer")) stop("hold_for_JobIDs must be a simple integer vector")
+    if(!is.vector(hold_for_JobIDs, mode = "integer")) stop("hold_for_JobIDs must be a simple integer vector")
   }
 
   # Define commands
@@ -105,12 +112,25 @@ submit_job <- function(
 
   ## format for scheduler
   # https://slurm.schedmd.com/sbatch.html#SECTION_FILENAME-PATTERN
+
+  log_format <- ifelse(!is.null(array_tasks_int), "%x_%A_%a", "%x_%j")
+
   if(console_style_log_tf){
-    std_err_path <- std_out_path <- file.path(std_out_root, "%x_%j_console.log")
+    std_err_path <- std_out_path <- file.path(std_out_root, paste0(log_format, "_console.log"))
+    # paste0(log_format, "_console.log")
   } else {
-    std_err_path <- file.path(std_err_root, "%x_e%j.log")
-    std_out_path <- file.path(std_out_root, "%x_o%j.log")
+    std_err_path <- file.path(std_err_root, paste0(log_format, "e.log"))
+    std_out_path <- file.path(std_out_root, paste0(log_format, "o.log"))
+    # paste0(log_format, ".log")
   }
+
+  # if(console_style_log_tf){
+  #   std_err_path <- std_out_path <- file.path(std_out_root, "%x_%j_console.log")
+  # } else {
+  #   std_err_path <- file.path(std_err_root, "%x_e%j.log")
+  #   std_out_path <- file.path(std_out_root, "%x_o%j.log")
+  # }
+
   archive_cmd  <- ifelse(archiveTF, " -C archive", "")
 
   # deal with args_list as a block
@@ -122,30 +142,54 @@ submit_job <- function(
     names(args_list) <- paste0("--", names(args_list))
     # auto-convert simple vectors to comma-separated strings
     if(arg_vecs_to_comma_str) args_list <- apply_comma_string_to_list(args_list)
-
   }
+
+  array_cmd_string <-
+    if(!is.null(array_tasks_int)){
+      ## Build array string
+      array_tasks_string <-
+        paste0(
+          " --array=",
+          ifelse(
+            is_sequential_int_vec(array_tasks_int),
+            paste0(min(array_tasks_int), "-", max(array_tasks_int)), # concise if sequential
+            vec_to_comma_string(array_tasks_int) # specific integers otherwise
+          )
+        )
+    } else {
+      ""
+    }
+
+  email_cmd_string <-
+    if(send_email){
+      paste0(" --mail-type=END --mail-user=", Sys.getenv()[["USER"]], "@uw.edu")
+    } else {
+      ""
+    }
 
   # build system command string
   command <- paste0(
-    "sbatch",
-    " -J ",    job_name,
-    "",        archive_cmd,
-    " --mem=", mem,
-    " -c ",    threads,
-    " -t ",    runtime_min,
-    " -p ",    partition,
-    " -A ",    account,
-    " -e ",    std_err_path,
-    " -o ",    std_out_path,
-    " "   ,    shell_script_path,
-    " "   ,    r_image_cmd,
-    " -s ",    script_path
+    "sbatch"
+    , " -J ",    job_name
+    , "",        archive_cmd
+    , " --mem=", mem
+    , " -c ",    threads
+    , " -t ",    runtime_min
+    , " -p ",    partition
+    , " -A ",    account
+    , array_cmd_string
+    , email_cmd_string
+    , " -e ",    std_err_path
+    , " -o ",    std_out_path
+    , " "   ,    shell_script_path
+    , " "   ,    r_image_cmd
+    , " -s ",    script_path
   )
 
   # add hold_for_JobIDs if exists
   if(!is.null(hold_for_JobIDs)){
-     hold_ids <- paste(hold_for_JobIDs, collapse = ":")
-     command  <- paste0(command, " --dependency=afterok:", hold_ids)
+    hold_ids <- paste(hold_for_JobIDs, collapse = ":")
+    command  <- paste0(command, " --dependency=afterok:", hold_ids)
   }
 
   # append extra arguments - handles NULL input by default
@@ -161,10 +205,12 @@ submit_job <- function(
   submission_return <- system(command, intern = TRUE)
   job_id <- regmatches(submission_return, gregexpr("\\d+$", submission_return))
 
+  array_message <- ifelse(is.null(array_tasks_string), "", "array")
+
   if(length(job_id) > 1) warning("job_id from submitted job '",  job_name ,"' is longer than 1, inspect before use.")
   job_id <- as.integer(unlist(job_id))
 
-  if(verbose)   message(paste("\n", submission_return, " : ", job_name, "\n"))
+  if(verbose)   message(paste("\n", array_message, submission_return, " : ", job_name, "\n"))
   if(v_verbose) message("Logs saved to: \n", paste0(unique(c(std_out_path, std_err_path)), collapse = "\n"), "\n")
 
   return(job_id)
