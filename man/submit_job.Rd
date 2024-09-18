@@ -9,6 +9,7 @@ submit_job(
   threads = 2L,
   mem = "10G",
   runtime_min = 15L,
+  array_tasks_int = NULL,
   archiveTF = TRUE,
   job_name = NULL,
   partition = "all.q",
@@ -24,6 +25,8 @@ submit_job(
   arg_vecs_to_comma_str = TRUE,
   verbose = TRUE,
   v_verbose = FALSE,
+  send_email = FALSE,
+  email_address = paste0(Sys.getenv()[["USER"]], "@uw.edu"),
   dry_runTF = FALSE
 )
 }
@@ -35,6 +38,8 @@ submit_job(
 \item{mem}{[chr] cluster resource requirement}
 
 \item{runtime_min}{[num] cluster resource requirement}
+
+\item{array_tasks_int}{[int] (default: NULL - if not NULL, array job is assumed) - vector of integers for you array (e.g. c(1L:10L))}
 
 \item{archiveTF}{[lgl] (default FALSE) do you need an archive node?}
 
@@ -48,7 +53,7 @@ submit_job(
 
 \item{language}{[chr] coding language for job (see valid_langs validation)}
 
-\item{r_image}{[chr] (default "latest.img") e.g. "/ihme/singularity-images/rstudio/ihme_rstudio_4214.img"}
+\item{r_image}{[chr] (default "latest.img") e.g. "/mnt/share/singularity-images/rstudio/ihme_rstudio_4214.img"}
 
 \item{shell_script_path}{[path] path to shell script (language-specific)}
 
@@ -65,6 +70,8 @@ submit_job(
 \item{verbose}{[lgl] print submission command and job_id}
 
 \item{v_verbose}{[lgl] print log paths}
+
+\item{send_email}{[lgl] send email on job completion?}
 
 \item{dry_runTF}{[lgl] (default FALSE) if TRUE, only message and return submission command, no job submission}
 }
