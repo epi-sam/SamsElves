@@ -16,5 +16,5 @@ extract_cores(system_user_name, jobname_filter, cluster_type)
 - if user has more than one interactive session, defaults to 1
 }
 \description{
-NOTE: This step finds cores with squeue, rather than sacct - eases formatting
+NOTE: This step finds cores with squeue, rather than squeue - eases formatting
 }

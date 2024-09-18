@@ -19,16 +19,16 @@ build_metadata_shell(
 \item{code_root}{[path] Path to top-level code repo folder, require: path
 contains a `.git` subfolder}
 
-\item{jobname_filter}{[regex] When you run `sacct -u <username>`, what
+\item{jobname_filter}{[regex] When you run `squeue -u <username>`, what
 `JobName` indicates your interactive Rstudio session? (case-sensitive)
 - see defaults}
 
 \item{submitline_n_char}{[int] Length of submitted command string to expect
-from system `sacct -j <jobid> -o submitline\%xxx` call (set this much
+from system `squeue -j <jobid> -o submitline\%xxx` call (set this much
 longer than you'd think necessary)}
 
 \item{regex_to_extract}{[regex] What string do you want to extract after
-running  `sacct -j <jobid> -o submitline\%xxx` (default - find Rstudio
+running  `squeue -j <jobid> -o submitline\%xxx` (default - find Rstudio
 image for provenance)}
 
 \item{regex_to_ignore}{[regex] If your `regex_to_extract` command finds more

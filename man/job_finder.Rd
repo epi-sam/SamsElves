@@ -12,7 +12,7 @@ job_finder(system_user_name, jobname_filter, cluster_type = "slurm")
 \item{jobname_filter}{[regex] filter the user's jobs to include this string}
 
 \item{cluster_type}{[chr] allows methods by cluster type, if multiple are
-applicable - "slurm" uses `sacct`}
+applicable - "slurm" uses `squeue`}
 }
 \value{
 [data.frame] long by jobid, wide by jobid and jobname

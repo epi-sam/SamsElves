@@ -2,7 +2,7 @@
 % Please edit documentation in R/build_metadata_shell.R
 \name{extract_submission_commands}
 \alias{extract_submission_commands}
-\title{Find a string in a user's recent Slurm sacct}
+\title{Find a string in a user's recent Slurm squeue}
 \usage{
 extract_submission_commands(
   jobname_filter,
@@ -14,14 +14,14 @@ extract_submission_commands(
 )
 }
 \arguments{
-\item{jobname_filter}{[character|regex] When you run `sacct -u <username>`,
+\item{jobname_filter}{[character|regex] When you run `squeue -u <username>`,
 what `NAME` do you want to filter for?}
 
 \item{submitline_n_char}{[int] Length of submitted command string to expect
 from system (set this much longer than you'd think necessary)}
 
 \item{regex_to_extract}{[character|regex] What string do you want to extract
-after running  `sacct -j <jobid> -o submitline\%xxx`}
+after running  `squeue -j <jobid> -o submitline\%xxx`}
 
 \item{regex_to_ignore}{[character|regex] If your `regex_to_extract` command
 finds more strings than you want, this removes strings with the specified
@@ -39,5 +39,5 @@ pattern}
 Intended to find Rstudio singularity image versions for metadata.  Finds a
 user-defined string from the submission command you used to start your
 Rstudio singularity image (or something else you desire).  Extracts this
-informtion from ALL jobs you currently have active in your sacct.
+informtion from ALL jobs you currently have active in your squeue.
 }

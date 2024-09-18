@@ -11,7 +11,7 @@ extract_command_string(
 )
 }
 \arguments{
-\item{submit_command_text}{[chr] the result of calling "sacct -j <INT> -o
+\item{submit_command_text}{[chr] the result of calling "squeue -j <INT> -o
 submitline\%<INT>"}
 
 \item{regex_to_extract}{[regex] pattern to extract from `submit_command_text`}
