@@ -2,18 +2,22 @@
 % Please edit documentation in R/utils_io.R
 \name{read_file}
 \alias{read_file}
-\title{Read a file of approved format}
+\title{Read a file of an arbitrary type}
 \usage{
-read_file(f_path, verbose = FALSE)
+read_file(path_to_file, verbose = FALSE, csv_opt = "data.table::fread", ...)
 }
 \arguments{
-\item{f_path}{[path]}
+\item{path_to_file}{[chr] full path with extenstion}
 
-\item{verbose}{[lgl]}
+\item{verbose}{[lgl] noisy or quiet function?}
+
+\item{csv_opt}{[chr] namespaced function call for csv reads (default `"data.table::fread"`)}
+
+\item{...}{[any] additional arguments to pass to the reader function}
 }
 \value{
-[obj] use this to assign a file to an R object
+[file] an object of appropriate file type
 }
 \description{
-Read a file of approved format
+Read a file of an arbitrary type
 }

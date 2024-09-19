@@ -2,16 +2,23 @@ ChangeLog for SamsElves Package
 
 --------------------------------------------------------------------------------
 
+## 2024-09-19 v.0.3.2
+
+- updated:
+  - `read_file`
+    - now includes option for custom csv reading function since `data.table::fread` can have quotation-doubling issues
+    - also includes `...` arg to pass additional user-desired args to the reader function (works for any underlying reader function)
+
 ## 2024-09-18
 
 - deprecated:
-  - submit_job_array (functionality now handled by submit_job natively)
+  - `submit_job_array` (functionality now handled by submit_job natively)
 - updated:
-  - submit_job
+  - `submit_job`
   - parse_all_named_cli_args
     - Now accepts atomic vectors for CLI arguments, converts to a comma-separated string, and then converts back to a vector of the correct type when parsed (behavior allowed by default, but can be turned off).
     - option to send email to user when job completes
-  - build_metadata_shell
+  - `build_metadata_shell`
     - switched from sacct to squeue for performance
     - now includes a selection of sessionInfo for R version, package versions, etc. for pipeline provenance
 
@@ -21,30 +28,30 @@ ChangeLog for SamsElves Package
 - added:
   - utils
 - refined:
-  - submit_job & submit_job_array
+  - `submit_job` & `submit_job_array`
     - added console-style log option (combine stderr and stdout)
 
 ## 2023-12-04
 
 - deprecated: 
-  - define_roots
-  - detach_user_packages
-  - get_version_from_path
-  - preflight_checks
+  - `define_roots`
+  - `detach_user_packages`
+  - `get_version_from_path`
+  - `preflight_checks`
     
 - added:
   - **test suite**
   - is_x
-  - make_versioned_dir
-  - prep_path
-  - submit_job
-  - submit_job_array
+  - `make_versioned_dir`
+  - `prep_path`
+  - `submit_job`
+  - `submit_job_array`
   - utils_io
-  - wait_on_jobs
+  - `wait_on_jobs`
 
 
 ## 2022-04-15
 
 - added
-  - preflight_checks
-  - children_of_parents
+  - `preflight_checks`
+  - `children_of_parents`
