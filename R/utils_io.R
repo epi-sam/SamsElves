@@ -113,42 +113,41 @@ save_file <- function(object, f_path, forbid_overwrite = TRUE, verbose = FALSE){
   }
 }
 
-#' Read a file of approved format
+#' Read a file of an arbitrary type
 #'
-#' @param f_path [path]
-#' @param verbose [lgl]
+#' @param path_to_file [chr] full path with extenstion
+#' @param verbose [lgl] noisy or quiet function?
+#' @param csv_opt [chr] namespaced function call for csv reads (default `"data.table::fread"`)
+#' @param ... [any] additional arguments to pass to the reader function
 #'
-#' @return [obj] use this to assign a file to an R object
+#' @return [file] an object of appropriate file type
 #' @export
-read_file <- function(f_path, verbose = FALSE){
+read_file <- function(path_to_file, verbose = FALSE, csv_opt = "data.table::fread", ...){
 
-  valid_file_extensions <- paste(
-    c("csv", "yaml", "rds"),
-    collapse = ", "
+  if(verbose) message("Reading file: ", path_to_file)
+
+  # format for the switch
+  ext <- tools::file_ext(path_to_file)
+  suppressWarnings(numeric_chk <- as.numeric(ext))
+  if(is.numeric(numeric_chk) & !is.na(numeric_chk)) stop("File extension is numeric, must be character: ", ext)
+  ext <- tolower(ext)
+  if(!grepl("::", csv_opt)) stop("csv_opt must be a namespaced function call e.g. data.table::fread - instead got ", csv_opt)
+  valid_file_extensions <- toString(c("csv", "yaml", "rds", "json"))
+
+  read_fun <- switch(
+    ext,
+    "csv"  = getFromNamespace(
+      x  = strsplit(csv_opt, "::")[[1]][2],
+      ns = strsplit(csv_opt, "::")[[1]][1]
+    ),
+    "yaml" = yaml::read_yaml,
+    "rds"  = readRDS,
+    "json" = jsonlite::fromJSON,
+    {
+      stop(paste0("This function only supports ", valid_file_extensions, " file extensions (case-insensitive)."),
+           " Update if more options are needed: ", ext)
+    }
   )
 
-  if(!file.exists(f_path)){
-
-    warning("File does not exist : ", f_path)
-    return(NULL) # warning returns a std_out string, for some reason
-
-  } else {
-
-    ext <- find_file_extension(f_path)
-    if(is.numeric(ext)) stop("File extension is numeric, must be character.")
-    ext <- tolower(ext)
-
-    if(verbose) msg_prt(paste("Reading file:", f_path))
-
-    switch(
-      ext,
-      "csv"  = {data.table::fread(f_path)},
-      "yaml" = {yaml::read_yaml(f_path)},
-      "rds"  = {readRDS(f_path)},
-      {
-        stop(glue::glue("This function only supports {valid_file_extensions} file extensions (case-insensitive)."),
-             " Update if more options are needed.")
-      }
-    )
-  }
+  return(read_fun(path_to_file, ...))
 }
