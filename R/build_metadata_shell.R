@@ -405,24 +405,5 @@ extract_sessionInfo <- function(
 
   }
 
-  # pkg_list <- si$loadedOnly
-  #
-  # pkg_extract <- lapply(pkg_list, function(pkg){
-  #
-  #   pkg_fields <- lapply(seq_along(fields), function(idx) {
-  #     if(fields[idx] %in% names(pkg)) {
-  #       field_info <- pkg[[fields[idx]]]
-  #     } else {
-  #       field_info <- NA_character_
-  #     }
-  #     return(field_info)
-  #   })
-  #
-  #   names(pkg_fields) <- fields
-  #   return(pkg_fields)
-  # })
-  #
-  # si$loadedOnly <- pkg_extract
-
   return(si)
 }
