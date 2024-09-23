@@ -211,7 +211,7 @@ submit_job <- function(
   if(length(job_id) > 1) warning("job_id from submitted job '",  job_name ,"' is longer than 1, inspect before use.")
   job_id <- as.integer(unlist(job_id))
 
-  if(verbose)   message(paste("\n", array_message, submission_return, " : ", job_name, "\n"))
+  if(verbose)   message(paste("\n", submission_return, array_message, " : ", job_name, "\n"))
   if(v_verbose) message("Logs saved to: \n", paste0(unique(c(std_out_path, std_err_path)), collapse = "\n"), "\n")
 
   return(job_id)

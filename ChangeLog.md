@@ -2,6 +2,17 @@ ChangeLog for SamsElves Package
 
 --------------------------------------------------------------------------------
 
+## 2024-09-23 v.0.3.3
+
+- updated:
+  - `build_metadata_shell`
+    - now trims sessionInfo for `otherPkgs` as well as `loadedOnly` to reduce metadata bloat.
+- added:
+  - `increment_file_version`
+    - adds a `_v1`/`_v2`/etc. to the end of a file name to increment the version number
+    - retains original file extension
+
+
 ## 2024-09-19 v.0.3.2
 
 - updated:
