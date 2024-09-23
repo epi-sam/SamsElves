@@ -151,3 +151,41 @@ read_file <- function(path_to_file, verbose = FALSE, csv_opt = "data.table::frea
 
   return(read_fun(path_to_file, ...))
 }
+
+#' If a file exists, get a new path with `v1`, `v2`, etc. appended
+#'
+#' If file does not exist, return the original path
+#'
+#' @param outpath [chr] full path to file
+#'
+#' @return [chr] new path with version number appended (if necessary)
+#' @export
+#'
+#' @examples
+#' dir.create(tempdir(), recursive = TRUE, showWarnings = FALSE)
+#' fname_old <- "test_file.csv"
+#' file.create(file.path(tempdir(), fname_old))
+#' list.files(tempdir()) # [1] "test_file.csv"
+#' fname_new <- increment_file_version(file.path(tempdir(), "test_file.csv"))
+#' file.create(fname_new)
+#' list.files(tempdir()) # 1] "test_file_v1.csv" "test_file.csv"
+#' file.remove(c(file.path(tempdir(), fname_old), fname_new))
+increment_file_version <- function(outpath){
+  if(file.exists(outpath)){
+    fname_og <- basename(outpath)
+    fname_split <- strsplit(fname_og, "\\.")[[1]]
+    dirname_og <- dirname(outpath)
+    outpath_new <- file.path(dirname_og, paste0(fname_split[1], "_v1", ".", fname_split[2]))
+    idx <- 2
+
+    while(file.exists(outpath_new)){
+      fname_new <- paste0(fname_split[1], "_v", idx, ".", fname_split[2])
+      outpath_new <- file.path(dirname_og, paste0(fname_new))
+      idx <- idx + 1
+    }
+  } else {
+    outpath_new <- outpath
+  }
+
+  return(outpath_new)
+}

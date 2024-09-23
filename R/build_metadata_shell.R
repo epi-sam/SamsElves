@@ -381,24 +381,29 @@ extract_sessionInfo <- function(
     )
 ){
   si <- sessionInfo()
-  # Pull out necessary bits of package info
-  pkg_list <- si$loadedOnly
 
-  pkg_extract <- lapply(pkg_list, function(pkg){
+  # Pull out necessary bits of package info for various sub-lists under the
+  # sessionInfo list
+  for(sublist in c("loadedOnly", "otherPkgs")){
 
-    pkg_fields <- lapply(seq_along(fields), function(idx) {
-      if(fields[idx] %in% names(pkg)) {
-        field_info <- pkg[[fields[idx]]]
-      } else {
-        field_info <- NA_character_
-      }
-      return(field_info)
+    pkg_info_extracted <- lapply(si[[sublist]], function(pkg){
+
+      pkg_fields <- lapply(seq_along(fields), function(idx) {
+        if(fields[idx] %in% names(pkg)) {
+          field_info <- pkg[[fields[idx]]]
+        } else {
+          field_info <- NA_character_
+        }
+        return(field_info)
+      })
+
+      names(pkg_fields) <- fields
+      return(pkg_fields)
     })
 
-    names(pkg_fields) <- fields
-    return(pkg_fields)
-  })
+    si[[sublist]] <- pkg_info_extracted
 
-  si$loadedOnly <- pkg_extract
+  }
+
   return(si)
 }
