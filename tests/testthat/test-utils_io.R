@@ -244,6 +244,18 @@ test_that("get_latest_output_dir errors correctly", {
 })
 
 
+test_that("get_new_output_dir functionality works", {
+
+  # create random root directory with self-teardown (`teardown()` is deprecated)
+  withr::local_file(dir_full)
+  dir.create(dir_full)
+
+  # expect bootstrap to work
+  expect_equal(file.path(dir_full, "1999_09_09.01"), get_new_output_dir(root = dir_full, date = "1999_09_09"))
+  expect_false(dir.exists(file.path(dir_full, "1999_09_09.01")))
+})
+
+
 test_that("make_new_output_dir functionality works", {
 
   # create random root directory with self-teardown (`teardown()` is deprecated)

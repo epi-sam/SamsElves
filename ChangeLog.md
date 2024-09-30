@@ -5,8 +5,10 @@ ChangeLog for SamsElves Package
 ## 2024-09-30 v.0.3.4
 
 - added:
-  - utils_io.R
-    - `make_new_output_dir` - create a version-incremented run-date folder, supported by `get_latest_output_dir` and `get_latest_output_date_index`
+  - utils_io.R from ihme.covid package
+    - `make_new_output_dir` - create a version-incremented run-date folder based on a 'YYYY_MM_DD.VV' run-date folder structure
+      - supported by `get_latest_output_date_index` and `get_new_output_dir`
+    - `get_latest_output_dir` - get the latest output directory based on a 'YYYY_MM_DD.VV' run-date folder structure
     - added tests, updated deprecated methods
 - documented:
   - some previously undocumented helper functions for various methods (not exported)

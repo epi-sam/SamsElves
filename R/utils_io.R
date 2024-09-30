@@ -248,6 +248,31 @@ get_latest_output_dir <- function(root) {
 }
 
 
+
+#' Increment a new output folder date-version
+#'
+#' Get a new directory path, but don't make it
+#'
+#' @param root [chr] path to root of output results
+#' @param date [chr] character date in form of "YYYY_MM_DD" or "today". "today" will be interpreted as today's date.
+#'
+#' @return [chr] path to new output direcctory
+#' @export
+#'
+#' @examples
+#' get_new_output_dir(root = tempdir(), date = "today")
+get_new_output_dir <- function(root, date){
+  if (date == "today") {
+    date <- format(Sys.Date(), "%Y_%m_%d")
+  }
+  cur.version <- get_latest_output_date_index(root, date = date)
+
+  dir.name <- sprintf("%s.%02i", date, cur.version + 1)
+  dir.path <- file.path(root, dir.name)
+  return(dir.path)
+}
+
+
 #' Get output directory for results to save in
 #'
 #' Returns an appropriate path to save results in, creating it if necessary.
@@ -263,13 +288,7 @@ get_latest_output_dir <- function(root) {
 #' make_new_output_dir("my/root/folder", date = "today")
 #' }
 make_new_output_dir <- function(root, date) {
-  if (date == "today") {
-    date <- format(Sys.Date(), "%Y_%m_%d")
-  }
-  cur.version <- get_latest_output_date_index(root, date = date)
-
-  dir.name <- sprintf("%s.%02i", date, cur.version + 1)
-  dir.path <- file.path(root, dir.name)
+  dir.path <- get_new_output_dir(root, date)
   if (!dir.exists(dir.path)) {
     # handle quirk with singularity image default umask
     old.umask <- Sys.umask()
