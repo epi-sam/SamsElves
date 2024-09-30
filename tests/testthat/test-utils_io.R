@@ -169,7 +169,7 @@ test_that("read_file errors correctly",
             )
           })
 
-test_that(".csv option errors and works properly with alternate functions",
+test_that("read_file .csv option errors and works properly with alternate functions",
           {
             withr::local_file(dir_full)
             dir.create(dir_full)
@@ -194,7 +194,7 @@ test_that(".csv option errors and works properly with alternate functions",
           })
 
 
-test_that("... works to pass extra args to reader function",
+test_that("read_file ... works to pass extra args to reader function",
           {
             withr::local_file(dir_full)
             dir.create(dir_full)
@@ -213,8 +213,70 @@ test_that("... works to pass extra args to reader function",
 
           })
 
+
+# cribbed from ihme.covid repo
+test_that("get_latest_output_date_index returns 0 if no dirs exist", {
+  # neither of these directories exist
+  expect_equal(0, get_latest_output_date_index("/does/not/exist", date = "2001_01_01"))
+  expect_equal(0, get_latest_output_date_index("fixtures/versioned-dirs/2000_01_01", date = "2001_01_01"))
+})
+
+test_that("get_latest_output_date_index returns correct value", {
+  expect_equal(2, get_latest_output_date_index("fixtures/versioned-dirs/nested/1999_09_09", date = "1999_09_09"))
+})
+
+test_that("get_latest_output_dir works", {
+  latest_dir <- get_latest_output_dir(root = "fixtures/versioned-dirs/nested/1999_09_09")
+
+  expect_equal(latest_dir, "fixtures/versioned-dirs/nested/1999_09_09/1999_09_09.02")
+})
+
+test_that("get_latest_output_dir errors correctly", {
+  expect_error(
+    get_latest_output_dir(root = "fixtures/DOES-NOT-EXIST"),
+    "root fixtures/DOES-NOT-EXIST does not exist"
+  )
+
+  expect_error(
+    get_latest_output_dir(root = "fixtures/versioned-dirs"),
+    "No YYYY_MM_DD.VV directories in fixtures/versioned-dirs"
+  )
+})
+
+
+test_that("get_new_output_dir functionality works", {
+
+  # create random root directory with self-teardown (`teardown()` is deprecated)
+  withr::local_file(dir_full)
+  dir.create(dir_full)
+
+  # expect bootstrap to work
+  expect_equal(file.path(dir_full, "1999_09_09.01"), get_new_output_dir(root = dir_full, date = "1999_09_09"))
+  expect_false(dir.exists(file.path(dir_full, "1999_09_09.01")))
+})
+
+
+test_that("make_new_output_dir functionality works", {
+
+  # create random root directory with self-teardown (`teardown()` is deprecated)
+  withr::local_file(dir_full)
+  dir.create(dir_full)
+
+  # expect bootstrap to work
+  expect_equal(file.path(dir_full, "1999_09_09.01"), make_new_output_dir(root = dir_full, date = "1999_09_09"))
+  expect_true(dir.exists(file.path(dir_full, "1999_09_09.01")))
+
+  # incrementing automatically happens
+  expect_equal(file.path(dir_full, "1999_09_09.02"), make_new_output_dir(root = dir_full, date = "1999_09_09"))
+
+  # handle convenience "today" value
+  today.v1 <- format(Sys.Date(), "%Y_%m_%d.01")
+  expect_equal(file.path(dir_full, today.v1), make_new_output_dir(root = dir_full, date = "today"))
+})
+
+
 # Last test
-test_that("tempdir (dir_parent) exists and dir_full does not",
+test_that("test cleanup works - tempdir (dir_parent) exists and dir_full does not",
           {
             expect_true(dir.exists(dir_parent))
             expect_false(dir.exists(dir_full))

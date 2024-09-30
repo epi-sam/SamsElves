@@ -214,12 +214,14 @@ wait_on_slurm_job_id <-
     print(paste0("Job(s) ", job_id_msg, " no longer PENDING, RUNNING, or FAILED. Time elapsed: ", job.runtime, " seconds"))
   }
 
+#' Helper function for wait_on_slurm_job_id - how do you want jobs to break and display user messages?
+#'
 #' @param cmd_fail [chr]
 #' @param cmd_fail_feedback [chr]
 #' @param job_id_regex_raw [regex]
 #' @param filter_by [chr]
 #'
-#' @description Helper function for wait_on_slurm_job_id - how do you want jobs to break and display user messages?
+#' @return [none] stop on failure
 break_for_failed_jobs <-
   function(
     cmd_fail,

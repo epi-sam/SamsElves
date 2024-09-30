@@ -7,11 +7,11 @@
 read_file(path_to_file, verbose = FALSE, csv_opt = "data.table::fread", ...)
 }
 \arguments{
-\item{path_to_file}{[chr] full path with extenstion}
+\item{path_to_file}{[chr] full path with extension}
 
 \item{verbose}{[lgl] noisy or quiet function?}
 
-\item{csv_opt}{[chr] namespaced function call for csv reads (default `"data.table::fread"`)}
+\item{csv_opt}{[chr] name spaced function call for csv reads (default `"data.table::fread"`)}
 
 \item{...}{[any] additional arguments to pass to the reader function}
 }

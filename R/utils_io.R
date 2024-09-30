@@ -115,9 +115,9 @@ save_file <- function(object, f_path, forbid_overwrite = TRUE, verbose = FALSE){
 
 #' Read a file of an arbitrary type
 #'
-#' @param path_to_file [chr] full path with extenstion
+#' @param path_to_file [chr] full path with extension
 #' @param verbose [lgl] noisy or quiet function?
-#' @param csv_opt [chr] namespaced function call for csv reads (default `"data.table::fread"`)
+#' @param csv_opt [chr] name spaced function call for csv reads (default `"data.table::fread"`)
 #' @param ... [any] additional arguments to pass to the reader function
 #'
 #' @return [file] an object of appropriate file type
@@ -188,4 +188,113 @@ increment_file_version <- function(outpath){
   }
 
   return(outpath_new)
+}
+
+
+#' get the latest index for given an output dir and a date
+#'
+#' directories are assumed to be named in YYYY_MM_DD.VV format with sane
+#' year/month/date/version values.
+#'
+#' @param dir [chr] path to directory with versioned dirs
+#' @param date [chr] character in be YYYY_MM_DD format
+#'
+#' @return [dbl] largest version in directory tree or 0 if there are no version OR
+#' the directory tree does not exist
+#' @export
+#'
+#' @examples
+#' get_latest_output_date_index("tests/testthat/fixtures/versioned-dirs/nested/1999_09_09", date = "1999_09_09") # expect 2
+get_latest_output_date_index <- function(dir, date) {
+  currentfolders <- list.files(dir)
+
+  # subset to date
+  pat <- sprintf("^%s[.]\\d{2}$", date)
+  date_dirs <- grep(pat, currentfolders, value = TRUE)
+
+  if (length(date_dirs) == 0) {
+    return(0)
+  }
+
+  # get the index after day
+  date_list <- strsplit(date_dirs, "[.]")
+
+  inds <- unlist(lapply(date_list, function(x) x[2]))
+  if (is.na(max(inds, na.rm = T))) inds <- 0
+
+  return(max(as.numeric(inds)))
+}
+
+
+#' Find the latest output directory with format YYYY_MM_DD.VV
+#'
+#' @param root [chr] path to root of output results
+#'
+#' @return [chr] path to latest output directory
+#' @export
+#'
+#' @examples
+#' get_latest_output_dir("tests/testthat/fixtures/versioned-dirs/nested/1999_09_09") # expect "tests/testthat/fixtures/versioned-dirs/nested/1999_09_09/1999_09_09.02"
+get_latest_output_dir <- function(root) {
+  if (!dir.exists(root)) {
+    stop(sprintf("root %s does not exist", root))
+  }
+  raw <- list.dirs(root, full.names = FALSE, recursive = FALSE)
+  valid.idx <- grep("^\\d{4}_\\d{2}_\\d{2}[.]\\d{2}$", raw)
+  if (length(valid.idx) == 0) {
+    stop(sprintf("No YYYY_MM_DD.VV directories in %s", root))
+  }
+  return(file.path(root, max(raw[valid.idx])))
+}
+
+
+
+#' Increment a new output folder date-version
+#'
+#' Get a new directory path, but don't make it
+#'
+#' @param root [chr] path to root of output results
+#' @param date [chr] character date in form of "YYYY_MM_DD" or "today". "today" will be interpreted as today's date.
+#'
+#' @return [chr] path to new output direcctory
+#' @export
+#'
+#' @examples
+#' get_new_output_dir(root = tempdir(), date = "today")
+get_new_output_dir <- function(root, date){
+  if (date == "today") {
+    date <- format(Sys.Date(), "%Y_%m_%d")
+  }
+  cur.version <- get_latest_output_date_index(root, date = date)
+
+  dir.name <- sprintf("%s.%02i", date, cur.version + 1)
+  dir.path <- file.path(root, dir.name)
+  return(dir.path)
+}
+
+
+#' Get output directory for results to save in
+#'
+#' Returns an appropriate path to save results in, creating it if necessary.
+#'
+#' @param root [chr] path to root of output results
+#' @param date [chr] character date in form of "YYYY_MM_DD" or "today". "today" will be interpreted as today's date.
+#'
+#' @return [chr] path to new output directory
+#' @export
+#'
+#' @examples
+#' \dontrun{
+#' make_new_output_dir("my/root/folder", date = "today")
+#' }
+make_new_output_dir <- function(root, date) {
+  dir.path <- get_new_output_dir(root, date)
+  if (!dir.exists(dir.path)) {
+    # handle quirk with singularity image default umask
+    old.umask <- Sys.umask()
+    Sys.umask("002")
+    dir.create(dir.path, showWarnings = FALSE, recursive = TRUE, mode = "0777")
+    Sys.umask(old.umask)
+  }
+  return(dir.path)
 }

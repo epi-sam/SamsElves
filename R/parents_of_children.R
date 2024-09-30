@@ -53,7 +53,13 @@ parent_of_child <- function(
        parent_level %i", child_location_id, head(hierarchy), parent_level))
 }
 
-#' @description Helper function to validate inputs to function
+#' Helper function to validate inputs to function
+#'
+#' @param child_location_id [int] ihme location_id
+#' @param hierarchy [data.table] ihme location hierarchy
+#' @param parent_level [int] ihme location level
+#'
+#' @return [none] stop on failure
 validate_parents_of_children_inputs <- function(child_location_id, hierarchy, parent_level){
   # Check for valid parent_level
   if(length(parent_level) != 1){
