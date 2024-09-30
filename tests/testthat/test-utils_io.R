@@ -169,7 +169,7 @@ test_that("read_file errors correctly",
             )
           })
 
-test_that(".csv option errors and works properly with alternate functions",
+test_that("read_file .csv option errors and works properly with alternate functions",
           {
             withr::local_file(dir_full)
             dir.create(dir_full)
@@ -194,7 +194,7 @@ test_that(".csv option errors and works properly with alternate functions",
           })
 
 
-test_that("... works to pass extra args to reader function",
+test_that("read_file ... works to pass extra args to reader function",
           {
             withr::local_file(dir_full)
             dir.create(dir_full)
@@ -213,14 +213,8 @@ test_that("... works to pass extra args to reader function",
 
           })
 
-# Last test
-test_that("tempdir (dir_parent) exists and dir_full does not",
-          {
-            expect_true(dir.exists(dir_parent))
-            expect_false(dir.exists(dir_full))
-          })
 
-
+# cribbed from ihme.covid repo
 test_that("get_latest_output_date_index returns 0 if no dirs exist", {
   # neither of these directories exist
   expect_equal(0, get_latest_output_date_index("/does/not/exist", date = "2001_01_01"))
@@ -251,19 +245,27 @@ test_that("get_latest_output_dir errors correctly", {
 
 
 test_that("make_new_output_dir functionality works", {
-  # create random root directory
-  root <- system("mktemp -d", intern = TRUE)
-  # run this cleanup code as teardown for the test
-  teardown(unlink(root, recursive = TRUE))
+
+  # create random root directory with self-teardown (`teardown()` is deprecated)
+  withr::local_file(dir_full)
+  dir.create(dir_full)
 
   # expect bootstrap to work
-  expect_equal(file.path(root, "1999_09_09.01"), make_new_output_dir(root = root, date = "1999_09_09"))
-  expect_true(dir.exists(file.path(root, "1999_09_09.01")))
+  expect_equal(file.path(dir_full, "1999_09_09.01"), make_new_output_dir(root = dir_full, date = "1999_09_09"))
+  expect_true(dir.exists(file.path(dir_full, "1999_09_09.01")))
 
   # incrementing automatically happens
-  expect_equal(file.path(root, "1999_09_09.02"), make_new_output_dir(root = root, date = "1999_09_09"))
+  expect_equal(file.path(dir_full, "1999_09_09.02"), make_new_output_dir(root = dir_full, date = "1999_09_09"))
 
   # handle convenience "today" value
   today.v1 <- format(Sys.Date(), "%Y_%m_%d.01")
-  expect_equal(file.path(root, today.v1), make_new_output_dir(root = root, date = "today"))
+  expect_equal(file.path(dir_full, today.v1), make_new_output_dir(root = dir_full, date = "today"))
 })
+
+
+# Last test
+test_that("test cleanup works - tempdir (dir_parent) exists and dir_full does not",
+          {
+            expect_true(dir.exists(dir_parent))
+            expect_false(dir.exists(dir_full))
+          })

@@ -115,9 +115,9 @@ save_file <- function(object, f_path, forbid_overwrite = TRUE, verbose = FALSE){
 
 #' Read a file of an arbitrary type
 #'
-#' @param path_to_file [chr] full path with extenstion
+#' @param path_to_file [chr] full path with extension
 #' @param verbose [lgl] noisy or quiet function?
-#' @param csv_opt [chr] namespaced function call for csv reads (default `"data.table::fread"`)
+#' @param csv_opt [chr] name spaced function call for csv reads (default `"data.table::fread"`)
 #' @param ... [any] additional arguments to pass to the reader function
 #'
 #' @return [file] an object of appropriate file type
@@ -204,12 +204,13 @@ increment_file_version <- function(outpath){
 #' @export
 #'
 #' @examples
+#' get_latest_output_date_index("tests/testthat/fixtures/versioned-dirs/nested/1999_09_09", date = "1999_09_09") # expect 2
 get_latest_output_date_index <- function(dir, date) {
   currentfolders <- list.files(dir)
 
   # subset to date
   pat <- sprintf("^%s[.]\\d{2}$", date)
-  date_dirs <- grep(pat, currentfolders, value = T)
+  date_dirs <- grep(pat, currentfolders, value = TRUE)
 
   if (length(date_dirs) == 0) {
     return(0)
@@ -233,6 +234,7 @@ get_latest_output_date_index <- function(dir, date) {
 #' @export
 #'
 #' @examples
+#' get_latest_output_dir("tests/testthat/fixtures/versioned-dirs/nested/1999_09_09") # expect "tests/testthat/fixtures/versioned-dirs/nested/1999_09_09/1999_09_09.02"
 get_latest_output_dir <- function(root) {
   if (!dir.exists(root)) {
     stop(sprintf("root %s does not exist", root))
@@ -257,6 +259,9 @@ get_latest_output_dir <- function(root) {
 #' @export
 #'
 #' @examples
+#' \dontrun{
+#' make_new_output_dir("my/root/folder", date = "today")
+#' }
 make_new_output_dir <- function(root, date) {
   if (date == "today") {
     date <- format(Sys.Date(), "%Y_%m_%d")

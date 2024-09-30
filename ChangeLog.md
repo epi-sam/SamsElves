@@ -2,6 +2,17 @@ ChangeLog for SamsElves Package
 
 --------------------------------------------------------------------------------
 
+## 2024-09-30 v.0.3.4
+
+- added:
+  - utils_io.R
+    - `make_new_output_dir` - create a version-incremented run-date folder, supported by `get_latest_output_dir` and `get_latest_output_date_index`
+    - added tests, updated deprecated methods
+- documented:
+  - some previously undocumented helper functions for various methods (not exported)
+
+
+
 ## 2024-09-23 v.0.3.3
 
 - updated:
@@ -13,12 +24,15 @@ ChangeLog for SamsElves Package
     - retains original file extension
 
 
+
 ## 2024-09-19 v.0.3.2
 
 - updated:
   - `read_file`
     - now includes option for custom csv reading function since `data.table::fread` can have quotation-doubling issues
     - also includes `...` arg to pass additional user-desired args to the reader function (works for any underlying reader function)
+
+
 
 ## 2024-09-18
 
@@ -34,6 +48,7 @@ ChangeLog for SamsElves Package
     - now includes a selection of sessionInfo for R version, package versions, etc. for pipeline provenance
 
 
+
 ## 2024-09-06
 
 - added:
@@ -41,6 +56,8 @@ ChangeLog for SamsElves Package
 - refined:
   - `submit_job` & `submit_job_array`
     - added console-style log option (combine stderr and stdout)
+
+
 
 ## 2023-12-04
 
