@@ -35,6 +35,8 @@
 #'    trailingOnly   = TRUE,
 #'    assign_logical = TRUE,
 #'    assign_integer = TRUE,
+#'    assign_NA       = TRUE,
+#'    assign_NULL     = TRUE,
 #'    assignment_env = globalenv()
 #' )
 #' }
@@ -43,9 +45,12 @@ parse_all_named_cli_args <- function(
     trailingOnly    = TRUE,
     assign_logical  = TRUE,
     assign_integer  = TRUE,
+    assign_NA       = TRUE,
+    assign_NULL     = TRUE,
     split_comma_str = TRUE,
     assignment_env  = globalenv()
 ) {
+
   # Validate inputs
   if (!is.null(required_args)) {
     assert_named_list(required_args)
@@ -58,6 +63,12 @@ parse_all_named_cli_args <- function(
   }
   if (!is.logical(assign_integer) | length(assign_integer) != 1) {
     stop("assign_integer must be a single logical")
+  }
+  if (!is.logical(assign_NA) | length(assign_NA) != 1) {
+    stop("assign_NA must be a single logical")
+  }
+  if (!is.logical(assign_NULL) | length(assign_NULL) != 1) {
+    stop("assign_NULL must be a single logical")
   }
   if (!is.logical(split_comma_str) | length(split_comma_str) != 1) {
     stop("split_comma_str must be a single logical")
@@ -96,6 +107,8 @@ parse_all_named_cli_args <- function(
   if(split_comma_str) message("Splitting comma-separated strings into vectors.")
   if(assign_logical) message("Assigning logical type to TRUE/FALSE args (case-insensitive)")
   if(assign_integer) message("Assigning integer type to solely numeric args (e.g. no decimals)")
+  if(assign_NA) message("Assigning NA type to args with 'NA' value")
+  if(assign_NULL) message("Assigning NULL type to args with 'NULL' value")
 
   for (key in names(args_list)) {
 
@@ -109,6 +122,18 @@ parse_all_named_cli_args <- function(
 
     if (all(grepl("^[0-9]+$", args_list[[key]])) & assign_integer) {
       args_list[[key]] <- as.integer(args_list[[key]])
+    }
+
+    if (all(grepl("^NA$", args_list[[key]])) & assign_NA) {
+      args_list[[key]] <- NA
+    }
+
+    if (all(grepl("^NaN$", args_list[[key]])) & assign_NA) {
+      args_list[[key]] <- NaN
+    }
+
+    if (all(grepl("^NULL$", args_list[[key]])) & assign_NULL) {
+      args_list[[key]] <- NULL
     }
   }
 

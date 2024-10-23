@@ -9,6 +9,8 @@ parse_all_named_cli_args(
   trailingOnly = TRUE,
   assign_logical = TRUE,
   assign_integer = TRUE,
+  assign_NA = TRUE,
+  assign_NULL = TRUE,
   split_comma_str = TRUE,
   assignment_env = globalenv()
 )
@@ -56,6 +58,8 @@ cli_args <- parse_all_named_cli_args(
    trailingOnly   = TRUE,
    assign_logical = TRUE,
    assign_integer = TRUE,
+   assign_NA       = TRUE,
+   assign_NULL     = TRUE,
    assignment_env = globalenv()
 )
 }
