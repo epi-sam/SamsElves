@@ -137,6 +137,9 @@ submit_job <- function(
   # deal with args_list as a block
   if(!is.null(args_list)){
     assert_named_list(args_list)
+    # nulls come through as "", which the cli doesn't like
+    # - parse_all_named_cli_args deals with the "NULL" string
+    args_list <- lapply(args_list, function(x) ifelse(is.null(x), "NULL", x))
     # don't break backward compatibility
     names(args_list) <- gsub("^--", "", names(args_list))
     # format for scheduler
@@ -147,7 +150,7 @@ submit_job <- function(
 
   array_cmd_string <-
     if(is_array_job){
-      ## Build array string
+      # Build array string
       array_tasks_string <-
         paste0(
           " --array=",
