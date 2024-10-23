@@ -28,6 +28,7 @@ test_that("parse_all_named_cli_args works and submit_job produces the correct st
               , runtime_min           = 1
               , archiveTF             = FALSE
               , array_tasks_int       = NULL
+              , partition             = "long.q"
               , account               = "proj_cov_vpd"
               , std_err_root          = std_err_root
               , dry_runTF             = FALSE
@@ -37,7 +38,7 @@ test_that("parse_all_named_cli_args works and submit_job produces the correct st
             )
 
             wait_on_slurm_job_id(job_id              = job_id
-                                 , initial_sleep_sec = 5
+                                 , initial_sleep_sec = 15
                                  , cycle_sleep_sec   = 5)
             sleep_sec <- 20
             message("Sleeping ", sleep_sec, " seconds while logs write to disk.")

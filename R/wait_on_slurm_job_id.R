@@ -109,6 +109,7 @@ wait_on_slurm_job_id <-
     filter_by <- c("state", unique(tolower(filter_by)))
 
     start.time <- proc.time()
+    print(paste("Waiting on job:", initial_sleep_sec, "second(s) before initial check."))
     Sys.sleep(initial_sleep_sec)
 
     # Break job_id into batches

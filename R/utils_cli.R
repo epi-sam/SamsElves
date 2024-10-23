@@ -46,7 +46,9 @@ comma_string_to_vec <- function(string){
 #' [[2]]
 #' [1] "a"
 apply_comma_string_to_list <- function(lst){
-  if(!all(unlist(lapply(lst, is.atomic)))) stop("All elements of the list must be atomic vectors - no nested lists allowed.")
+  # all list items must be atomic or NULL
+  all_valid <- unlist(lapply(lst, function(x) is.atomic(x) || is.null(x)))
+  if(!all(all_valid)) stop("All elements of the list must be atomic vectors or NULL - no nested lists allowed.")
   return(lapply(lst, vec_to_comma_string))
 }
 

@@ -2,6 +2,15 @@ ChangeLog for SamsElves Package
 
 --------------------------------------------------------------------------------
 
+## 2024-10-22 v.0.3.5
+
+- bugfixes:
+  - apply_comma_string_to_list - failed for NULL items
+  - parse_all_named_cli_args - new options to assign NA, NaN and NULL types (default TRUE)
+  - wait_on_slurm_job_ids - improved messaging
+
+
+
 ## 2024-09-30 v.0.3.4
 
 - added:
