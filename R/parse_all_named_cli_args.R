@@ -108,7 +108,6 @@ parse_all_named_cli_args <- function(
   if(assign_logical) message("Assigning logical type to TRUE/FALSE args (case-insensitive)")
   if(assign_integer) message("Assigning integer type to solely numeric args (e.g. no decimals)")
   if(assign_NA) message("Assigning NA type to args with 'NA' value")
-  if(assign_NULL) message("Assigning NULL type to args with 'NULL' value")
 
   for (key in names(args_list)) {
 
@@ -132,9 +131,6 @@ parse_all_named_cli_args <- function(
       args_list[[key]] <- NaN
     }
 
-    if (all(grepl("^NULL$", args_list[[key]])) & assign_NULL) {
-      args_list[[key]] <- NULL
-    }
   }
 
   if (!is.null(required_args)) {
@@ -147,7 +143,17 @@ parse_all_named_cli_args <- function(
   }
 
   message("Assigning args to chosen environment.")
-  list2env(args_list, envir = assignment_env)
+  # list2env(args_list, envir = assignment_env)
+  for(key in names(args_list)){
+    # if (all(grepl("^NULL$", args_list[[key]])) & assign_NULL) {
+    #   args_list[[key]] <- NULL
+    # }
+    assign(key, args_list[[key]], envir = assignment_env)
+    if ((all(grepl("^NULL$", args_list[[key]])) & assign_NULL)) {
+      message("Assigning NULL type to arg with 'NULL' value")
+      assign(key, NULL, envir = assignment_env)
+    }
+  }
   message(paste(capture.output(args_list), collapse = "\n"))
   # message(
   #   paste(
