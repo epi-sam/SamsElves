@@ -151,7 +151,7 @@ parse_all_named_cli_args <- function(
     message(key, " : ", toString(args_list[[key]]))
     assign(key, args_list[[key]], envir = assignment_env)
     if ((all(grepl("^NULL$", args_list[[key]])) & assign_NULL)) {
-      message("Assigning NULL type to arg with 'NULL' value")
+      message("Assigning NULL type to : ", key)
       assign(key, NULL, envir = assignment_env)
     }
   }
