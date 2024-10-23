@@ -155,17 +155,6 @@ parse_all_named_cli_args <- function(
       assign(key, NULL, envir = assignment_env)
     }
   }
-  # message(paste(capture.output(args_list), collapse = "\n"))
-  # message(
-  #   paste(
-  #     capture.output(
-  #       print.data.frame(
-  #         stack(args_list)[2:1],
-  #         right = FALSE)
-  #     ),
-  #     collapse = '\n'
-  #   )
-  # )
 
   return(args_list)
 }

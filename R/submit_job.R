@@ -118,34 +118,25 @@ submit_job <- function(
 
   if(console_style_log_tf){
     std_err_path <- std_out_path <- file.path(std_out_root, paste0(log_format, "_console.log"))
-    # paste0(log_format, "_console.log")
   } else {
     std_err_path <- file.path(std_err_root, paste0(log_format, "e.log"))
     std_out_path <- file.path(std_out_root, paste0(log_format, "o.log"))
-    # paste0(log_format, ".log")
   }
-
-  # if(console_style_log_tf){
-  #   std_err_path <- std_out_path <- file.path(std_out_root, "%x_%j_console.log")
-  # } else {
-  #   std_err_path <- file.path(std_err_root, "%x_e%j.log")
-  #   std_out_path <- file.path(std_out_root, "%x_o%j.log")
-  # }
 
   archive_cmd  <- ifelse(archiveTF, " -C archive", "")
 
   # deal with args_list as a block
   if(!is.null(args_list)){
     assert_named_list(args_list)
+    # auto-convert simple vectors to comma-separated strings
+    if(arg_vecs_to_comma_str) args_list <- apply_comma_string_to_list(args_list)
     # nulls come through as "", which the cli doesn't like
     # - parse_all_named_cli_args deals with the "NULL" string
-    args_list <- lapply(args_list, function(x) ifelse(is.null(x), "NULL", x))
+    args_list <- lapply(args_list, function(x) ifelse((is.null(x) || x == ""), "NULL", x))
     # don't break backward compatibility
     names(args_list) <- gsub("^--", "", names(args_list))
     # format for scheduler
     names(args_list) <- paste0("--", names(args_list))
-    # auto-convert simple vectors to comma-separated strings
-    if(arg_vecs_to_comma_str) args_list <- apply_comma_string_to_list(args_list)
   }
 
   array_cmd_string <-
