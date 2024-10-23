@@ -148,13 +148,14 @@ parse_all_named_cli_args <- function(
     # if (all(grepl("^NULL$", args_list[[key]])) & assign_NULL) {
     #   args_list[[key]] <- NULL
     # }
+    message(key, " : ", toString(args_list[[key]]))
     assign(key, args_list[[key]], envir = assignment_env)
     if ((all(grepl("^NULL$", args_list[[key]])) & assign_NULL)) {
       message("Assigning NULL type to arg with 'NULL' value")
       assign(key, NULL, envir = assignment_env)
     }
   }
-  message(paste(capture.output(args_list), collapse = "\n"))
+  # message(paste(capture.output(args_list), collapse = "\n"))
   # message(
   #   paste(
   #     capture.output(
