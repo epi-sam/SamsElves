@@ -132,7 +132,7 @@ submit_job <- function(
     if(arg_vecs_to_comma_str) args_list <- apply_comma_string_to_list(args_list)
     # nulls come through as "", which the cli doesn't like
     # - parse_all_named_cli_args deals with the "NULL" string
-    args_list <- lapply(args_list, function(x) ifelse((is.null(x) || x == ""), "NULL", x))
+    args_list <- lapply(args_list, function(x) ifelse(length(x) == 1 & (is.null(x) || x == ""), "NULL", x))
     # don't break backward compatibility
     names(args_list) <- gsub("^--", "", names(args_list))
     # format for scheduler
