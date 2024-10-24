@@ -104,7 +104,7 @@ assert_list_elements_and_types <- function(check_list, truth_list, allow_data_fr
   )
 
   if(!all(type_check)){
-    message(paste(capture.output(type_fail_df), collapse = "\n"))
+    message(prt_multiline(type_fail_df))
     stop("The following check_list data types did not match the truth_list data types: ", toString(type_fail_names))
   }
 

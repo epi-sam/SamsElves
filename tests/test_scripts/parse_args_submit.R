@@ -8,21 +8,30 @@ pre_parser$add_argument('--flag1')
 pre_parser$add_argument('--flag2')
 pre_parser$add_argument('--flag3')
 pre_parser$add_argument('--flag4')
+pre_parser$add_argument('--flag5')
+pre_parser$add_argument('--flag6')
+pre_parser$add_argument('--flag7')
 args      <- pre_parser$parse_args(commandArgs(trailingOnly = TRUE))
 root_code <- args$root_code
 message("code_root from per-parser: ", root_code)
 rm(pre_parser, args)
 
 message("Sourcing arg-parsing functions from user's code repo: ", root_code)
-source(file.path(root_code, "R/parse_all_named_cli_args.R"))
-source(file.path(root_code, "R/assertions.R"))
-source(file.path(root_code, "R/utils_cli.R"))
+# source(file.path(root_code, "R/parse_all_named_cli_args.R"))
+# source(file.path(root_code, "R/assertions.R"))
+# source(file.path(root_code, "R/utils_cli.R"))
+lapply(list.files(file.path(root_code, "R"), full.names = TRUE, recursive = FALSE, pattern = "\\.[Rr]"), source)
 
 required_flag_list <- list(
-  flag1 = "logical",
-  flag2 = "integer",
-  flag3 = NA, # if you don't care about the data type
-  flag4 = "integer" # integer vector checking allowed by `split_comma_str` argument
+  flag1 = "logical"
+  , flag2 = "integer"
+  , flag3 = NA # if you don't care about the data type
+  , flag4 = "integer" # integer vector checking allowed by `split_comma_str` argument
+  # NULLs
+  , flag5 = "NULL"
+  , flag6 = "NULL"
+  # NA
+  , flag7 = "logical"
 )
 
 cli_args <- parse_all_named_cli_args(

@@ -271,7 +271,7 @@ extract_command_string <- function (submit_command_text,
   if(length (extracted_strings) != 1) {
     stop("submit_command_list does not have only one element - investigate.
           You likely have more than one string or pattern specified. \n",
-         paste(capture.output(extracted_strings), collapse = "\n"))
+         prt_multiline(extracted_strings))
   }
 
   extracted_strings <- extracted_strings[[1]]
@@ -280,7 +280,7 @@ extract_command_string <- function (submit_command_text,
   if(length (extracted_strings) != 1) {
     stop("submit_command_list does not have only one element - investigate.
           You likely have more than one string or pattern specified. \n",
-         paste(capture.output(extracted_strings), collapse = "\n"))
+         prt_multiline(extracted_string))
   }
 
   # By default this is for finding the Rstudio image - resolve latest.img if found in the string
@@ -353,7 +353,7 @@ extract_cores <- function(system_user_name,
     message ("\nMetadata warning:
              Attempting to find # of cores did not produce a single option (either # or jobs or # of columns) - please inspect.
              Returning n_cores = 1, efficiency may be reduced.\n",
-             paste(capture.output(n_cores_df), collapse = "\n"))
+             prt_multiline(n_cores_df))
     n_cores <- 1
   } else {
     n_cores <- n_cores_df$CPUS

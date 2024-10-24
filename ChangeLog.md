@@ -2,6 +2,14 @@ ChangeLog for SamsElves Package
 
 --------------------------------------------------------------------------------
 
+## 2024-10-22 v.0.3.6
+
+- bugfixes:
+  - submit_job and parse_all_named_cli_args - fine-tuned NULL and NA value handling
+  - messaging system - more internally consistent implementation
+
+
+
 ## 2024-10-22 v.0.3.5
 
 - bugfixes:

@@ -109,18 +109,18 @@ wait_on_slurm_job_id <-
     filter_by <- c("state", unique(tolower(filter_by)))
 
     start.time <- proc.time()
-    print(paste("Waiting on job:", initial_sleep_sec, "second(s) before initial check."))
+    message("Waiting on job: ", initial_sleep_sec, " second(s) before initial check.")
     Sys.sleep(initial_sleep_sec)
 
     # Break job_id into batches
     batches_n <- ceiling(length(job_id)/batch_size)
-    if(max(batches_n) > 1) print(paste("Warning: You have submitted more than", batch_size, "JobIDs." ,
-                                       "Waiting for all jobs in batch_idx 1 before proceeding to batch_idx 2, etc. (grep limitation)"))
+    if(max(batches_n) > 1) message("Warning: You have submitted more than", batch_size, "JobIDs." ,
+                                       "Waiting for all jobs in batch_idx 1 before proceeding to batch_idx 2, etc. (grep limitation)")
 
     # Loop over the jobs in batches_n (too may job_ids leads to grep errors)
     for(batch_idx in 1:batches_n){
 
-      print(paste("Waiting on batch_idx:", batch_idx))
+      message("Waiting on batch_idx: ", batch_idx)
 
       job_idx <- list(
         first = batch_idx * batch_size - (batch_size - 1),
@@ -194,12 +194,12 @@ wait_on_slurm_job_id <-
       # Stop for immediately FAILED jobs
       if(break_on_failure) break_for_failed_jobs(cmd_fail, cmd_fail_feedback, job_id_regex_raw, filter_by)
 
-      print("seconds elapsed:")
+      message("seconds elapsed:")
 
       # Sleep while jobs matching `job_id` and user defined filters are RUNNING or PENDING
       while(length(suppressWarnings(system(cmd_pass, intern = T))) > 0 ) {
         Sys.sleep(cycle_sleep_sec)
-        print(round((proc.time() - start.time)[[3]],0))
+        message(round((proc.time() - start.time)[[3]],0))
         # Stop if any jobs have FAILED State
         if(break_on_failure) break_for_failed_jobs(cmd_fail, cmd_fail_feedback, job_id_regex_raw, filter_by)
       }
@@ -212,7 +212,7 @@ wait_on_slurm_job_id <-
 
     # Complete
     job_id_msg <- paste(job_id, collapse = ", ")
-    print(paste0("Job(s) ", job_id_msg, " no longer PENDING, RUNNING, or FAILED. Time elapsed: ", job.runtime, " seconds"))
+    message("Job(s) ", job_id_msg, " no longer PENDING, RUNNING, or FAILED. Time elapsed: ", job.runtime, " seconds")
   }
 
 #' Helper function for wait_on_slurm_job_id - how do you want jobs to break and display user messages?

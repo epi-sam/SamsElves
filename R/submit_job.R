@@ -128,11 +128,17 @@ submit_job <- function(
   # deal with args_list as a block
   if(!is.null(args_list)){
     assert_named_list(args_list)
-    # auto-convert simple vectors to comma-separated strings
-    if(arg_vecs_to_comma_str) args_list <- apply_comma_string_to_list(args_list)
     # nulls come through as "", which the cli doesn't like
     # - parse_all_named_cli_args deals with the "NULL" string
-    args_list <- lapply(args_list, function(x) ifelse(length(x) == 1 & (is.null(x) || x == ""), "NULL", x))
+    if(any(unlist(lapply(args_list, is_cli_null)))){
+      message(
+      "\nNULL and empty string ('') args will be converted to string literal 'NULL' for CLI compatibility.\n",
+      " - Ensure 'NULL' is parsed correctly by child scripts with SamsElves::parse_all_named_cli_args(), or by hand.\n"
+      )
+      args_list <- lapply(args_list, function(x) if (is_cli_null(x)) return("NULL") else return(x))
+    }
+    # auto-convert simple vectors to comma-separated strings
+    if(arg_vecs_to_comma_str) args_list <- apply_comma_string_to_list(args_list)
     # don't break backward compatibility
     names(args_list) <- gsub("^--", "", names(args_list))
     # format for scheduler

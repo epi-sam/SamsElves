@@ -25,6 +25,8 @@
 #'   e.g. 5 to `5L`
 #' @param split_comma_str [lgl] if TRUE, split comma-separated strings into
 #'  vectors
+#' @param assign_NA [lgl] if TRUE, assign 'NA' in parsed args to `NA`
+#' @param assign_NULL [lgl] if TRUE, assign 'NULL' in parsed args to `NULL`
 #'
 #' @return [named list] named list of CLI arguments
 #' @export
@@ -107,7 +109,7 @@ parse_all_named_cli_args <- function(
   if(split_comma_str) message("Splitting comma-separated strings into vectors.")
   if(assign_logical) message("Assigning logical type to TRUE/FALSE args (case-insensitive)")
   if(assign_integer) message("Assigning integer type to solely numeric args (e.g. no decimals)")
-  if(assign_NA) message("Assigning NA type to args with 'NA' value")
+  if(assign_NA) message("Assigning NA (integer)/NaN (double) type to args with 'NA'/'NaN' values")
 
   for (key in names(args_list)) {
 
@@ -131,6 +133,11 @@ parse_all_named_cli_args <- function(
       args_list[[key]] <- NaN
     }
 
+    if ((all(grepl("^NULL$", args_list[[key]])) & assign_NULL)) {
+      message("Assigning NULL type to : ", key)
+      args_list[key] <- list(NULL)
+    }
+
   }
 
   if (!is.null(required_args)) {
@@ -143,18 +150,20 @@ parse_all_named_cli_args <- function(
   }
 
   message("Assigning args to chosen environment.")
-  # list2env(args_list, envir = assignment_env)
-  for(key in names(args_list)){
-    # if (all(grepl("^NULL$", args_list[[key]])) & assign_NULL) {
-    #   args_list[[key]] <- NULL
-    # }
-    message(key, " : ", toString(args_list[[key]]))
-    assign(key, args_list[[key]], envir = assignment_env)
-    if ((all(grepl("^NULL$", args_list[[key]])) & assign_NULL)) {
-      message("Assigning NULL type to : ", key)
-      assign(key, NULL, envir = assignment_env)
-    }
-  }
+  list2env(args_list, envir = assignment_env)
+  message(prt_multiline(args_list))
+
+  # for(key in names(args_list)){
+  #   # if (all(grepl("^NULL$", args_list[[key]])) & assign_NULL) {
+  #   #   args_list[[key]] <- NULL
+  #   # }
+  #   message(key, " : ", toString(args_list[[key]]))
+  #   assign(key, args_list[[key]], envir = assignment_env)
+  #   if ((all(grepl("^NULL$", args_list[[key]])) & assign_NULL)) {
+  #     message("Assigning NULL type to : ", key)
+  #     assign(key, NULL, envir = assignment_env)
+  #   }
+  # }
 
   return(args_list)
 }

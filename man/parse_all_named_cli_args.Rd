@@ -32,6 +32,10 @@ passed to `commandArgs()`}
 \item{assign_integer}{[lgl] if TRUE, assign solely numeric args to integer
 e.g. 5 to `5L`}
 
+\item{assign_NA}{[lgl] if TRUE, assign 'NA' in parsed args to `NA`}
+
+\item{assign_NULL}{[lgl] if TRUE, assign 'NULL' in parsed args to `NULL`}
+
 \item{split_comma_str}{[lgl] if TRUE, split comma-separated strings into
 vectors}
 
