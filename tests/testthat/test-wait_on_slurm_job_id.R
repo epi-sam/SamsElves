@@ -3,7 +3,7 @@ test_that(
   {
 
     # NULL filter
-    expect_output(
+    expect_message(
       cmd_list <- wait_on_slurm_job_id(
         job_id              = c(58812401, 58659687, 58811515)
         , initial_sleep_sec = 0
@@ -28,7 +28,7 @@ test_that(
     )
 
     # Complex filter
-    expect_output(
+    expect_message(
       cmd_list <- wait_on_slurm_job_id(
         job_id              = c(58812401, 58659687, 58811515)
         , initial_sleep_sec = 0
@@ -59,7 +59,7 @@ test_that(
 test_that(
   "Validations perform.",
   {
-    expect_output(
+    expect_message(
       expect_warning(
         wait_on_slurm_job_id(
           job_id              = c(58812401, 58659687, 58811515)
@@ -79,7 +79,7 @@ test_that(
 test_that(
   "Batching performs correctly",
   {
-    expect_output(
+    expect_message(
       cmd_list <- wait_on_slurm_job_id(
         job_id             = seq(1, 600, by = 1)
         ,initial_sleep_sec = 0

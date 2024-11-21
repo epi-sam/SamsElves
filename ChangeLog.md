@@ -2,6 +2,13 @@ ChangeLog for SamsElves Package
 
 --------------------------------------------------------------------------------
 
+## 2024-10-22 v.0.3.7
+
+- added:
+  - aggregate_parents_from_children and supporting assertions
+
+
+
 ## 2024-10-22 v.0.3.6
 
 - bugfixes:
