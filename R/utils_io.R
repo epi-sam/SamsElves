@@ -248,6 +248,25 @@ get_latest_output_dir <- function(root) {
 }
 
 
+#' Increment a new output folder date-version
+#'
+#' @param root [chr] path to root of output results
+#' @param date [chr] character date in form of "YYYY_MM_DD" or "today". "today" will be interpreted as today's date.
+#'
+#' @return [dbl] new output version
+#' @export
+#'
+#' @examples
+#' get_new_output_dv(root = tempdir(), date = "today")
+get_new_output_dv <- function(root, date = "today"){
+  if (date == "today") {
+    date <- format(Sys.Date(), "%Y_%m_%d")
+  }
+  cur.version <- get_latest_output_date_index(root, date = date)
+  dir.name <- sprintf("%s.%02i", date, cur.version + 1)
+  return(dir.name)
+}
+
 
 #' Increment a new output folder date-version
 #'
@@ -262,14 +281,7 @@ get_latest_output_dir <- function(root) {
 #' @examples
 #' get_new_output_dir(root = tempdir(), date = "today")
 get_new_output_dir <- function(root, date){
-  if (date == "today") {
-    date <- format(Sys.Date(), "%Y_%m_%d")
-  }
-  cur.version <- get_latest_output_date_index(root, date = date)
-
-  dir.name <- sprintf("%s.%02i", date, cur.version + 1)
-  dir.path <- file.path(root, dir.name)
-  return(dir.path)
+  return(file.path(root, get_new_output_dv(root, date)))
 }
 
 
