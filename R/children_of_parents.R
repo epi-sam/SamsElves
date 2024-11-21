@@ -18,7 +18,7 @@
 #' @param output [character] Output options:
 ##' \itemize{
 ##'  \item{\code{"boolean"} : mask for all rows in the hierarchy - useful for adding a new column}
-##'  \item{\code{"numeric"} : vector of child location_ids (and parent, if desired)}
+##'  \item{\code{"loc_ids"} : vector of child location_ids (and parent, if desired)}
 ##' }
 #' @return [logical/numeric] T/F mask for all hierarchy locs, or a vector of children location_ids?
 #' @export
@@ -36,7 +36,7 @@
 children_of_parents <- function(
     parent_loc_ids, # vector of parent location_ids
     hierarchy, # which hierarchy?
-    output = "boolean", # output_options <- c("boolean", "loc_ids")
+    output = "loc_ids", # output_options <- c( "loc_ids", "boolean")
     include_parent = FALSE # include parent with children, or only children?
 ){
   validate_children_of_parents_inputs(parent_loc_ids, output, hierarchy)

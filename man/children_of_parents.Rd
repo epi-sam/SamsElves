@@ -7,7 +7,7 @@
 children_of_parents(
   parent_loc_ids,
   hierarchy,
-  output = "boolean",
+  output = "loc_ids",
   include_parent = FALSE
 )
 }
@@ -19,7 +19,7 @@ children_of_parents(
 \item{output}{[character] Output options:
 \itemize{
  \item{\code{"boolean"} : mask for all rows in the hierarchy - useful for adding a new column}
- \item{\code{"numeric"} : vector of child location_ids (and parent, if desired)}
+ \item{\code{"loc_ids"} : vector of child location_ids (and parent, if desired)}
 }}
 
 \item{include_parent}{[logical] Do you want parent location_id included with children?

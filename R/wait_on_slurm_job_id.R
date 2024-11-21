@@ -114,7 +114,7 @@ wait_on_slurm_job_id <-
 
     # Break job_id into batches
     batches_n <- ceiling(length(job_id)/batch_size)
-    if(max(batches_n) > 1) message("Warning: You have submitted more than", batch_size, "JobIDs." ,
+    if(max(batches_n) > 1) message("Warning: You have submitted more than ", batch_size, " JobIDs. " ,
                                        "Waiting for all jobs in batch_idx 1 before proceeding to batch_idx 2, etc. (grep limitation)")
 
     # Loop over the jobs in batches_n (too may job_ids leads to grep errors)
