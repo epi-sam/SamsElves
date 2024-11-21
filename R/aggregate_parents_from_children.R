@@ -59,6 +59,8 @@ aggregate_from_children_to_parents <- function(
 
   for (level_i in levels_rev){
 
+    message("\nLevel: ", level_i, " of ", max(levels_rev))
+
     # Outer loop: for each hierarchy level, starting at leaf nodes and going up
     # to a pre-specified level (3, counties), aggregate all children to their
     # parent level, then repeat and roll those up to the next parent level
@@ -80,10 +82,12 @@ aggregate_from_children_to_parents <- function(
 
       children <- children_of_parents(
         parent_loc_ids   = parent_i
-        , hierarchy      = hierarchy
+        , hierarchy      = hierarchy[level %in% c(level_i, parent_level)]
         , output         = "loc_ids"
         , include_parent = FALSE
       )
+
+      message("-- Parent: ", parent_i, " Children: ", toString(children))
 
       if (length(children) > 0){
         dt_children <- DT[get(hierarchy_id) %in% children]
