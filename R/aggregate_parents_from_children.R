@@ -92,7 +92,12 @@ aggregate_from_children_to_parents <- function(
         withCallingHandlers(
           {
             # set this up to trigger a warning if the square check fails
-            square_catch <- assert_square(dt_children, id_varnames = varnames_to_aggregate_by, hard_stop = FALSE, verbose = FALSE)
+            square_catch <- assert_square(
+              dt            = dt_children
+              , id_varnames = c(hierarchy_id, varnames_to_aggregate_by)
+              , hard_stop   = FALSE
+              , verbose     = FALSE
+            )
           }
           , warning = function(assert_square_cnd){
             assert_square_cnd
@@ -118,6 +123,12 @@ aggregate_from_children_to_parents <- function(
     }
   }
 
+  assert_square(
+    dt            = DT
+    , id_varnames = c(hierarchy_id, varnames_to_aggregate_by)
+    , hard_stop   = FALSE
+    , verbose     = FALSE
+  )
   setcolorder(DT, c(hierarchy_id, varnames_to_aggregate_by, varnames_to_aggregate))
   setorderv(DT, c(hierarchy_id, varnames_to_aggregate_by))
   return(DT)
