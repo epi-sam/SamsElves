@@ -6,25 +6,44 @@
 \usage{
 aggregate_from_children_to_parents(
   DT,
-  hierarchy,
   varnames_to_aggregate,
   varnames_to_aggregate_by,
-  stop_level = 0L,
-  hierarchy_id = "location_id"
+  hierarchy,
+  hierarchy_id = "location_id",
+  stop_level = 3L,
+  tolerance_all_equal = NULL,
+  require_square = TRUE
 )
 }
 \arguments{
 \item{DT}{[data.table] e.g. some data table with hierarchy_id as a column}
 
-\item{hierarchy}{[data.table] e.g. a location hierarchy with required columns: `hierarchy_id`, path_to_top_parent, level}
-
 \item{varnames_to_aggregate}{[chr] e.g. c("cases", "deaths")}
 
 \item{varnames_to_aggregate_by}{[chr] e.g c("year", "age_group")}
 
-\item{stop_level}{[x] (default 0L) According to hierarchy levels, what is the top level?}
+\item{hierarchy}{[data.table] e.g. a location hierarchy with required
+columns: `hierarchy_id`, path_to_top_parent, level}
 
-\item{hierarchy_id}{[chr] e.g. "location_id" (currently only supported option)}
+\item{hierarchy_id}{[chr] What variable does your hierarchy define, e.g.
+"location_id" (2024-11-21 only supported option)}
+
+\item{stop_level}{[x] (default 3L) Stops aggregation when the child level ==
+stop_level (e.g. 3L aggregate up to national for locations, but no further;
+regional scalars mean regions are larger than combined countries under them
+from e.g. small islands)}
+
+\item{tolerance_all_equal}{[dbl] (Default NULL uses all.equal's defaults)
+Tolerance for all.equal mean relative differnce check between parent and
+aggregated children (if parent is already in DT).  A value of 1 means the
+aggregated children are double the value of the parent (you probably did
+something wrong).  Use large values for large allowance in differnces due
+to rounding, etc.  Adjust the tolerance to your operation's mathematical
+limitations.}
+
+\item{require_square}{[lgl] (default TRUE) If TRUE, will check inputs and
+outputs for square (i.e. all variables are present for all combinations of
+`hierarchy_id` and `varnames_to_aggregate_by`, and no rows are duplicated)}
 }
 \value{
 [data.table] aggregated data.table
