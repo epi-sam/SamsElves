@@ -78,8 +78,9 @@ aggregate_from_children_to_parents <- function(
 
   for (level_i in levels_rev){
 
+    if(level_i == stop_level) {message("Done aggregating at level = ", level_i); break}
+
     parent_level <- level_i - 1
-    if(level_i == stop_level) {message("Done aggregating at level = ", parent_level); break}
     message("\nChild level ", level_i, " to parent level ", parent_level, " (", max(levels_rev), " total)")
 
     # Outer loop: for each hierarchy level, starting at leaf nodes and going up
