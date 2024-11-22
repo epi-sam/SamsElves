@@ -141,7 +141,7 @@ aggregate_from_children_to_parents <- function(
           aa_args           <- list(target = DT[get(hierarchy_id) == parent_i], current = dt_parent_agg)
           aa_args$tolerance <- tolerance_all_equal # NULL handles itself
           catch_aa          <- do.call(all.equal, aa_args)
-          if(!all(catch_aa == TRUE)) message("Parent: ", parent_i, " already exists and is not all.equal() to aggregated children", " - ", toString(catch_aa))
+          if(!all(catch_aa == TRUE)) message("   - Parent: ", parent_i, " already exists and is not all.equal() to aggregated children", " - ", toString(catch_aa))
         }
 
         DT <- rbind(DT[!location_id == parent_i], dt_parent_agg, fill = TRUE)
