@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils_io.R
 \name{make_new_output_dir}
 \alias{make_new_output_dir}
-\title{Get output directory for results to save in}
+\title{Make a date-versioned output directory for ouuptu results.}
 \usage{
 make_new_output_dir(root, date)
 }
@@ -12,13 +12,13 @@ make_new_output_dir(root, date)
 \item{date}{[chr] character date in form of "YYYY_MM_DD" or "today". "today" will be interpreted as today's date.}
 }
 \value{
-[chr] path to new output directory
+[chr] path to new output directory of the form "/<root>/YYYY_MM_DD.VV"
 }
 \description{
 Returns an appropriate path to save results in, creating it if necessary.
 }
 \examples{
 \dontrun{
-make_new_output_dir("my/root/folder", date = "today")
+make_new_output_dir(tempdir(), date = "today")
 }
 }

@@ -12,10 +12,10 @@ get_new_output_dv(root, date = "today")
 \item{date}{[chr] character date in form of "YYYY_MM_DD" or "today". "today" will be interpreted as today's date.}
 }
 \value{
-[dbl] new output version
+[dbl] new output version of the form "YYYY_MM_DD.VV"
 }
 \description{
-Increment a new output folder date-version
+Return on the date-version, not the full path.  Does not create a folder.
 }
 \examples{
 get_new_output_dv(root = tempdir(), date = "today")

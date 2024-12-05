@@ -77,9 +77,24 @@ test_that("save_file forbids overwrite",
                         , forbid_overwrite = TRUE
                         , verbose = FALSE)
               , regexp = paste("File already exists, not over-writing:", fpath_supported_ftype)
-
             )
+          })
 
+test_that("save_file overwrites with base behavior",
+          {
+
+            withr::local_file(dir_full)
+            dir.create(dir_full)
+
+            save_file(object = save_object
+                      , f_path = fpath_supported_ftype
+                      , verbose = FALSE)
+
+            expect_no_message(
+              save_file(object = save_object
+                        , f_path = fpath_supported_ftype
+                        , verbose = FALSE)
+            )
           })
 
 test_that("save_file errors correctly for nonexistent directory",
@@ -139,7 +154,6 @@ test_that("save_file produces correct messages",
                         , verbose = TRUE)
               , regexp = "File already exists, not over-writing:"
             )
-
           })
 
 test_that("read_file reads a file",
@@ -153,7 +167,6 @@ test_that("read_file reads a file",
                 , verbose = TRUE)
               , regexp = paste("Reading file:", fpath_supported_ftype)
             )
-
           })
 
 test_that("read_file errors correctly",
@@ -190,7 +203,6 @@ test_that("read_file .csv option errors and works properly with alternate functi
                 )
               )
             )
-
           })
 
 
@@ -210,7 +222,6 @@ test_that("read_file ... works to pass extra args to reader function",
                 )
               )
             )
-
           })
 
 
