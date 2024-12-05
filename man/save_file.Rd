@@ -4,20 +4,28 @@
 \alias{save_file}
 \title{Save file I/O with overwrite and message control}
 \usage{
-save_file(object, f_path, forbid_overwrite = TRUE, verbose = FALSE)
+save_file(
+  object,
+  f_path,
+  overwrite = NULL,
+  verbose = FALSE,
+  forbid_overwrite = NULL
+)
 }
 \arguments{
-\item{object}{[obj] any R object}
+\item{object}{[obj] an R object}
 
-\item{f_path}{[path] duh}
+\item{f_path}{[path] a file path to save to}
 
-\item{forbid_overwrite}{[lgl] default: overwrite not allowed}
+\item{overwrite}{[lgl] default: NULL which overwrites by default until forbid_overwrite is deprecated}
 
 \item{verbose}{[lgl] default: silent}
+
+\item{forbid_overwrite}{[lgl]  DEPRECATED - backward compatibility preserved}
 }
 \value{
 [none] Saves to disk
 }
 \description{
-Save file I/O with overwrite and message control
+Defualt behavior is to overwrite
 }

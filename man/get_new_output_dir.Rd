@@ -12,7 +12,7 @@ get_new_output_dir(root, date)
 \item{date}{[chr] character date in form of "YYYY_MM_DD" or "today". "today" will be interpreted as today's date.}
 }
 \value{
-[chr] path to new output direcctory
+[chr] path to new output directory of the form "/<root>/YYYY_MM_DD.VV"
 }
 \description{
 Get a new directory path, but don't make it
