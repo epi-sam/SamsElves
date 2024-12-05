@@ -309,7 +309,7 @@ get_new_output_dir <- function(root, date){
 }
 
 
-#' Make a date-versioned output directory for ouuptu results.
+#' Make a date-versioned output directory for output results.
 #'
 #' Returns an appropriate path to save results in, creating it if necessary.
 #'
