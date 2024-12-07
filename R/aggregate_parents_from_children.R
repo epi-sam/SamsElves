@@ -10,6 +10,11 @@
 #' @param DT [data.table] e.g. some data table with hierarchy_id as a column
 #' @param varnames_to_aggregate [chr] e.g. c("cases", "deaths")
 #' @param varnames_to_aggregate_by [chr] e.g c("year", "age_group")
+#' @param varname_weights [chr] (default NULL) e.g. c("pop") - if you want to
+#'   weight the aggregation by a variable, e.g. population.  If NULL, do a
+#'   simple sum the values in varnames_to_aggregate.  If not NULL, multiply
+#'   varnames_to_aggregate by the weights among all children of each parent at
+#'   each level.
 #' @param hierarchy [data.table] e.g. a location hierarchy with required
 #'   columns: `hierarchy_id`, path_to_top_parent, level
 #' @param hierarchy_id [chr] What variable does your hierarchy define, e.g.
@@ -36,6 +41,7 @@ aggregate_from_children_to_parents <- function(
     DT
     , varnames_to_aggregate
     , varnames_to_aggregate_by
+    , varname_weights    = NULL
     , hierarchy
     , hierarchy_id        = "location_id"
     , stop_level          = 3L
@@ -56,8 +62,15 @@ aggregate_from_children_to_parents <- function(
   assert_x_in_y(c(hierarchy_id, varnames_to_aggregate, varnames_to_aggregate_by)
                 , colnames(DT))
 
+  if(!is.null(varname_weights)) {
+    stopifnot(is.character(varname_weights))
+    stopifnot(length(varname_weights) == 1)
+    assert_x_in_y(varname_weights, colnames(DT))
+  }
+
   # aggregation will drop all undefined variables - warn the user
-  non_agg_vars <- setdiff(colnames(DT), c(hierarchy_id, varnames_to_aggregate, varnames_to_aggregate_by))
+  keep_vars    <- c(hierarchy_id, varnames_to_aggregate, varnames_to_aggregate_by, varname_weights)
+  non_agg_vars <- setdiff(colnames(DT), keep_vars)
   if (length(non_agg_vars)){
     message(paste("The following variables will be dropped during aggregation:", toString(non_agg_vars)))
   }
@@ -66,7 +79,7 @@ aggregate_from_children_to_parents <- function(
 
   assert_square(
     dt            = DT
-    , id_varnames = c(hierarchy_id, varnames_to_aggregate_by)
+    , id_varnames = c(hierarchy_id, varnames_to_aggregate_by, varname_weights)
     , hard_stop   = require_square
     , verbose     = FALSE
   )
@@ -129,6 +142,12 @@ aggregate_from_children_to_parents <- function(
             message("Square check failed. Inspect parent and its children.")
           }
         )
+
+        # Prepare weights
+        if(!is.null(varname_weights)){
+          dt_children[, (varname_weights) := lapply(.SD, function(x) x / sum(x)), .SDcols = varname_weights, by = varnames_to_aggregate_by]
+          dt_children[, (varnames_to_aggregate) := lapply(.SD, function(x) x * get(varname_weights)), .SDcols = varnames_to_aggregate]
+        }
 
         # Wow, we finally get to aggregate something
         dt_parent_agg <- dt_children[, lapply(.SD, function(x) sum(x)), by = varnames_to_aggregate_by, .SDcols = varnames_to_aggregate]

@@ -8,6 +8,7 @@ aggregate_from_children_to_parents(
   DT,
   varnames_to_aggregate,
   varnames_to_aggregate_by,
+  varname_weights = NULL,
   hierarchy,
   hierarchy_id = "location_id",
   stop_level = 3L,
@@ -21,6 +22,12 @@ aggregate_from_children_to_parents(
 \item{varnames_to_aggregate}{[chr] e.g. c("cases", "deaths")}
 
 \item{varnames_to_aggregate_by}{[chr] e.g c("year", "age_group")}
+
+\item{varname_weights}{[chr] (default NULL) e.g. c("pop") - if you want to
+weight the aggregation by a variable, e.g. population.  If NULL, do a
+simple sum the values in varnames_to_aggregate.  If not NULL, multiply
+varnames_to_aggregate by the weights among all children of each parent at
+each level.}
 
 \item{hierarchy}{[data.table] e.g. a location hierarchy with required
 columns: `hierarchy_id`, path_to_top_parent, level}
