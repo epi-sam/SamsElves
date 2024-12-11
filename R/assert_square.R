@@ -16,7 +16,7 @@
 assert_square <- function(dt, id_varnames, no_na_varnames = NULL, verbose = TRUE, hard_stop = TRUE){
 
   # Validate inputs
-  if(!is.data.table(dt)) stop("dt must be a data.table")
+  if(!data.table::is.data.table(dt)) stop("dt must be a data.table")
   if(!is.character(id_varnames)) stop("id_varnames must be a character vector")
   if(!is.logical(verbose)) stop("verbose must be a logical")
   varnames_missing <- setdiff(id_varnames, names(dt))
