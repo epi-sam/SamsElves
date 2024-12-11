@@ -8,22 +8,33 @@ aggregate_from_children_to_parents(
   DT,
   varnames_to_aggregate,
   varnames_to_aggregate_by,
+  varname_weights = NULL,
   hierarchy,
   hierarchy_id = "location_id",
   stop_level = 3L,
+  require_square = TRUE,
+  verbose = TRUE,
+  v_verbose = FALSE,
   tolerance_all_equal = NULL,
-  require_square = TRUE
+  aa_hard_stop = FALSE
 )
 }
 \arguments{
 \item{DT}{[data.table] e.g. some data table with hierarchy_id as a column}
 
-\item{varnames_to_aggregate}{[chr] e.g. c("cases", "deaths")}
+\item{varnames_to_aggregate}{[chr] e.g. c("mean", "upper", "lower")}
 
-\item{varnames_to_aggregate_by}{[chr] e.g c("year", "age_group")}
+\item{varnames_to_aggregate_by}{[chr] e.g c("year_id", "age_group_id")}
+
+\item{varname_weights}{[chr] (default NULL) - if you want to weight the
+aggregation by a variable, e.g. population.  If NULL, do a simple
+children-to-parent sum the values in varnames_to_aggregate within each
+combination of varnames_to_aggregate_by.  If not NULL, calculate weights
+for all children of each parent before aggregation.  Weights sum to 1
+between all children, within each combination of varnames_to_aggregate_by.}
 
 \item{hierarchy}{[data.table] e.g. a location hierarchy with required
-columns: `hierarchy_id`, path_to_top_parent, level}
+columns: `hierarchy_id`, path_to_top_parent, level, most_detailed}
 
 \item{hierarchy_id}{[chr] What variable does your hierarchy define, e.g.
 "location_id" (2024-11-21 only supported option)}
@@ -33,6 +44,14 @@ stop_level (e.g. 3L aggregate up to national for locations, but no further;
 regional scalars mean regions are larger than combined countries under them
 from e.g. small islands)}
 
+\item{require_square}{[lgl] (default TRUE) If TRUE, will check inputs and
+outputs for square (i.e. all variables are present for all combinations of}
+
+\item{verbose}{[lgl] message each parent and children being aggregated?}
+
+\item{v_verbose}{[lgl] message each parent that is not all.equal() to its
+aggregated children (if parent already exists in the dataset)?}
+
 \item{tolerance_all_equal}{[dbl] (Default NULL uses all.equal's defaults)
 Tolerance for all.equal mean relative differnce check between parent and
 aggregated children (if parent is already in DT).  A value of 1 means the
@@ -41,16 +60,24 @@ something wrong).  Use large values for large allowance in differnces due
 to rounding, etc.  Adjust the tolerance to your operation's mathematical
 limitations.}
 
-\item{require_square}{[lgl] (default TRUE) If TRUE, will check inputs and
-outputs for square (i.e. all variables are present for all combinations of
-`hierarchy_id` and `varnames_to_aggregate_by`, and no rows are duplicated)}
+\item{aa_hard_stop}{[lgl] (default FALSE) If TRUE, will stop if a parent is
+not all.equal() to its aggregated children, within user-specified level of
+tolerance.}
 }
 \value{
 [data.table] aggregated data.table
 }
 \description{
-Aggregate from leaf nodes up through an (assumed MECE) hierarchy to the top
-level.
+Aggregate iteratively from leaf nodes up through an (assumed MECE) hierarchy
+to the top level. Retain all child and parent values, e.g. for a location
+hierarchy, retain all location_ids, and aggregate values up to the top
+specified parent level.  This function is designed to be used iteratively,
+starting at the leaf nodes and working up to the top level.  It will
+aggregate all children of a parent, then aggregate those parents up to the
+next level, and so on. Aggregation will stop at each level if aggregates are
+not square.  If a parent location already exists in the data, this will check
+for all.equal() between the parent and the aggregated children, and message
+if v_verbose = TRUE, and throw an error if aa_hard_stop = TRUE.
 }
 \details{
 Relies on the `children_of_parents()` function to find children of a parent

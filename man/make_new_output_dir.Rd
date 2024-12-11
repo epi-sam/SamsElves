@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils_io.R
 \name{make_new_output_dir}
 \alias{make_new_output_dir}
-\title{Make a date-versioned output directory for ouuptu results.}
+\title{Make a date-versioned output directory for output results.}
 \usage{
 make_new_output_dir(root, date)
 }
