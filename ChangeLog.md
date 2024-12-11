@@ -2,6 +2,14 @@ ChangeLog for SamsElves Package
 
 --------------------------------------------------------------------------------
 
+## 2024-10-22 v.0.3.12
+
+- added:
+  - aggregate_from_children_to_parents and tests
+    - roll up values from a data set according to a hierarchy
+
+
+
 ## 2024-10-22 v.0.3.11
 
 - behavior change:
