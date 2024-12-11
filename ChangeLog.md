@@ -2,6 +2,29 @@ ChangeLog for SamsElves Package
 
 --------------------------------------------------------------------------------
 
+## 2024-10-22 v.0.3.12
+
+- added:
+  - aggregate_from_children_to_parents and tests
+    - roll up values from a data set according to a hierarchy
+
+
+
+## 2024-10-22 v.0.3.11
+
+- behavior change:
+  - save_file overwrites by default - this is normal save function behavior
+    - forbid_overwrite argument is in sunset period
+
+
+
+## 2024-10-22 v.0.3.10
+
+- documentation updates:
+  - aggregate_parents_from_children and supporting assertions
+
+
+
 ## 2024-10-22 v.0.3.9
 
 - bugfix:

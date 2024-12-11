@@ -45,14 +45,36 @@ find_file_extension <- function(f_path){
 
 #' Save file I/O with overwrite and message control
 #'
-#' @param object [obj] any R object
-#' @param f_path [path] duh
-#' @param forbid_overwrite [lgl] default: overwrite not allowed
+#' Defualt behavior is to overwrite
+#'
+#' @param object [obj] an R object
+#' @param f_path [path] a file path to save to
+#' @param overwrite [lgl] default: NULL which overwrites by default until forbid_overwrite is deprecated
 #' @param verbose [lgl] default: silent
+#' @param forbid_overwrite [lgl]  DEPRECATED - backward compatibility preserved
 #'
 #' @return [none] Saves to disk
 #' @export
-save_file <- function(object, f_path, forbid_overwrite = TRUE, verbose = FALSE){
+save_file <- function(object, f_path, overwrite = NULL, verbose = FALSE, forbid_overwrite = NULL){
+
+  stopifnot(is.logical(verbose))
+
+  # TODO SB - 2024 Dec 05 - deprecate, and change internal logic to use `overwrite`
+  # backward compatibility, handle all cases
+  stopifnot(is.null(overwrite)        || is.logical(overwrite))
+  stopifnot(is.null(forbid_overwrite) || is.logical(forbid_overwrite))
+  if (is.null(forbid_overwrite) & is.null(overwrite)) {
+    # assume overwrite - should be base behavior going forward, with overwrite = TRUE
+    forbid_overwrite <- FALSE
+  } else if(is.logical(forbid_overwrite) & is.logical(overwrite)){
+    stop("Both `overwrite` and `forbid_overwrite` are logical, only one should be used")
+  } else if (is.logical(forbid_overwrite) & is.null(overwrite)){
+    message("\nsave_file: forbid_overwrite will be deprecated, use overwrite instead.  Overwriting is now the default behavior.")
+  } else if(is.logical(overwrite) & is.null(forbid_overwrite)){
+    forbid_overwrite <- !overwrite
+  } else {
+    stop("Logic error with overwrite and forbid_overwrite, inspect")
+  }
 
   parent_directory <- DescTools::SplitPath(f_path)$dirname
   if(parent_directory == "/") stop("Parent directory is '/', likely undefined.  Inspect f_path")
@@ -250,10 +272,12 @@ get_latest_output_dir <- function(root) {
 
 #' Increment a new output folder date-version
 #'
+#' Return on the date-version, not the full path.  Does not create a folder.
+#'
 #' @param root [chr] path to root of output results
 #' @param date [chr] character date in form of "YYYY_MM_DD" or "today". "today" will be interpreted as today's date.
 #'
-#' @return [dbl] new output version
+#' @return [dbl] new output version of the form "YYYY_MM_DD.VV"
 #' @export
 #'
 #' @examples
@@ -275,7 +299,7 @@ get_new_output_dv <- function(root, date = "today"){
 #' @param root [chr] path to root of output results
 #' @param date [chr] character date in form of "YYYY_MM_DD" or "today". "today" will be interpreted as today's date.
 #'
-#' @return [chr] path to new output direcctory
+#' @return [chr] path to new output directory of the form "/<root>/YYYY_MM_DD.VV"
 #' @export
 #'
 #' @examples
@@ -285,28 +309,28 @@ get_new_output_dir <- function(root, date){
 }
 
 
-#' Get output directory for results to save in
+#' Make a date-versioned output directory for output results.
 #'
 #' Returns an appropriate path to save results in, creating it if necessary.
 #'
 #' @param root [chr] path to root of output results
 #' @param date [chr] character date in form of "YYYY_MM_DD" or "today". "today" will be interpreted as today's date.
 #'
-#' @return [chr] path to new output directory
+#' @return [chr] path to new output directory of the form "/<root>/YYYY_MM_DD.VV"
 #' @export
 #'
 #' @examples
 #' \dontrun{
-#' make_new_output_dir("my/root/folder", date = "today")
+#' make_new_output_dir(tempdir(), date = "today")
 #' }
 make_new_output_dir <- function(root, date) {
   dir.path <- get_new_output_dir(root, date)
   if (!dir.exists(dir.path)) {
     # handle quirk with singularity image default umask
     old.umask <- Sys.umask()
+    on.exit(Sys.umask(old.umask))
     Sys.umask("002")
     dir.create(dir.path, showWarnings = FALSE, recursive = TRUE, mode = "0777")
-    Sys.umask(old.umask)
   }
   return(dir.path)
 }
