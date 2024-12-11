@@ -74,7 +74,8 @@ aggregate_from_children_to_parents <- function(
   stopifnot(is.character(varnames_to_aggregate_by))
   stopifnot(data.table::is.data.table(DT))
   stopifnot(data.table::is.data.table(hierarchy))
-  assert_x_in_y(c("path_to_top_parent", "level", "most_detailed", hierarchy_id)
+  varnames_hier <- c("path_to_top_parent", "level", "most_detailed", hierarchy_id)
+  assert_x_in_y(varnames_hier
                 , colnames(hierarchy))
   assert_x_in_y(c(hierarchy_id, varnames_to_aggregate, varnames_to_aggregate_by)
                 , colnames(DT))
@@ -95,7 +96,19 @@ aggregate_from_children_to_parents <- function(
   if (length(non_agg_vars)){
     message(paste("The following variables will be dropped during aggregation:", toString(non_agg_vars)))
   }
+
+  # Select only what's necessary
   DT <- DT[, ..keep_vars]
+  hierarchy <- hierarchy[, ..varnames_hier]
+  # Assert completeness
+  DT_incomplete <- DT[!complete.cases(DT)]
+  hierarchy_incomplete <- hierarchy[!complete.cases(hierarchy)]
+  if(nrow(DT_incomplete)){
+    stop("aggregate_from_children_to_parents requires complete.cases() and data are incomplete, example: \n", prt_multiline(DT_incomplete[1, ]))
+  }
+  if(nrow(hierarchy_incomplete)){
+    stop("aggregate_from_children_to_parents requires complete.cases() and hierarchy is incomplete, example: \n", prt_multiline(hierarchy_incomplete[1, ]))
+  }
 
   assert_square(
     dt            = DT
