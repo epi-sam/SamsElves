@@ -95,7 +95,7 @@ aggregate_from_children_to_parents <- function(
   # aggregation will drop all undefined variables - warn the user
   keep_vars    <- unique(c(hierarchy_id, varnames_to_aggregate_by, varname_weights, varnames_to_aggregate))
   non_agg_vars <- setdiff(colnames(DT), keep_vars)
-  if (length(non_agg_vars)){
+  if (length(non_agg_vars) & verbose){
     message(paste("The following variables will be dropped during aggregation:", toString(non_agg_vars)))
   }
 
