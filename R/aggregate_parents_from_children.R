@@ -79,6 +79,8 @@ aggregate_from_children_to_parents <- function(
                 , colnames(hierarchy))
   assert_x_in_y(c(hierarchy_id, varnames_to_aggregate, varnames_to_aggregate_by)
                 , colnames(DT))
+  if(hierarchy_id %in% varnames_to_aggregate) stop("hierarchy_id cannot be aggregated")
+  if(hierarchy_id %in% varnames_to_aggregate_by) stop("hierarchy_id cannot be aggregated by")
 
   # Set a flag for whether we're aggregating with weights
   agg_msg <- "Aggregating"
