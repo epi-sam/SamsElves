@@ -84,7 +84,7 @@ assert_list_elements_and_types <- function(check_list, truth_list, allow_data_fr
   found_items   <- names(truth_list)[found_mask]
   unfound_items <- names(truth_list)[!found_mask]
   if(length(unfound_items) > 0){
-    stop("The following truth_list were not found in check_list: ", toString(unfound_items))
+    stop("Some required list elements not found: ", toString(unfound_items))
   }
 
   type_check <- unlist(
