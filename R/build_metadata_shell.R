@@ -187,9 +187,11 @@ extract_submission_commands <- function(
     extract_command_string, regex_to_extract, regex_to_ignore
   )
 
-  n_cores <- extract_cores(system_user_name = system_user_name,
-                           jobname_filter   = jobname_filter,
-                           cluster_type     = cluster_type)
+  # 2025 Jan 24 - Deprecated in favor of nproc
+  # n_cores <- extract_cores(system_user_name = system_user_name,
+  #                          jobname_filter   = jobname_filter,
+  #                          cluster_type     = cluster_type)
+  n_cores <- extract_cores()
 
   out_list <- list(
     submission_commands   = submit_command_list,
@@ -314,49 +316,61 @@ extract_command_string <- function (submit_command_text,
 
 #' Extract number of interactive user cores
 #'
-#' NOTE: This step finds cores with squeue, rather than squeue - eases formatting
-#'
-#' @param system_user_name [chr] how user is identified on the cluster
-#' @param jobname_filter [regex] filter to include for `job_finder()` call
-#'
 #' @return [int] number of available cores for multithreading
 #' - if user has more than one interactive session, defaults to 1
 #'
-extract_cores <- function(system_user_name,
-                          jobname_filter,
-                          cluster_type) {
+extract_cores <- function() {
 
-  # Find number of cores for all the user's jobs
-  job_threads_txt <- system2(
-    command = "/opt/slurm/bin/squeue", # use full path to pass testing
-    args    = glue::glue("-o '%.10A %.5C' -u {system_user_name}"),
-    stdout  = TRUE
-  )
-  job_threads_df <- read.table(text = job_threads_txt, header = TRUE, sep = "")
-
-  # Find jobids matching the user's desired string
-  jobs_selected_df <- job_finder(system_user_name = system_user_name,
-                                 jobname_filter   = jobname_filter,
-                                 cluster_type     = cluster_type)
-
-  # build a filter mask
-  jobids_threads  <- job_threads_df$JOBID
-  jobids_selected <- jobs_selected_df$jobid
-  jobid_mask      <- jobids_threads %in% jobids_selected
-
-  # Filter the thread table for jobids matching user's chosen interactive session
-  n_cores_df <- job_threads_df[jobid_mask, "CPUS", drop = FALSE]
-
-  # validate dimensions
-  more_than_one_interactive_session <- ncol(n_cores_df) > 1 | nrow(n_cores_df) > 1
-  if(more_than_one_interactive_session) {
+  # 2025 Jan 24 - Deprecated in favor of nproc
+  # NOTE: This step finds cores with squeue, rather than sacct - eases formatting
+  # extract_cores <- function(system_user_name,
+  #                           jobname_filter,
+  #                           cluster_type) {
+  # # Find number of cores for all the user's jobs
+  # job_threads_txt <- system2(
+  #   command = "/opt/slurm/bin/squeue", # use full path to pass testing
+  #   args    = glue::glue("-o '%.10A %.5C' -u {system_user_name}"),
+  #   stdout  = TRUE
+  # )
+  # job_threads_df <- read.table(text = job_threads_txt, header = TRUE, sep = "")
+  #
+  # # Find jobids matching the user's desired string
+  # jobs_selected_df <- job_finder(system_user_name = system_user_name,
+  #                                jobname_filter   = jobname_filter,
+  #                                cluster_type     = cluster_type)
+  #
+  # # build a filter mask
+  # jobids_threads  <- job_threads_df$JOBID
+  # jobids_selected <- jobs_selected_df$jobid
+  # jobid_mask      <- jobids_threads %in% jobids_selected
+  #
+  # # Filter the thread table for jobids matching user's chosen interactive session
+  # n_cores_df <- job_threads_df[jobid_mask, "CPUS", drop = FALSE]
+  #
+  # # validate dimensions
+  # more_than_one_interactive_session <- ncol(n_cores_df) > 1 | nrow(n_cores_df) > 1
+  # if(more_than_one_interactive_session) {
+  #   message ("\nMetadata warning:
+  #            Attempting to find # of cores did not produce a single option (either # or jobs or # of columns) - please inspect.
+  #            Returning n_cores = 1, efficiency may be reduced.\n",
+  #            prt_multiline(n_cores_df))
+  #   n_cores <- 1
+  # } else {
+  #   n_cores <- n_cores_df$CPUS
+  # }
+  n_cores <- as.integer(system2("nproc", stdout = TRUE))
+  if(is.null(n_cores) || is.na(n_cores)) {
+    message("\nMetadata warning:
+             Attempting to find # of cores did not produce a single option (either # or jobs or # of columns) - please inspect.
+             Returning n_cores = 1, efficiency may be reduced.\n")
+    n_cores <- 1L
+  }
+  if(length(n_cores) > 1) {
     message ("\nMetadata warning:
              Attempting to find # of cores did not produce a single option (either # or jobs or # of columns) - please inspect.
              Returning n_cores = 1, efficiency may be reduced.\n",
-             prt_multiline(n_cores_df))
-    n_cores <- 1
-  } else {
-    n_cores <- n_cores_df$CPUS
+             prt_multiline(n_cores))
+    n_cores <- 1L
   }
   return(as.integer(n_cores))
 }

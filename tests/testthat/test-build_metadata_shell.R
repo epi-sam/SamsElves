@@ -88,7 +88,7 @@ test_that(
   "extract_cores returns an integer for a single Rstudio session",
   {
     expect_type(
-      extract_cores(system_user_name = Sys.getenv()["USER"], jobname_filter = "^rst_ide", cluster_type = "slurm"),
+      extract_cores(),
       "integer"
     )
   }

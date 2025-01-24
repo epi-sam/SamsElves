@@ -4,17 +4,12 @@
 \alias{extract_cores}
 \title{Extract number of interactive user cores}
 \usage{
-extract_cores(system_user_name, jobname_filter, cluster_type)
-}
-\arguments{
-\item{system_user_name}{[chr] how user is identified on the cluster}
-
-\item{jobname_filter}{[regex] filter to include for `job_finder()` call}
+extract_cores()
 }
 \value{
 [int] number of available cores for multithreading
 - if user has more than one interactive session, defaults to 1
 }
 \description{
-NOTE: This step finds cores with squeue, rather than squeue - eases formatting
+Extract number of interactive user cores
 }
