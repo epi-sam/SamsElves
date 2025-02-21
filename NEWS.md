@@ -2,6 +2,12 @@ ChangeLog for SamsElves Package
 
 --------------------------------------------------------------------------------
 
+## 2025-02-21 v.0.3.15
+
+- improved:
+  - replaced sys.getenv calls with better cross-platform sys.info
+
+
 ## 2024-10-22 v.0.3.14
 
 - improved:
