@@ -18,15 +18,15 @@ submit_job(
   language = "R",
   r_image = NULL,
   shell_script_path = NULL,
-  std_err_root = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "error"),
-  std_out_root = file.path("/mnt/share/temp/slurmoutput", Sys.getenv()["USER"], "output"),
+  std_err_root = file.path("/mnt/share/temp/slurmoutput", Sys.info()[["user"]], "error"),
+  std_out_root = file.path("/mnt/share/temp/slurmoutput", Sys.info()[["user"]], "output"),
   console_style_log_tf = FALSE,
   args_list = NULL,
   arg_vecs_to_comma_str = TRUE,
   verbose = TRUE,
   v_verbose = FALSE,
   send_email = FALSE,
-  email_address = paste0(Sys.getenv()[["USER"]], "@uw.edu"),
+  email_address = paste0(Sys.info()[["user"]], "@uw.edu"),
   dry_runTF = FALSE
 )
 }

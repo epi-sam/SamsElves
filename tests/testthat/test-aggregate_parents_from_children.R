@@ -1,12 +1,11 @@
 library(data.table)
 
-if(interactive()){
-  devtools::load_all()
+DT   <- fread("fixtures/agg_data.csv")
+HIER <- fread("fixtures/agg_hier.csv")
+
+if(FALSE){ # for debugging - tests use a different folder structure
   DT   <- fread("tests/testthat/fixtures/agg_data.csv")
   HIER <- fread("tests/testthat/fixtures/agg_hier.csv")
-} else {
-  DT   <- fread("fixtures/agg_data.csv")
-  HIER <- fread("fixtures/agg_hier.csv")
 }
 
 test_that("aggregate_from_children_to_parents does not double output", {

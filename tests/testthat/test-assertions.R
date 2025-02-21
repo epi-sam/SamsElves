@@ -128,7 +128,7 @@ test_that(
 
     expect_error(
       assert_list_elements_and_types(list(a = 1, b = 2), list(a = "double", b = "double", c = "double")),
-      regexp = "The following truth_list were not found in check_list: c"
+      regexp = "Some required list elements not found: c"
     )
 
   }
