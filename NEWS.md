@@ -2,27 +2,27 @@ ChangeLog for SamsElves Package
 
 --------------------------------------------------------------------------------
 
-## 2025-02-21 v.0.3.15
+## 2025-02-21 v0.3.15
 
 - improved:
   - replaced sys.getenv calls with better cross-platform sys.info
 
 
-## 2024-10-22 v.0.3.14
+## 2024-10-22 v0.3.14
 
 - improved:
   - build_metadata_shell finds number of cores using 'nproc'
 
 
 
-## 2024-10-22 v.0.3.13
+## 2024-10-22 v0.3.13
 
 - bugfix:
   - aggregate_from_children_to_parents 
     - assert complete cases
 
 
-## 2024-10-22 v.0.3.12
+## 2024-10-22 v0.3.12
 
 - added:
   - aggregate_from_children_to_parents and tests
@@ -30,7 +30,7 @@ ChangeLog for SamsElves Package
 
 
 
-## 2024-10-22 v.0.3.11
+## 2024-10-22 v0.3.11
 
 - behavior change:
   - save_file overwrites by default - this is normal save function behavior
@@ -38,35 +38,35 @@ ChangeLog for SamsElves Package
 
 
 
-## 2024-10-22 v.0.3.10
+## 2024-10-22 v0.3.10
 
 - documentation updates:
   - aggregate_parents_from_children and supporting assertions
 
 
 
-## 2024-10-22 v.0.3.9
+## 2024-10-22 v0.3.9
 
 - bugfix:
   - aggregate_parents_from_children and supporting assertions
 
 
 
-## 2024-10-22 v.0.3.8
+## 2024-10-22 v0.3.8
 
 - added:
   - get_new_output_dv
 
 
 
-## 2024-10-22 v.0.3.7
+## 2024-10-22 v0.3.7
 
 - added:
   - aggregate_parents_from_children and supporting assertions
 
 
 
-## 2024-10-22 v.0.3.6
+## 2024-10-22 v0.3.6
 
 - bugfixes:
   - submit_job and parse_all_named_cli_args - fine-tuned NULL and NA value handling
@@ -74,7 +74,7 @@ ChangeLog for SamsElves Package
 
 
 
-## 2024-10-22 v.0.3.5
+## 2024-10-22 v0.3.5
 
 - bugfixes:
   - apply_comma_string_to_list - failed for NULL items
@@ -83,7 +83,7 @@ ChangeLog for SamsElves Package
 
 
 
-## 2024-09-30 v.0.3.4
+## 2024-09-30 v0.3.4
 
 - added:
   - utils_io.R from ihme.covid package
@@ -96,7 +96,7 @@ ChangeLog for SamsElves Package
 
 
 
-## 2024-09-23 v.0.3.3
+## 2024-09-23 v0.3.3
 
 - updated:
   - `build_metadata_shell`
@@ -108,7 +108,7 @@ ChangeLog for SamsElves Package
 
 
 
-## 2024-09-19 v.0.3.2
+## 2024-09-19 v0.3.2
 
 - updated:
   - `read_file`
