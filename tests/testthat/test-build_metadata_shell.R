@@ -5,7 +5,9 @@ test_str_list <- list(first = "my_string", second = "bacon")
 test_regex_1 <- "string"
 test_regex_2 <- c("string", "bacon")
 
-n_rstudio_sessions <- length(system(paste0("squeue -u ", Sys.info()[["user"]], " | grep 'rst_ide' "), intern = TRUE))
+username <- Sys.info()[["user"]]
+
+n_rstudio_sessions <- length(system(paste0("squeue -u ", username, " | grep 'rst_ide' "), intern = TRUE))
 
 # extract_command_string -------------------------------------------------------
 
@@ -54,7 +56,7 @@ test_that(
   "job_finder produces a data.frame with 0+ rows for jobs with 'rst' or 'login' in the JobName",{
     job_results <-
       job_finder(
-        system_user_name = Sys.getenv()["USER"],
+        system_user_name = username,
         jobname_filter   = "rst|login",
         cluster_type     = "slurm"
       )
@@ -67,14 +69,14 @@ test_that(
   "job_finder errors for wrong/blank cluster name",
   {
     expect_error(
-      job_finder(system_user_name = Sys.getenv()["USER"],
+      job_finder(system_user_name = username,
                  jobname_filter = "rst",
                  cluster_type = NULL),
       regexp = "valid cluster type"
     )
 
     expect_error(
-      job_finder(system_user_name = Sys.getenv()["USER"],
+      job_finder(system_user_name = username,
                  jobname_filter = "rst",
                  cluster_type = "UGE"),
       regexp = "valid cluster type"
@@ -101,7 +103,7 @@ submit_command_list <- extract_submission_commands(
   submitline_n_char = 500,
   regex_to_extract = "singularity-images/rstudio/[[:graph:]]+\\.img$",
   regex_to_ignore = "jpy",
-  system_user_name = Sys.getenv()["USER"],
+  system_user_name = username,
   cluster_type = "slurm"
 )
 
@@ -135,7 +137,7 @@ test_that(
 test_that(
   "metadata_shell produces a list with the correctly named top-level items",
   {
-    metadata_shell <- build_metadata_shell(code_root = file.path("/mnt/share/code/", Sys.getenv()["USER"], "SamsElves"))
+    metadata_shell <- build_metadata_shell(code_root = file.path("/mnt/share/code/", username, "SamsElves"))
     metadata_shell_names <- c("start_time", "user", "code_root", "GIT", "SUBMIT_COMMANDS", "sessionInfo")
     expect_type(metadata_shell, "list")
     expect_equal(names(metadata_shell), metadata_shell_names)
@@ -146,7 +148,7 @@ test_that(
   "metadata_shell produces correct not-found message",
   {
     expect_message(
-      metadata_shell <- build_metadata_shell(code_root = file.path("/mnt/share/code/", Sys.getenv()["USER"], "SamsElves"),
+      metadata_shell <- build_metadata_shell(code_root = file.path("/mnt/share/code/", username, "SamsElves"),
                                              jobname_filter = "JUNK_JOBNAME_FILTER"),
       regexp = "Metadata warning:
 
