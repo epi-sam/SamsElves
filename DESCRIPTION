@@ -6,12 +6,12 @@ Author: Sam Byrne (ssbyrne@uw.edu)
 Description: Helper functions for the data science at IHME
 License: none
 Imports:
-    data.table (>= 1.14.6),
-    argparse (>= 2.2.1),
-    rhdf5 (>= 2.42.0),
-    DescTools (>= 0.99.47),
-    glue (>= 1.6.2),
-    yaml (>= 2.3.6)
+    data.table,
+    argparse,
+    rhdf5,
+    DescTools,
+    glue,
+    yaml
 Suggests: 
     testthat (>= 3.0.0)Config/testthat/edition: 3
 Encoding: UTF-8
