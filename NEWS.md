@@ -2,6 +2,11 @@ ChangeLog for SamsElves Package
 
 --------------------------------------------------------------------------------
 
+## 2025-02-21 v0.3.16
+
+- bugfix:
+  - assert_square has option for 0-row data.table, which is used by aggregate_parents_from_children
+
 ## 2025-02-21 v0.3.15
 
 - improved:

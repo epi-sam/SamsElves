@@ -13,7 +13,14 @@
 #' @return [list] 2 data.tables - duplicated rows and missing rows
 #' @export
 #'
-assert_square <- function(dt, id_varnames, no_na_varnames = NULL, verbose = TRUE, hard_stop = TRUE){
+assert_square <- function(
+    dt
+    , id_varnames
+    , no_na_varnames = NULL
+    , verbose = TRUE
+    , hard_stop = TRUE
+    , stop_if_empty = TRUE
+){
 
   # Validate inputs
   if(!data.table::is.data.table(dt)) stop("dt must be a data.table")
@@ -21,6 +28,16 @@ assert_square <- function(dt, id_varnames, no_na_varnames = NULL, verbose = TRUE
   if(!is.logical(verbose)) stop("verbose must be a logical")
   varnames_missing <- setdiff(id_varnames, names(dt))
   if(length(varnames_missing)) stop("Not all id_varnames are present in the data.table: ", toString(varnames_missing))
+  dt_name <- deparse(substitute(dt))
+
+  if(nrow(dt) == 0) {
+    cnd_msg <- sprintf("%s has no rows.", dt_name)
+    if(stop_if_empty){
+      stop(cnd_msg)
+    } else {
+      warning(cnd_msg)
+    }
+  }
 
   # Build a square of id_vars
   id_vars               <- lapply(id_varnames, function(x) unique(dt[[x]]))
@@ -53,14 +70,13 @@ assert_square <- function(dt, id_varnames, no_na_varnames = NULL, verbose = TRUE
   }
 
   if(nrow(duplicated_rows) > 0 || nrow(missing_rows) > 0) {
-    cnd_msg <- "Your data.table is not square - see returned list for duplicated and / or missing rows."
+    cnd_msg <- sprintf("%s is not square - see returned list for duplicated and / or missing rows.", dt_name)
     if(hard_stop){
       stop(cnd_msg)
     } else {
       warning(cnd_msg)
     }
   } else {
-    dt_name <- deparse(substitute(dt))
     if (verbose) message(dt_name, " is square by: ", toString(id_varnames))
   }
 }

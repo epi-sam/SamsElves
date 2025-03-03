@@ -9,7 +9,8 @@ assert_square(
   id_varnames,
   no_na_varnames = NULL,
   verbose = TRUE,
-  hard_stop = TRUE
+  hard_stop = TRUE,
+  stop_if_empty = TRUE
 )
 }
 \arguments{
