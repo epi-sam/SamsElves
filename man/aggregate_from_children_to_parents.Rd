@@ -13,6 +13,7 @@ aggregate_from_children_to_parents(
   hierarchy_id = "location_id",
   stop_level = 3L,
   require_square = TRUE,
+  require_rows = TRUE,
   verbose = TRUE,
   v_verbose = FALSE,
   tolerance_all_equal = NULL,
@@ -46,6 +47,9 @@ from e.g. small islands)}
 
 \item{require_square}{[lgl] (default TRUE) If TRUE, will check inputs and
 outputs for square (i.e. all variables are present for all combinations of}
+
+\item{require_rows}{[lgl] (default TRUE) If TRUE, assert_squarec checks data
+has > 0 rows}
 
 \item{verbose}{[lgl] message each parent and children being aggregated?}
 

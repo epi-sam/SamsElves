@@ -34,6 +34,8 @@
 #'   from e.g. small islands)
 #' @param require_square [lgl] (default TRUE) If TRUE, will check inputs and
 #'   outputs for square (i.e. all variables are present for all combinations of
+#' @param require_rows [lgl] (default TRUE) If TRUE, assert_squarec checks data
+#'   has > 0 rows
 #' @param verbose [lgl] message each parent and children being aggregated?
 #' @param v_verbose [lgl] message each parent that is not all.equal() to its
 #'   aggregated children (if parent already exists in the dataset)?
@@ -60,6 +62,7 @@ aggregate_from_children_to_parents <- function(
     , hierarchy_id        = "location_id"
     , stop_level          = 3L
     , require_square      = TRUE
+    , require_rows        = TRUE
     , verbose             = TRUE
     , v_verbose           = FALSE
     , tolerance_all_equal = NULL
@@ -113,10 +116,11 @@ aggregate_from_children_to_parents <- function(
   }
 
   assert_square(
-    dt            = DT
-    , id_varnames = unique(c(hierarchy_id, varnames_to_aggregate_by))
-    , hard_stop   = require_square
-    , verbose     = FALSE
+    dt              = DT
+    , id_varnames   = unique(c(hierarchy_id, varnames_to_aggregate_by))
+    , hard_stop     = require_square
+    , stop_if_empty = require_rows
+    , verbose       = FALSE
   )
 
   setkeyv(DT, varnames_to_aggregate_by)
@@ -167,10 +171,11 @@ aggregate_from_children_to_parents <- function(
           {
             # set this up to trigger a warning if the square check fails
             square_catch <- assert_square(
-              dt            = dt_children
-              , id_varnames = unique(c(hierarchy_id, varnames_to_aggregate_by))
-              , hard_stop   = FALSE
-              , verbose     = FALSE
+              dt              = dt_children
+              , id_varnames   = unique(c(hierarchy_id, varnames_to_aggregate_by))
+              , hard_stop     = FALSE
+              , stop_if_empty = FALSE
+              , verbose       = FALSE
             )
           }
           , warning = function(assert_square_cnd){
@@ -223,10 +228,11 @@ aggregate_from_children_to_parents <- function(
   }
 
   assert_square(
-    dt            = DT
-    , id_varnames = unique(c(hierarchy_id, varnames_to_aggregate_by))
-    , hard_stop   = require_square
-    , verbose     = FALSE
+    dt              = DT
+    , id_varnames   = unique(c(hierarchy_id, varnames_to_aggregate_by))
+    , hard_stop     = require_square
+    , stop_if_empty = require_rows
+    , verbose       = FALSE
   )
   setcolorder(DT, keep_vars)
   setorderv(DT, c(hierarchy_id, varnames_to_aggregate_by))
