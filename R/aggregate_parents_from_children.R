@@ -108,10 +108,10 @@ aggregate_from_children_to_parents <- function(
   # Assert completeness
   DT_incomplete <- DT[!complete.cases(DT)]
   hierarchy_incomplete <- hierarchy[!complete.cases(hierarchy)]
-  if(nrow(DT_incomplete)){
+  if(nrow(DT_incomplete) > 0){
     stop("aggregate_from_children_to_parents requires complete.cases() and data are incomplete, example: \n", prt_multiline(DT_incomplete[1, ]))
   }
-  if(nrow(hierarchy_incomplete)){
+  if(nrow(hierarchy_incomplete) > 0){
     stop("aggregate_from_children_to_parents requires complete.cases() and hierarchy is incomplete, example: \n", prt_multiline(hierarchy_incomplete[1, ]))
   }
 
