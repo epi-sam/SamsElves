@@ -7,9 +7,11 @@
 save_file(
   object,
   f_path,
+  csv_opt = "readr::write_excel_csv",
   overwrite = NULL,
   verbose = FALSE,
-  forbid_overwrite = NULL
+  forbid_overwrite = NULL,
+  ...
 )
 }
 \arguments{
@@ -17,11 +19,18 @@ save_file(
 
 \item{f_path}{[path] a file path to save to}
 
-\item{overwrite}{[lgl] default: NULL which overwrites by default until forbid_overwrite is deprecated}
+\item{csv_opt}{[chr] optional csv writer, depending on desired behavior e.g.
+default `readr::write_excel_csv` preserves correct diacritics, but
+`data.table::fwrite` is faster if diacritics are not necessary.}
+
+\item{overwrite}{[lgl] default: NULL which overwrites by default until
+forbid_overwrite is deprecated}
 
 \item{verbose}{[lgl] default: silent}
 
 \item{forbid_overwrite}{[lgl]  DEPRECATED - backward compatibility preserved}
+
+\item{...}{other arguments passed to write functions"}
 }
 \value{
 [none] Saves to disk

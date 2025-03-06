@@ -1,12 +1,13 @@
 Type: Package
 Package: SamsElves
 Title: Helper functions for the data science at IHME
-Version: 0.3.15
+Version: 0.3.16
 Author: Sam Byrne (ssbyrne@uw.edu)
 Description: Helper functions for the data science at IHME
 License: none
 Imports:
     data.table,
+    readr,
     argparse,
     rhdf5,
     DescTools,

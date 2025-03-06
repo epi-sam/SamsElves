@@ -49,13 +49,18 @@ find_file_extension <- function(f_path){
 #'
 #' @param object [obj] an R object
 #' @param f_path [path] a file path to save to
-#' @param overwrite [lgl] default: NULL which overwrites by default until forbid_overwrite is deprecated
+#' @param overwrite [lgl] default: NULL which overwrites by default until
+#'   forbid_overwrite is deprecated
 #' @param verbose [lgl] default: silent
 #' @param forbid_overwrite [lgl]  DEPRECATED - backward compatibility preserved
+#' @param ... other arguments passed to write functions"
+#' @param csv_opt [chr] optional csv writer, depending on desired behavior e.g.
+#'   default `readr::write_excel_csv` preserves correct diacritics, but
+#'   `data.table::fwrite` is faster if diacritics are not necessary.
 #'
 #' @return [none] Saves to disk
 #' @export
-save_file <- function(object, f_path, overwrite = NULL, verbose = FALSE, forbid_overwrite = NULL){
+save_file <- function(object, f_path, csv_opt = "readr::write_excel_csv", overwrite = NULL, verbose = FALSE, forbid_overwrite = NULL, ...){
 
   stopifnot(is.logical(verbose))
 
@@ -117,13 +122,23 @@ save_file <- function(object, f_path, overwrite = NULL, verbose = FALSE, forbid_
       collapse = ", "
     )
 
+    csv_writer <- switch(
+      csv_opt
+      , "readr::write_excel_csv"  = function(...) return(readr::write_excel_csv(...))
+      , "readr::write_excel_csv2" = function(...) return(readr::write_excel_csv2(...))
+      , "data.table::fwrite"      = function(...) return(data.table::fwrite(...))
+      , "utils::write.csv"        = function(...) return(data.table::setDT(utils::write.csv(...)))
+      , "utils::write.csv2"       = function(...) return(data.table::setDT(utils::write.csv2(...)))
+      , stop("csv_opt must be one of: readr::write_excel_csv, readr::write_excel_csv2, data.table::fwrite, utils::write.csv, utils::write.csv2")
+    )
+
     ext <- tolower(find_file_extension(f_path))
 
     switch(
       ext,
-      "csv"  = {data.table::fwrite(object, f_path)},
-      "yaml" = {yaml::write_yaml(object, f_path)},
-      "rds"  = {saveRDS(object, f_path)},
+      "csv"  = {csv_writer(object, f_path, ...)},
+      "yaml" = {yaml::write_yaml(object, f_path, ...)},
+      "rds"  = {saveRDS(object, f_path, ...)},
       {
         stop(glue::glue("This function only supports {valid_file_extensions} file extensions (case-insensitive)."),
              glue::glue(" Update if more options are needed. Submitted extension: {ext}"))
