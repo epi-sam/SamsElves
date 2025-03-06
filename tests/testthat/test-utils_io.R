@@ -97,7 +97,7 @@ test_that("save_file overwrites with base behavior",
             )
           })
 
-test_that("save_file errors correctly for nonexistent directory",
+test_that("save_file errors correctly when parent directory does not exist",
           {
             expect_error(
               save_file(object = save_object
@@ -106,6 +106,18 @@ test_that("save_file errors correctly for nonexistent directory",
                         , verbose = FALSE)
               , regexp = "Parent directory does not exist, please create it first"
 
+            )
+          })
+
+test_that("save_file errors correctly for wrong csv_writer",
+          {
+            withr::local_file(dir_full)
+            dir.create(dir_full)
+            expect_error(
+              save_file(object = save_object
+                        , f_path = fpath_supported_ftype
+                        , csv_opt = "bad::package")
+              , regexp = "csv_opt must be one of: readr::write_excel_csv, readr::write_excel_csv2, data.table::fwrite, utils::write.csv, utils::write.csv2"
             )
           })
 

@@ -4,8 +4,12 @@ ChangeLog for SamsElves Package
 
 ## 2025-02-21 v0.3.16
 
+- feature:
+  - save_file now has csv_opt argument and new default (readr::write_excel_csv) to preserve diacritics
+
 - bugfix:
   - assert_square has option for 0-row data.table, which is used by aggregate_parents_from_children
+
 
 ## 2025-02-21 v0.3.15
 
