@@ -2,6 +2,11 @@ ChangeLog for SamsElves Package
 
 --------------------------------------------------------------------------------
 
+## 2025-03-09 v0.3.17
+
+- bugfix:
+  - save_file csv_writer rewrite - default now only quotes necessary strings (those withd delimeters)
+
 ## 2025-02-21 v0.3.16
 
 - feature:

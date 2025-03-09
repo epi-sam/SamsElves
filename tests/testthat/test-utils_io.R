@@ -76,7 +76,7 @@ test_that("save_file forbids overwrite",
                         , f_path = fpath_supported_ftype
                         , forbid_overwrite = TRUE
                         , verbose = FALSE)
-              , regexp = paste("File already exists, not over-writing:", fpath_supported_ftype)
+              , regexp = paste(".*File already exists, not over-writing:", fpath_supported_ftype)
             )
           })
 
@@ -115,7 +115,7 @@ test_that("save_file errors correctly for wrong csv_writer",
             dir.create(dir_full)
             expect_error(
               save_file(object = save_object
-                        , f_path = fpath_supported_ftype
+                        , f_path = fname_csv_ftype
                         , csv_opt = "bad::package")
               , regexp = "csv_opt must be one of: readr::write_excel_csv, readr::write_excel_csv2, data.table::fwrite, utils::write.csv, utils::write.csv2"
             )

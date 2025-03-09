@@ -117,22 +117,43 @@ save_file <- function(object, f_path, csv_opt = "readr::write_excel_csv", overwr
 
   } else {
 
+    csv_writer <- function(object, f_path, csv_opt_ = csv_opt, ...){
+
+      write_methods <- list(
+        # args must be in order of 1 = object, 2 = file path to write to
+        "readr::write_excel_csv"    = list(fun = readr::write_excel_csv, args = c("x", "file"), defaults = list(quote = "needed"))
+        , "readr::write_excel_csv2" = list(fun = readr::write_excel_csv2, args = c("x", "file"), defaults = list(quote = "needed"))
+        , "data.table::fwrite"      = list(fun = data.table::fwrite, args = c("x", "file"), defaults = list())
+        , "utils::write.csv"        = list(fun = utils::write.csv, args = c("x", "file"), defaults = list())
+        , "utils::write.csv2"       = list(fun = utils::write.csv2, args = c("x", "file"), defaults = list())
+      )
+
+      if(!csv_opt_ %in% names(write_methods)) stop("csv_opt must be one of: ", toString(names(write_methods)))
+
+      write_method <- write_methods[[csv_opt_]]
+      fun          <- write_method$fun
+      arg_names    <- write_method$args
+      defaults     <- write_method$defaults
+
+      args <- list(...)
+      # apply defaults only if user does not override
+      args <- modifyList(defaults, args)
+      args$object = object
+      args$f_path = f_path
+
+      names(args)[names(args) == "object"] <- arg_names[1]
+      names(args)[names(args) == "f_path"] <- arg_names[2]
+
+      do.call(fun, args)
+
+    }
+
+    ext <- tolower(find_file_extension(f_path))
+
     valid_file_extensions <- paste(
       c("csv", "yaml", "rds"),
       collapse = ", "
     )
-
-    csv_writer <- switch(
-      csv_opt
-      , "readr::write_excel_csv"  = function(...) return(readr::write_excel_csv(...))
-      , "readr::write_excel_csv2" = function(...) return(readr::write_excel_csv2(...))
-      , "data.table::fwrite"      = function(...) return(data.table::fwrite(...))
-      , "utils::write.csv"        = function(...) return(data.table::setDT(utils::write.csv(...)))
-      , "utils::write.csv2"       = function(...) return(data.table::setDT(utils::write.csv2(...)))
-      , stop("csv_opt must be one of: readr::write_excel_csv, readr::write_excel_csv2, data.table::fwrite, utils::write.csv, utils::write.csv2")
-    )
-
-    ext <- tolower(find_file_extension(f_path))
 
     switch(
       ext,
