@@ -82,3 +82,8 @@ submit_job(
 Function contains internal defaults for R and Python shell scripts.
 Function will build log paths automatically.
 }
+\seealso{
+Other job_submission: 
+\code{\link{parse_all_named_cli_args}()}
+}
+\concept{job_submission}

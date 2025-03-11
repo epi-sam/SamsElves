@@ -26,32 +26,33 @@
 #' @param send_email [lgl] send email on job completion?
 #' @param dry_runTF [lgl] (default FALSE) if TRUE, only message and return submission command, no job submission
 #'
+#' @family job_submission
 #' @return [int] job_id of submitted job, also messsage with job_id and job_name
 #' @export
 submit_job <- function(
-    script_path           = NULL,
-    threads               = 2L,
-    mem                   = "10G",
-    runtime_min           = 15L,
-    array_tasks_int       = NULL,
-    archiveTF             = TRUE,
-    job_name              = NULL,
-    partition             = "all.q",
-    account               = NULL,
-    hold_for_JobIDs       = NULL,
-    language              = "R",
-    r_image               = NULL,
-    shell_script_path     = NULL,
-    std_err_root          = file.path("/mnt/share/temp/slurmoutput", Sys.info()[["user"]], "error"),
-    std_out_root          = file.path("/mnt/share/temp/slurmoutput", Sys.info()[["user"]], "output"),
-    console_style_log_tf  = FALSE,
-    args_list             = NULL,
-    arg_vecs_to_comma_str = TRUE,
-    verbose               = TRUE,
-    v_verbose             = FALSE,
-    send_email            = FALSE,
-    email_address         = paste0(Sys.info()[["user"]], "@uw.edu"),
-    dry_runTF             = FALSE
+    script_path             = NULL
+    , threads               = 2L
+    , mem                   = "10G"
+    , runtime_min           = 15L
+    , array_tasks_int       = NULL
+    , archiveTF             = TRUE
+    , job_name              = NULL
+    , partition             = "all.q"
+    , account               = NULL
+    , hold_for_JobIDs       = NULL
+    , language              = "R"
+    , r_image               = NULL
+    , shell_script_path     = NULL
+    , std_err_root          = file.path("/mnt/share/temp/slurmoutput", Sys.info()[["user"]], "error")
+    , std_out_root          = file.path("/mnt/share/temp/slurmoutput", Sys.info()[["user"]], "output")
+    , console_style_log_tf  = FALSE
+    , args_list             = NULL
+    , arg_vecs_to_comma_str = TRUE
+    , verbose               = TRUE
+    , v_verbose             = FALSE
+    , send_email            = FALSE
+    , email_address         = paste0(Sys.info()[["user"]], "@uw.edu")
+    , dry_runTF             = FALSE
 ) {
 
   # Argument validation
