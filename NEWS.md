@@ -2,10 +2,17 @@ ChangeLog for SamsElves Package
 
 --------------------------------------------------------------------------------
 
+## 2025-03-09 v0.3.18
+
+- feature:
+  - parse_all_named_cli_args allows unlock/lockBinding for variables that may already be locked at time of parsing
+
+
 ## 2025-03-09 v0.3.17
 
 - bugfix:
   - save_file csv_writer rewrite - default now only quotes necessary strings (those withd delimeters)
+
 
 ## 2025-02-21 v0.3.16
 
