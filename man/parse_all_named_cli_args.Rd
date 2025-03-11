@@ -12,6 +12,7 @@ parse_all_named_cli_args(
   assign_NA = TRUE,
   assign_NULL = TRUE,
   split_comma_str = TRUE,
+  allow_rebinding = TRUE,
   assignment_env = globalenv()
 )
 }
@@ -39,6 +40,10 @@ e.g. 5 to `5L`}
 \item{split_comma_str}{[lgl] if TRUE, split comma-separated strings into
 vectors}
 
+\item{allow_rebinding}{[lgl] if TRUE, allow re-binding of variables in the
+chosen environment (i.e. lockBinding was already used - unlock and re-lock
+all passed args, if relevant)}
+
 \item{assignment_env}{[env] which environment to assign CLI arguments to as
 named variables}
 }
@@ -62,9 +67,14 @@ cli_args <- parse_all_named_cli_args(
    trailingOnly   = TRUE,
    assign_logical = TRUE,
    assign_integer = TRUE,
-   assign_NA       = TRUE,
-   assign_NULL     = TRUE,
+   assign_NA      = TRUE,
+   assign_NULL    = TRUE,
    assignment_env = globalenv()
 )
 }
 }
+\seealso{
+Other job_submission: 
+\code{\link{submit_job}()}
+}
+\concept{job_submission}

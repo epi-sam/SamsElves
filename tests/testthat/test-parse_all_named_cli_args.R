@@ -54,6 +54,10 @@ test_that("parse_all_named_cli_args works and submit_job produces the correct st
             stopifnot(file.exists(std_err_log_path))
             std_err_log <- readLines(std_err_log_path)
 
+            expect_true(
+              any(grepl('Applying unlockBinding and lockBinding to key variables in chosen environment'
+                        , std_err_log))
+              )
             expect_equal(std_err_log[length(std_err_log)], "Done.")
 
           }

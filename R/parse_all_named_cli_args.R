@@ -24,10 +24,14 @@
 #' @param assign_integer [lgl] if TRUE, assign solely numeric args to integer
 #'   e.g. 5 to `5L`
 #' @param split_comma_str [lgl] if TRUE, split comma-separated strings into
-#'  vectors
+#'   vectors
 #' @param assign_NA [lgl] if TRUE, assign 'NA' in parsed args to `NA`
 #' @param assign_NULL [lgl] if TRUE, assign 'NULL' in parsed args to `NULL`
+#' @param allow_rebinding [lgl] if TRUE, allow re-binding of variables in the
+#'   chosen environment (i.e. lockBinding was already used - unlock and re-lock
+#'   all passed args, if relevant)
 #'
+#' @family job_submission
 #' @return [named list] named list of CLI arguments
 #' @export
 #'
@@ -37,20 +41,21 @@
 #'    trailingOnly   = TRUE,
 #'    assign_logical = TRUE,
 #'    assign_integer = TRUE,
-#'    assign_NA       = TRUE,
-#'    assign_NULL     = TRUE,
+#'    assign_NA      = TRUE,
+#'    assign_NULL    = TRUE,
 #'    assignment_env = globalenv()
 #' )
 #' }
 parse_all_named_cli_args <- function(
-    required_args   = NULL,
-    trailingOnly    = TRUE,
-    assign_logical  = TRUE,
-    assign_integer  = TRUE,
-    assign_NA       = TRUE,
-    assign_NULL     = TRUE,
-    split_comma_str = TRUE,
-    assignment_env  = globalenv()
+    required_args     = NULL
+    , trailingOnly    = TRUE
+    , assign_logical  = TRUE
+    , assign_integer  = TRUE
+    , assign_NA       = TRUE
+    , assign_NULL     = TRUE
+    , split_comma_str = TRUE
+    , allow_rebinding = TRUE
+    , assignment_env  = globalenv()
 ) {
 
   # Validate inputs
@@ -74,6 +79,9 @@ parse_all_named_cli_args <- function(
   }
   if (!is.logical(split_comma_str) | length(split_comma_str) != 1) {
     stop("split_comma_str must be a single logical")
+  }
+  if (!is.logical(allow_rebinding) | length(allow_rebinding) != 1) {
+    stop("allow_rebinding must be a single logical")
   }
   if (!is.environment(assignment_env)) {
     stop("assignment_env must be an environment")
@@ -150,21 +158,37 @@ parse_all_named_cli_args <- function(
     )
   }
 
+  if (allow_rebinding == TRUE){
+  # unlock bound objects to allow CLI argument overwrites
+    bound_lgl <- unlist(
+      lapply(names(args_list), function(arg_name) {
+        if(exists(arg_name, env = assignment_env)) {
+          x_lgl <- bindingIsLocked(arg_name, env = assignment_env)
+        } else {
+          x_lgl <- FALSE
+        }
+        return(x_lgl)
+      })
+    )
+    bound_idx <- which(bound_lgl)
+    if (length(bound_idx) > 0){
+      bound_names <- names(args_list)[bound_idx]
+      message("Applying unlockBinding and lockBinding to key variables in chosen environment: "
+              , toString(bound_names))
+      lapply(bound_names, unlockBinding, env = assignment_env)
+    }
+  }
+
   message("Assigning args to chosen environment.")
   list2env(args_list, envir = assignment_env)
   message(prt_multiline(args_list))
 
-  # for(key in names(args_list)){
-  #   # if (all(grepl("^NULL$", args_list[[key]])) & assign_NULL) {
-  #   #   args_list[[key]] <- NULL
-  #   # }
-  #   message(key, " : ", toString(args_list[[key]]))
-  #   assign(key, args_list[[key]], envir = assignment_env)
-  #   if ((all(grepl("^NULL$", args_list[[key]])) & assign_NULL)) {
-  #     message("Assigning NULL type to : ", key)
-  #     assign(key, NULL, envir = assignment_env)
-  #   }
-  # }
+  if(allow_rebinding == TRUE){
+    if (length(bound_idx) > 0){
+      # re-bind any objects that are expected to be bound
+      lapply(bound_names, lockBinding, env = assignment_env)
+    }
+  }
 
   return(args_list)
 }

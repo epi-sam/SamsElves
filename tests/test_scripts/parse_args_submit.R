@@ -17,32 +17,35 @@ message("code_root from per-parser: ", root_code)
 rm(pre_parser, args)
 
 message("Sourcing arg-parsing functions from user's code repo: ", root_code)
-# source(file.path(root_code, "R/parse_all_named_cli_args.R"))
-# source(file.path(root_code, "R/assertions.R"))
-# source(file.path(root_code, "R/utils_cli.R"))
 lapply(list.files(file.path(root_code, "R"), full.names = TRUE, recursive = FALSE, pattern = "\\.[Rr]"), source)
 
+# Test binding unlock/relock
+lockBinding('root_code', .GlobalEnv)
+
 required_flag_list <- list(
-  flag1 = "logical"
-  , flag2 = "integer"
-  , flag3 = NA # if you don't care about the data type
-  , flag4 = "integer" # integer vector checking allowed by `split_comma_str` argument
+  root_code = "character" # to check binding unlock/relock
+  , flag1   = "logical"
+  , flag2   = "integer"
+  , flag3   = NA # if you don't care about the data type
+  , flag4   = "integer" # integer vector checking allowed by `split_comma_str` argument
   # NULLs
-  , flag5 = "NULL"
-  , flag6 = "NULL"
+  , flag5   = "NULL"
+  , flag6   = "NULL"
   # NA
-  , flag7 = "logical"
+  , flag7   = "logical"
 )
 
+
 cli_args <- parse_all_named_cli_args(
-  required_args   = required_flag_list,
-  trailingOnly    = TRUE,
-  assign_logical  = TRUE,
-  assign_integer  = TRUE,
-  assign_NA       = TRUE,
-  assign_NULL     = TRUE,
-  split_comma_str = TRUE,
-  assignment_env  = globalenv()
+  required_args     = required_flag_list
+  , trailingOnly    = TRUE
+  , assign_logical  = TRUE
+  , assign_integer  = TRUE
+  , assign_NA       = TRUE
+  , assign_NULL     = TRUE
+  , split_comma_str = TRUE
+  , allow_rebinding = TRUE
+  , assignment_env  = globalenv()
 )
 
 # Ensure flags come through with correct data types
