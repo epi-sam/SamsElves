@@ -32,11 +32,7 @@ assert_square <- function(
 
   if(nrow(dt) == 0) {
     cnd_msg <- sprintf("%s has no rows.", dt_name)
-    if(stop_if_empty){
-      stop(cnd_msg)
-    } else {
-      warning(cnd_msg)
-    }
+    if(stop_if_empty) stop(cnd_msg) else warning(cnd_msg)
   }
 
   # Build a square of id_vars
@@ -61,23 +57,18 @@ assert_square <- function(
     missing_rows    = missing_rows
   )
 
-  # always return this
-  on.exit(return(non_square_list))
-
-  # Check for NA values
   if(!is.null(no_na_varnames)){
     assert_no_na(dt, no_na_varnames, verbose = verbose)
   }
 
-  if(nrow(duplicated_rows) > 0 || nrow(missing_rows) > 0) {
-    cnd_msg <- sprintf("%s is not square - see returned list for duplicated and / or missing rows.", dt_name)
-    if(hard_stop){
-      stop(cnd_msg)
-    } else {
-      warning(cnd_msg)
-    }
-  } else {
-    if (verbose) message(dt_name, " is square by: ", toString(id_varnames))
+  if(any(unlist(lapply(non_square_list, nrow))) > 0 ){
+    assign("NON_SQUARE_LIST", non_square_list, envir = .GlobalEnv)
+    cnd_msg <- sprintf("%s is not square - see NON_SQUARE_LIST for duplicated and / or missing rows.", dt_name)
+    if(hard_stop) stop(cnd_msg) else warning(cnd_msg)
   }
+
+  if (verbose) message(dt_name, " is square by: ", toString(id_varnames))
+
+  return(invisible())
 }
 
