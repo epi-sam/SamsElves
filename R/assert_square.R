@@ -82,6 +82,6 @@ assert_square <- function(dt, id_varnames, no_na_varnames = NULL, verbose = TRUE
     dt_name <- deparse(substitute(dt))
     if (verbose) message(dt_name, " is square by: ", toString(id_varnames))
 
-    return(invisible())
+    return(invisible(non_square_list)) # sometimes used if hard_stop = FALSE
 
   }
