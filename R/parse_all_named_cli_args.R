@@ -163,7 +163,7 @@ parse_all_named_cli_args <- function(
     bound_lgl <- unlist(
       lapply(names(args_list), function(arg_name) {
         if(exists(arg_name, env = assignment_env)
-           & !is.function(get(arg_name, envir = .GlobalEnv))) {
+           && !is.function(get(arg_name, envir = .GlobalEnv))) {
           x_lgl <- bindingIsLocked(arg_name, env = assignment_env)
         } else {
           x_lgl <- FALSE
