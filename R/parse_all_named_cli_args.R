@@ -87,7 +87,7 @@ parse_all_named_cli_args <- function(
     stop("assignment_env must be an environment")
   }
 
-  message("Starting arg parser.")
+  message("\nStarting arg parser.")
 
   # Grab CLI args
   command_args <- commandArgs(trailingOnly = trailingOnly)
@@ -190,6 +190,8 @@ parse_all_named_cli_args <- function(
       lapply(bound_names, lockBinding, env = assignment_env)
     }
   }
+
+  message("\n")
 
   return(args_list)
 }

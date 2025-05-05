@@ -70,6 +70,7 @@ build_metadata_shell <- function(
     start_time      = as.character(Sys.time()),
     user            = Sys.info()[["user"]],
     code_root       = code_root,
+    script_path     = extract_script_path(code_root),
     GIT             = GIT,
 
     SUBMIT_COMMANDS = extract_submission_commands(
@@ -420,4 +421,28 @@ extract_sessionInfo <- function(
   }
 
   return(si)
+}
+
+#' Extract the path to the current script
+#'
+#' @param code_root [chr] Path to top-level code repo folder, require: path
+#'
+#' @return [chr] Path to the current script, relative to the code_root, NA if
+#'   unable to find
+#'
+#' @examples
+#' extract_script_path(code_root = getwd())
+extract_script_path <- function(code_root){
+  tryCatch({
+    if(isTRUE(interactive())) {
+      script_path <- rstudioapi::getSourceEditorContext()$path
+    } else {
+      script_path <- get("script_path", envir = .GlobalEnv)
+      # relies on using this package's submit_job and arg_parser functions
+    }
+    sub(code_root, "", script_path)
+  }, error = function(e){
+    message(e, "\n")
+    NA_character_
+  })
 }
