@@ -9,19 +9,20 @@ submit_job(
   threads = 2L,
   mem = "10G",
   runtime_min = 15L,
+  account = NULL,
+  console_style_log_tf = FALSE,
+  std_err_root = file.path("/mnt/share/temp/slurmoutput", Sys.info()[["user"]], "error"),
+  std_out_root = file.path("/mnt/share/temp/slurmoutput", Sys.info()[["user"]], "output"),
   array_tasks_int = NULL,
   archiveTF = TRUE,
   job_name = NULL,
   partition = "all.q",
-  account = NULL,
   hold_for_JobIDs = NULL,
   language = "R",
   r_image = NULL,
   shell_script_path = NULL,
-  std_err_root = file.path("/mnt/share/temp/slurmoutput", Sys.info()[["user"]], "error"),
-  std_out_root = file.path("/mnt/share/temp/slurmoutput", Sys.info()[["user"]], "output"),
-  console_style_log_tf = FALSE,
   args_list = NULL,
+  args_include_script = TRUE,
   arg_vecs_to_comma_str = TRUE,
   verbose = TRUE,
   v_verbose = FALSE,
@@ -39,6 +40,14 @@ submit_job(
 
 \item{runtime_min}{[num] cluster resource requirement}
 
+\item{account}{[chr] a.k.a. 'project' - cluster resource requirement}
+
+\item{console_style_log_tf}{[lgl] if TRUE, combine std_err and std_out into one log in the std_out_root}
+
+\item{std_err_root}{[chr] path for Slurm std_err logs}
+
+\item{std_out_root}{[chr] path for Slurm std_out logs}
+
 \item{array_tasks_int}{[int] (default: NULL - if not NULL, array job is assumed) - vector of integers for you array (e.g. c(1L:10L))}
 
 \item{archiveTF}{[lgl] (default FALSE) do you need an archive node?}
@@ -46,8 +55,6 @@ submit_job(
 \item{job_name}{[chr] Will be name of script if NULL}
 
 \item{partition}{[chr] a.k.a. 'queue' - cluster resource requirement}
-
-\item{account}{[chr] a.k.a. 'project' - cluster resource requirement}
 
 \item{hold_for_JobIDs}{vector of jobids that must complete successfully before running this job (https://slurm.schedmd.com/sbatch.html#OPT_dependency)}
 
@@ -57,13 +64,9 @@ submit_job(
 
 \item{shell_script_path}{[path] path to shell script (language-specific)}
 
-\item{std_err_root}{[chr] path for Slurm std_err logs}
-
-\item{std_out_root}{[chr] path for Slurm std_out logs}
-
-\item{console_style_log_tf}{[lgl] if TRUE, combine std_err and std_out into one log in the std_out_root}
-
 \item{args_list}{[list, chr] optional named list() of arguments, e.g. list("arg1" = arg1, "arg2" = arg2)}
+
+\item{args_include_script}{[lgl] if TRUE, include script_path in args_list}
 
 \item{arg_vecs_to_comma_str}{[lgl] if TRUE, convert atomic elements of args_list to comma-separated strings}
 
@@ -72,6 +75,8 @@ submit_job(
 \item{v_verbose}{[lgl] print log paths}
 
 \item{send_email}{[lgl] send email on job completion?}
+
+\item{email_address}{[chr] email address to send job completion notification}
 
 \item{dry_runTF}{[lgl] (default FALSE) if TRUE, only message and return submission command, no job submission}
 }

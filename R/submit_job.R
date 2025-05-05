@@ -20,10 +20,12 @@
 #' @param std_out_root [chr] path for Slurm std_out logs
 #' @param console_style_log_tf [lgl] if TRUE, combine std_err and std_out into one log in the std_out_root
 #' @param args_list [list, chr] optional named list() of arguments, e.g. list("arg1" = arg1, "arg2" = arg2)
+#' @param args_include_script [lgl] if TRUE, include script_path in args_list
 #' @param arg_vecs_to_comma_str [lgl] if TRUE, convert atomic elements of args_list to comma-separated strings
 #' @param verbose [lgl] print submission command and job_id
 #' @param v_verbose [lgl] print log paths
 #' @param send_email [lgl] send email on job completion?
+#' @param email_address [chr] email address to send job completion notification
 #' @param dry_runTF [lgl] (default FALSE) if TRUE, only message and return submission command, no job submission
 #'
 #' @family job_submission
@@ -34,19 +36,20 @@ submit_job <- function(
     , threads               = 2L
     , mem                   = "10G"
     , runtime_min           = 15L
+    , account               = NULL
+    , console_style_log_tf  = FALSE
+    , std_err_root          = file.path("/mnt/share/temp/slurmoutput", Sys.info()[["user"]], "error")
+    , std_out_root          = file.path("/mnt/share/temp/slurmoutput", Sys.info()[["user"]], "output")
     , array_tasks_int       = NULL
     , archiveTF             = TRUE
     , job_name              = NULL
     , partition             = "all.q"
-    , account               = NULL
     , hold_for_JobIDs       = NULL
     , language              = "R"
     , r_image               = NULL
     , shell_script_path     = NULL
-    , std_err_root          = file.path("/mnt/share/temp/slurmoutput", Sys.info()[["user"]], "error")
-    , std_out_root          = file.path("/mnt/share/temp/slurmoutput", Sys.info()[["user"]], "output")
-    , console_style_log_tf  = FALSE
     , args_list             = NULL
+    , args_include_script   = TRUE
     , arg_vecs_to_comma_str = TRUE
     , verbose               = TRUE
     , v_verbose             = FALSE
@@ -78,6 +81,7 @@ submit_job <- function(
   stopifnot(is.logical(arg_vecs_to_comma_str))
   stopifnot(is.logical(send_email))
   stopifnot(is.logical(dry_runTF))
+  stopifnot(is.logical(args_include_script))
   # build log folders silently (dir.create fails naturally if directory exists)
   dir.create(std_err_root, recursive = TRUE, showWarnings = FALSE)
   dir.create(std_out_root, recursive = TRUE, showWarnings = FALSE)
@@ -126,6 +130,9 @@ submit_job <- function(
 
   archive_cmd  <- ifelse(archiveTF, " -C archive", "")
 
+  if (args_include_script == TRUE) {
+    args_list <- append(args_list, list(script_path = script_path))
+  }
   # deal with args_list as a block
   if(!is.null(args_list)){
     assert_named_list(args_list)
@@ -133,8 +140,8 @@ submit_job <- function(
     # - parse_all_named_cli_args deals with the "NULL" string
     if(any(unlist(lapply(args_list, is_cli_null)))){
       message(
-      "\nNULL and empty string ('') args will be converted to string literal 'NULL' for CLI compatibility.\n",
-      " - Ensure 'NULL' is parsed correctly by child scripts with SamsElves::parse_all_named_cli_args(), or by hand.\n"
+        "\nNULL and empty string ('') args will be converted to string literal 'NULL' for CLI compatibility.\n",
+        " - Ensure 'NULL' is parsed correctly by child scripts with SamsElves::parse_all_named_cli_args(), or by hand.\n"
       )
       args_list <- lapply(args_list, function(x) if (is_cli_null(x)) return("NULL") else return(x))
     }

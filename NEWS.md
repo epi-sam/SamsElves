@@ -2,6 +2,13 @@ ChangeLog for SamsElves Package
 
 --------------------------------------------------------------------------------
 
+## 2025-05-05 v.0.3.19
+
+- feature:
+  - `build_metadata_shell` now tries to find the script_path used to call it, or return NA
+    - tries with both interactive and submitted scripts
+    - submitted scritps require a `script_path` object in .GlobalEnv (read from the CLI), which is now provided by `submit_job` by default
+
 ## 2025-03-09 v0.3.18
 
 - feature:
