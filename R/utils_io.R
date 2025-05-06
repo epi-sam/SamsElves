@@ -119,13 +119,15 @@ save_file <- function(object, f_path, csv_opt = "readr::write_excel_csv", overwr
 
     csv_writer <- function(object, f_path, csv_opt_ = csv_opt, ...){
 
+      na <- ""
+
       write_methods <- list(
         # args must be in order of 1 = object, 2 = file path to write to
-        "readr::write_excel_csv"    = list(fun = readr::write_excel_csv, args = c("x", "file"), defaults = list(quote = "needed"))
-        , "readr::write_excel_csv2" = list(fun = readr::write_excel_csv2, args = c("x", "file"), defaults = list(quote = "needed"))
-        , "data.table::fwrite"      = list(fun = data.table::fwrite, args = c("x", "file"), defaults = list())
-        , "utils::write.csv"        = list(fun = utils::write.csv, args = c("x", "file"), defaults = list())
-        , "utils::write.csv2"       = list(fun = utils::write.csv2, args = c("x", "file"), defaults = list())
+        "readr::write_excel_csv"    = list(fun = readr::write_excel_csv, args = c("x", "file"), defaults = list(quote = "needed", na = ""))
+        , "readr::write_excel_csv2" = list(fun = readr::write_excel_csv2, args = c("x", "file"), defaults = list(quote = "needed", na = ""))
+        , "data.table::fwrite"      = list(fun = data.table::fwrite, args = c("x", "file"), defaults = list(na = ""))
+        , "utils::write.csv"        = list(fun = utils::write.csv, args = c("x", "file"), defaults = list(na = ""))
+        , "utils::write.csv2"       = list(fun = utils::write.csv2, args = c("x", "file"), defaults = list(na = ""))
       )
 
       if(!csv_opt_ %in% names(write_methods)) stop("csv_opt must be one of: ", toString(names(write_methods)))
