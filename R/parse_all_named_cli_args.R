@@ -56,6 +56,7 @@ parse_all_named_cli_args <- function(
     , split_comma_str = TRUE
     , allow_rebinding = TRUE
     , assignment_env  = globalenv()
+    , startup_msg     = "Starting arg parser."
 ) {
 
   # Validate inputs
@@ -87,7 +88,7 @@ parse_all_named_cli_args <- function(
     stop("assignment_env must be an environment")
   }
 
-  message("\nStarting arg parser.")
+  message("\n", startup_msg)
 
   # Grab CLI args
   command_args <- commandArgs(trailingOnly = trailingOnly)
