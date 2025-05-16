@@ -167,7 +167,7 @@ submit_job <- function(
     # submit from code_root as working directory
     # - ensures submitted job can find .Rprofile and .Renviron
     if(isTRUE(arg_name_code_root %in% names(args_list))){
-      message("Found code_root in args_list, temporarily setting working directory to code_root: ", args_list[[arg_name_code_root]], "\n")
+      message("Found code_root in args_list, temporarily setting working directory to code_root: ", args_list[[arg_name_code_root]])
       wd_current <- getwd()
       on.exit(setwd(wd_current), add = TRUE)
       code_root <- args_list[[arg_name_code_root]]
