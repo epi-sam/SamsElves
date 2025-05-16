@@ -233,7 +233,7 @@ submit_job <- function(
   }
 
   if(dry_runTF) {
-    message(command, "\n")
+    message("\n", command, "\n")
     return(0L)
   }
 
