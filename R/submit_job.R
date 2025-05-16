@@ -1,32 +1,43 @@
 #' Submit a script as a job to the Slurm cluster
 #'
-#' Function contains internal defaults for R and Python shell scripts.
-#' Function will build log paths automatically.
+#' Function contains internal defaults for R and Python shell scripts. Function
+#' will build log paths automatically.
 #'
 #' @param script_path [chr] full path to submitted script
 #' @param threads [int] cluster resource requirement
 #' @param mem [chr] cluster resource requirement
 #' @param runtime_min [num] cluster resource requirement
-#' @param array_tasks_int [int] (default: NULL - if not NULL, array job is assumed) - vector of integers for you array (e.g. c(1L:10L))
+#' @param array_tasks_int [int] (default: NULL - if not NULL, array job is
+#'   assumed) - vector of integers for you array (e.g. c(1L:10L))
 #' @param archiveTF [lgl] (default FALSE) do you need an archive node?
 #' @param job_name [chr] Will be name of script if NULL
 #' @param partition [chr] a.k.a. 'queue' - cluster resource requirement
 #' @param account [chr] a.k.a. 'project' - cluster resource requirement
-#' @param hold_for_JobIDs vector of jobids that must complete successfully before running this job (https://slurm.schedmd.com/sbatch.html#OPT_dependency)
+#' @param hold_for_JobIDs vector of jobids that must complete successfully
+#'   before running this job
+#'   (https://slurm.schedmd.com/sbatch.html#OPT_dependency)
 #' @param language [chr] coding language for job (see valid_langs validation)
-#' @param r_image [chr] (default "latest.img") e.g. "/mnt/share/singularity-images/rstudio/ihme_rstudio_4214.img"
+#' @param r_image [chr] (default "latest.img") e.g.
+#'   "/mnt/share/singularity-images/rstudio/ihme_rstudio_4214.img"
 #' @param shell_script_path [path] path to shell script (language-specific)
 #' @param std_err_root [chr] path for Slurm std_err logs
 #' @param std_out_root [chr] path for Slurm std_out logs
-#' @param console_style_log_tf [lgl] if TRUE, combine std_err and std_out into one log in the std_out_root
-#' @param args_list [list, chr] optional named list() of arguments, e.g. list("arg1" = arg1, "arg2" = arg2)
+#' @param console_style_log_tf [lgl] if TRUE, combine std_err and std_out into
+#'   one log in the std_out_root
+#' @param args_list [list, chr] optional named list() of arguments, e.g.
+#'   list("arg1" = arg1, "arg2" = arg2)
+#' @param arg_name_code_root [chr] name of an arg_list element with fullpath to
+#'   the repository root (if applicable) - allows submitted script to find
+#'   .Rprofile and .Renviron
 #' @param args_include_script [lgl] if TRUE, include script_path in args_list
-#' @param arg_vecs_to_comma_str [lgl] if TRUE, convert atomic elements of args_list to comma-separated strings
+#' @param arg_vecs_to_comma_str [lgl] if TRUE, convert atomic elements of
+#'   args_list to comma-separated strings
 #' @param verbose [lgl] print submission command and job_id
 #' @param v_verbose [lgl] print log paths
 #' @param send_email [lgl] send email on job completion?
 #' @param email_address [chr] email address to send job completion notification
-#' @param dry_runTF [lgl] (default FALSE) if TRUE, only message and return submission command, no job submission
+#' @param dry_runTF [lgl] (default FALSE) if TRUE, only message and return
+#'   submission command, no job submission
 #'
 #' @family job_submission
 #' @return [int] job_id of submitted job, also messsage with job_id and job_name
@@ -49,6 +60,7 @@ submit_job <- function(
     , r_image               = NULL
     , shell_script_path     = NULL
     , args_list             = NULL
+    , arg_name_code_root    = "code_root"
     , args_include_script   = TRUE
     , arg_vecs_to_comma_str = TRUE
     , verbose               = TRUE
@@ -130,6 +142,8 @@ submit_job <- function(
 
   archive_cmd  <- ifelse(archiveTF, " -C archive", "")
 
+
+  # keep this for downstream provenance
   if (args_include_script == TRUE) {
     args_list <- append(args_list, list(script_path = script_path))
   }
@@ -149,6 +163,17 @@ submit_job <- function(
     if(arg_vecs_to_comma_str) args_list <- apply_comma_string_to_list(args_list)
     # don't break backward compatibility
     names(args_list) <- gsub("^--", "", names(args_list))
+
+    # submit from code_root as working directory
+    # - ensures submitted job can find .Rprofile and .Renviron
+    if(isTRUE(arg_name_code_root %in% names(args_list))){
+      wd_current <- getwd()
+      on.exit(setwd(wd_current), add = TRUE)
+      code_root <- args_list[[arg_name_code_root]]
+      if(!dir.exists(code_root)) stop(sprintf("%s (%s) must be a valid directory", arg_name_code_root, code_root))
+      setwd(code_root)
+    }
+
     # format for scheduler
     names(args_list) <- paste0("--", names(args_list))
   }
