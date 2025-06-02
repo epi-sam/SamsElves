@@ -437,12 +437,12 @@ extract_script_path <- function(code_root){
     if(isTRUE(interactive())) {
       script_path <- rstudioapi::getSourceEditorContext()$path
     } else {
-      script_path <- get("script_path", envir = .GlobalEnv)
       # relies on using this package's submit_job and arg_parser functions
+      script_path <- get("script_path", envir = .GlobalEnv)
     }
     sub(code_root, "", script_path)
   }, error = function(e){
-    message(e, "\n")
+    message("build_metadata_shell: ", conditionMessage(e), "\n")
     NA_character_
   })
 }
