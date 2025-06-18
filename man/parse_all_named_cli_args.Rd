@@ -13,7 +13,8 @@ parse_all_named_cli_args(
   assign_NULL = TRUE,
   split_comma_str = TRUE,
   allow_rebinding = TRUE,
-  assignment_env = globalenv()
+  assignment_env = globalenv(),
+  startup_msg = "Starting arg parser."
 )
 }
 \arguments{

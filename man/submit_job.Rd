@@ -22,6 +22,7 @@ submit_job(
   r_image = NULL,
   shell_script_path = NULL,
   args_list = NULL,
+  arg_name_code_root = "code_root",
   args_include_script = TRUE,
   arg_vecs_to_comma_str = TRUE,
   verbose = TRUE,
@@ -42,13 +43,15 @@ submit_job(
 
 \item{account}{[chr] a.k.a. 'project' - cluster resource requirement}
 
-\item{console_style_log_tf}{[lgl] if TRUE, combine std_err and std_out into one log in the std_out_root}
+\item{console_style_log_tf}{[lgl] if TRUE, combine std_err and std_out into
+one log in the std_out_root}
 
 \item{std_err_root}{[chr] path for Slurm std_err logs}
 
 \item{std_out_root}{[chr] path for Slurm std_out logs}
 
-\item{array_tasks_int}{[int] (default: NULL - if not NULL, array job is assumed) - vector of integers for you array (e.g. c(1L:10L))}
+\item{array_tasks_int}{[int] (default: NULL - if not NULL, array job is
+assumed) - vector of integers for you array (e.g. c(1L:10L))}
 
 \item{archiveTF}{[lgl] (default FALSE) do you need an archive node?}
 
@@ -56,19 +59,28 @@ submit_job(
 
 \item{partition}{[chr] a.k.a. 'queue' - cluster resource requirement}
 
-\item{hold_for_JobIDs}{vector of jobids that must complete successfully before running this job (https://slurm.schedmd.com/sbatch.html#OPT_dependency)}
+\item{hold_for_JobIDs}{vector of jobids that must complete successfully
+before running this job
+(https://slurm.schedmd.com/sbatch.html#OPT_dependency)}
 
 \item{language}{[chr] coding language for job (see valid_langs validation)}
 
-\item{r_image}{[chr] (default "latest.img") e.g. "/mnt/share/singularity-images/rstudio/ihme_rstudio_4214.img"}
+\item{r_image}{[chr] (default "latest.img") e.g.
+"/mnt/share/singularity-images/rstudio/ihme_rstudio_4214.img"}
 
 \item{shell_script_path}{[path] path to shell script (language-specific)}
 
-\item{args_list}{[list, chr] optional named list() of arguments, e.g. list("arg1" = arg1, "arg2" = arg2)}
+\item{args_list}{[list, chr] optional named list() of arguments, e.g.
+list("arg1" = arg1, "arg2" = arg2)}
+
+\item{arg_name_code_root}{[chr] name of an arg_list element with fullpath to
+the repository root (if applicable) - allows submitted script to find
+.Rprofile and .Renviron}
 
 \item{args_include_script}{[lgl] if TRUE, include script_path in args_list}
 
-\item{arg_vecs_to_comma_str}{[lgl] if TRUE, convert atomic elements of args_list to comma-separated strings}
+\item{arg_vecs_to_comma_str}{[lgl] if TRUE, convert atomic elements of
+args_list to comma-separated strings}
 
 \item{verbose}{[lgl] print submission command and job_id}
 
@@ -78,14 +90,15 @@ submit_job(
 
 \item{email_address}{[chr] email address to send job completion notification}
 
-\item{dry_runTF}{[lgl] (default FALSE) if TRUE, only message and return submission command, no job submission}
+\item{dry_runTF}{[lgl] (default FALSE) if TRUE, only message and return
+submission command, no job submission}
 }
 \value{
 [int] job_id of submitted job, also messsage with job_id and job_name
 }
 \description{
-Function contains internal defaults for R and Python shell scripts.
-Function will build log paths automatically.
+Function contains internal defaults for R and Python shell scripts. Function
+will build log paths automatically.
 }
 \seealso{
 Other job_submission: 
