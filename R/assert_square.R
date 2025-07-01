@@ -6,9 +6,9 @@
 #'
 #' @param dt [data.table] table of data
 #' @param id_varnames [chr] vector of id variable names that, in combination (e.g. expand.grid) will uniquely ID all rows of data
-#' @param no_na_varnames [chr: default NULL] optional vector of variable names that must not be NA to be considered 'square'
 #' @param verbose [lgl: default FALSE] print success message?
 #' @param hard_stop [lgl: default TRUE] - if non-square, stop if TRUE warn if FALSE
+#' @param no_na_varnames [chr: default NULL] optional vector of variable names that must not be NA to be considered 'square'
 #' @param stop_if_empty [lgl: default TRUE] - if `dt` has no rows, stop if TRUE warn if FALSE
 #'
 #' @return [list] 2 data.tables - duplicated rows and missing rows
