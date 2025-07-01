@@ -14,14 +14,26 @@
 #' @export
 #'
 #' @examples
-assert_square <- function(dt, id_varnames, no_na_varnames = NULL, verbose = FALSE, hard_stop = TRUE){
+assert_square <- function(
+    dt
+    , id_varnames
+    , no_na_varnames = NULL
+    , verbose = FALSE
+    , stop_if_empty = TRUE
+    , hard_stop = TRUE
+){
 
   # Validate inputs
-  if(!is.data.table(dt)) stop("dt must be a data.table")
+  if(!data.table::is.data.table(dt)) stop("dt must be a data.table")
   if(!is.character(id_varnames)) stop("id_varnames must be a character vector")
   if(!is.logical(verbose)) stop("verbose must be a logical")
   varnames_missing <- setdiff(id_varnames, names(dt))
   if(length(varnames_missing)) stop("Not all id_varnames are present in the data.table: ", toString(varnames_missing))
+
+  if(nrow(dt) == 0) {
+    cnd_msg <- sprintf("%s has no rows.", dt_name)
+    if(stop_if_empty) stop(cnd_msg) else warning(cnd_msg)
+  }
 
   # Build a square of id_vars
   id_vars               <- lapply(id_varnames, function(x) unique(dt[[x]]))
