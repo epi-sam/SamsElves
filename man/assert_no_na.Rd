@@ -4,7 +4,7 @@
 \alias{assert_no_na}
 \title{Assert no NA values in select columns}
 \usage{
-assert_no_na(dt, varnames, verbose = TRUE)
+assert_no_na(dt, varnames, verbose = FALSE)
 }
 \arguments{
 \item{dt}{[data.table]}

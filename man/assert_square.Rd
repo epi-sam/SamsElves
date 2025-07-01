@@ -8,7 +8,7 @@ assert_square(
   dt,
   id_varnames,
   no_na_varnames = NULL,
-  verbose = TRUE,
+  verbose = FALSE,
   hard_stop = TRUE,
   stop_if_empty = TRUE
 )
@@ -18,11 +18,13 @@ assert_square(
 
 \item{id_varnames}{[chr] vector of id variable names that, in combination (e.g. expand.grid) will uniquely ID all rows of data}
 
-\item{no_na_varnames}{[chr] optional (defualt NULL) vector of variable names that must not be NA to be considered 'square'}
+\item{no_na_varnames}{[chr: default NULL] optional vector of variable names that must not be NA to be considered 'square'}
 
-\item{verbose}{[lgl] print success message?}
+\item{verbose}{[lgl: default FALSE] print success message?}
 
-\item{hard_stop}{[lgl] default TRUE - stop if non-square, warn if FALSE}
+\item{hard_stop}{[lgl: default TRUE] - if non-square, stop if TRUE warn if FALSE}
+
+\item{stop_if_empty}{[lgl: default TRUE] - if `dt` has no rows, stop if TRUE warn if FALSE}
 }
 \value{
 [list] 2 data.tables - duplicated rows and missing rows
@@ -31,4 +33,10 @@ assert_square(
 Checks:
 - duplicated rows by id_var combination
 - missing rows by id_var combination
+}
+\examples{
+# fail
+.chk_list <- assert_square(dt = data.table(num = 1:3, let = letters[1:3]), id_varnames = c("num", "let"), verbose = TRUE)
+# pass
+.chk_list <- assert_square(dt = data.table::CJ(num = 1:3, let = letters[1:3]), id_varnames = c("num", "let"), verbose = TRUE)
 }

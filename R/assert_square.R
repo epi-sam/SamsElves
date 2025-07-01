@@ -6,21 +6,26 @@
 #'
 #' @param dt [data.table] table of data
 #' @param id_varnames [chr] vector of id variable names that, in combination (e.g. expand.grid) will uniquely ID all rows of data
-#' @param verbose [lgl] print success message?
-#' @param hard_stop [lgl] default TRUE - stop if non-square, warn if FALSE
-#' @param no_na_varnames [chr] optional (defualt NULL) vector of variable names that must not be NA to be considered 'square'
+#' @param no_na_varnames [chr: default NULL] optional vector of variable names that must not be NA to be considered 'square'
+#' @param verbose [lgl: default FALSE] print success message?
+#' @param hard_stop [lgl: default TRUE] - if non-square, stop if TRUE warn if FALSE
+#' @param stop_if_empty [lgl: default TRUE] - if `dt` has no rows, stop if TRUE warn if FALSE
 #'
 #' @return [list] 2 data.tables - duplicated rows and missing rows
 #' @export
 #'
 #' @examples
+#' # fail
+#' .chk_list <- assert_square(dt = data.table(num = 1:3, let = letters[1:3]), id_varnames = c("num", "let"), verbose = TRUE)
+#' # pass
+#' .chk_list <- assert_square(dt = data.table::CJ(num = 1:3, let = letters[1:3]), id_varnames = c("num", "let"), verbose = TRUE)
 assert_square <- function(
     dt
     , id_varnames
     , no_na_varnames = NULL
     , verbose = FALSE
-    , stop_if_empty = TRUE
     , hard_stop = TRUE
+    , stop_if_empty = TRUE
 ){
 
   # Validate inputs
@@ -29,6 +34,8 @@ assert_square <- function(
   if(!is.logical(verbose)) stop("verbose must be a logical")
   varnames_missing <- setdiff(id_varnames, names(dt))
   if(length(varnames_missing)) stop("Not all id_varnames are present in the data.table: ", toString(varnames_missing))
+
+  dt_name <- deparse(substitute(dt))
 
   if(nrow(dt) == 0) {
     cnd_msg <- sprintf("%s has no rows.", dt_name)
@@ -57,6 +64,8 @@ assert_square <- function(
     missing_rows    = missing_rows
   )
 
+  on.exit(return(invisible(non_square_list))) # sometimes used if hard_stop = FALSE
+
   # Check for NA values
   if(!is.null(no_na_varnames)){
     assert_no_na(dt, no_na_varnames, verbose = verbose)
@@ -64,19 +73,13 @@ assert_square <- function(
 
   if(any(unlist(lapply(non_square_list, nrow))) > 0 ){
 
-    assign("NON_SQUARE_LIST", non_square_list, envir = .GlobalEnv)
+    # assign("NON_SQUARE_LIST", non_square_list, envir = .GlobalEnv)
 
-    if(hard_stop){
-      stop("Your data.table is not square - see NON_SQUARE_LIST for duplicated and / or missing rows.")
-    } else {
-      warning("Your data.table is not square - see NON_SQUARE_LIST for duplicated and / or missing rows.")
-    }
+    cnd_msg <- sprintf("%s is not square.\n   - see returned list (invisible, must assign to an object) for duplicated / missing rows.", dt_name)
+    if(hard_stop) stop(cnd_msg) else warning(cnd_msg)
 
   }
 
-  dt_name <- deparse(substitute(dt))
   if (verbose) message(dt_name, " is square by: ", toString(id_varnames))
-
-  return(invisible(non_square_list)) # sometimes used if hard_stop = FALSE
 
 }
