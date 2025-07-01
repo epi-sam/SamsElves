@@ -56,6 +56,7 @@ parse_all_named_cli_args <- function(
     , split_comma_str = TRUE
     , allow_rebinding = TRUE
     , assignment_env  = globalenv()
+    , startup_msg     = "Starting arg parser."
 ) {
 
   # Validate inputs
@@ -87,7 +88,7 @@ parse_all_named_cli_args <- function(
     stop("assignment_env must be an environment")
   }
 
-  message("Starting arg parser.")
+  message("\n", startup_msg)
 
   # Grab CLI args
   command_args <- commandArgs(trailingOnly = trailingOnly)
@@ -162,7 +163,8 @@ parse_all_named_cli_args <- function(
   # unlock bound objects to allow CLI argument overwrites
     bound_lgl <- unlist(
       lapply(names(args_list), function(arg_name) {
-        if(exists(arg_name, env = assignment_env)) {
+        if(exists(arg_name, env = assignment_env)
+           && !is.function(get(arg_name, envir = .GlobalEnv))) {
           x_lgl <- bindingIsLocked(arg_name, env = assignment_env)
         } else {
           x_lgl <- FALSE
@@ -189,6 +191,8 @@ parse_all_named_cli_args <- function(
       lapply(bound_names, lockBinding, env = assignment_env)
     }
   }
+
+  message("\n")
 
   return(args_list)
 }

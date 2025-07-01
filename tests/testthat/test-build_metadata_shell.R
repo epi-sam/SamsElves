@@ -138,7 +138,7 @@ test_that(
   "metadata_shell produces a list with the correctly named top-level items",
   {
     metadata_shell <- build_metadata_shell(code_root = file.path("/mnt/share/code/", username, "SamsElves"))
-    metadata_shell_names <- c("start_time", "user", "code_root", "GIT", "SUBMIT_COMMANDS", "sessionInfo")
+    metadata_shell_names <- c("start_time", "user", "code_root", "script_path", "GIT", "SUBMIT_COMMANDS", "sessionInfo")
     expect_type(metadata_shell, "list")
     expect_equal(names(metadata_shell), metadata_shell_names)
   }
@@ -157,3 +157,34 @@ Matched no jobs to jobname_filter argument."
     )
   }
 )
+
+
+# submitted metadata -----------------------------------------------------------
+
+test_that("metadata builds correctly for submittes jobs"
+          , code = {
+
+            std_out_root <- file.path("/mnt/share/temp/slurmoutput", Sys.info()[["user"]], "output")
+            root_code    <- getwd()                 # interactive
+            root_code    <- dirname(dirname(getwd())) # devtools::test()
+            path_script  <- file.path(root_code, "tests/test_scripts/metadata_submitted.R")
+
+            job_id <- submit_job(
+              script_path = path_script
+              , threads = 1
+              , mem = "500M"
+              , runtime_min = 1
+              , account = "proj_cov_vpd"
+              , console_style_log_tf = TRUE
+              , dry_runTF = FALSE
+              , args_list = list(root_code = root_code)
+            )
+            wait_on_slurm_job_id(job_id, initial_sleep_sec = 15, cycle_sleep_sec = 15)
+            console_log_paths <- file.path(std_out_root, paste0("metadata_submitted_", job_id,  "_console.log"))
+            msg_multiline(console_log_paths)
+            stopifnot(all(file.exists(console_log_paths)))
+            console_logs <- lapply(console_log_paths, readLines)
+
+            for(log in console_logs) expect_equal(log[length(log)],  "Done: script_path=/tests/test_scripts/metadata_submitted.R")
+          })
+

@@ -7,8 +7,8 @@
 #' @export
 #'
 assert_x_in_y <- function(x, y){
-  if (!all(x %in% y)){
-    absent <- x[!x %in% y]
-    stop(paste0("x required but absent in y: ", toString(absent)))
+  absent <- setdiff(x, y)
+  if (length(absent) > 0) {
+    stop(paste0("required in x but absent in y: ", toString(absent)))
   }
 }
