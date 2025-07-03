@@ -35,11 +35,18 @@ assert_square <- function(
   varnames_missing <- setdiff(id_varnames, names(dt))
   if(length(varnames_missing)) stop("Not all id_varnames are present in the data.table: ", toString(varnames_missing))
 
+  # Check for NA values
+  if(!is.null(no_na_varnames)){
+    # enforce stop behavior by not returning on.exit values
+    hard_stop <- TRUE
+    assert_no_na(dt, no_na_varnames, verbose = verbose)
+  }
+
   dt_name <- deparse(substitute(dt))
 
   if(nrow(dt) == 0) {
     cnd_msg <- sprintf("%s has no rows.", dt_name)
-    if(stop_if_empty) stop(cnd_msg) else warning(cnd_msg)
+    if(stop_if_empty == TRUE) stop(cnd_msg) else warning(cnd_msg)
   }
 
   # Build a square of id_vars
@@ -59,16 +66,14 @@ assert_square <- function(
     message(paste0("Duplicated rows in the data.table, example: ", toString(paste(names(duplicated_rows), duplicated_rows[1, ], sep = ":") )))
   }
 
+  # used in production if hard_stop = FALSE, but on.exit bypasses the stop
+  # functions, so must be nested in a condition >.<
   non_square_list <- list(
     duplicated_rows = duplicated_rows,
     missing_rows    = missing_rows
   )
-
-  on.exit(return(invisible(non_square_list))) # sometimes used if hard_stop = FALSE
-
-  # Check for NA values
-  if(!is.null(no_na_varnames)){
-    assert_no_na(dt, no_na_varnames, verbose = verbose)
+  if (hard_stop == FALSE) {
+    on.exit(return(invisible(non_square_list)))
   }
 
   if(any(unlist(lapply(non_square_list, nrow))) > 0 ){
@@ -76,10 +81,10 @@ assert_square <- function(
     # assign("NON_SQUARE_LIST", non_square_list, envir = .GlobalEnv)
 
     cnd_msg <- sprintf("%s is not square.\n   - see returned list (invisible, must assign to an object) for duplicated / missing rows.", dt_name)
-    if(hard_stop) stop(cnd_msg) else warning(cnd_msg)
+    if(hard_stop == TRUE) stop(cnd_msg) else warning(cnd_msg)
 
   }
 
-  if (verbose) message(dt_name, " is square by: ", toString(id_varnames))
+  if (verbose == TRUE) message(dt_name, " is square by: ", toString(id_varnames))
 
 }
