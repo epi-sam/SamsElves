@@ -1,3 +1,10 @@
+# SamsElves 0.3.21
+
+2025-07-03
+
+- Bugfixes to assert_square
+  - fixed not stopping if hard_stop = TRUE due to on.exit behavior
+  
 # SamsElves 0.3.20
 
 2025-07-01 
