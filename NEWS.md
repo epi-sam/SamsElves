@@ -1,3 +1,10 @@
+# SamsElves 0.3.22
+
+2025-07-11
+
+- wait_on_slurm_job_id.R
+  - now breaks on failure by default
+
 # SamsElves 0.3.21
 
 2025-07-03
