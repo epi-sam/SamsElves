@@ -10,7 +10,7 @@ wait_on_slurm_job_id(
   cycle_sleep_sec = 30,
   filter_by = c("jobidraw"),
   filter_regex = NULL,
-  break_on_failure = FALSE,
+  break_on_failure = TRUE,
   dryrun = FALSE,
   batch_size = 500
 )
