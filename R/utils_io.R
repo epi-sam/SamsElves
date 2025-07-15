@@ -232,17 +232,20 @@ read_file <- function(path_to_file, verbose = FALSE, csv_opt = "data.table::frea
 #' file.remove(c(file.path(tempdir(), fname_old), fname_new))
 increment_file_version <- function(outpath){
   if(file.exists(outpath)){
-    fname_og <- basename(outpath)
-    fname_split <- strsplit(fname_og, "\\.")[[1]]
-    dirname_og <- dirname(outpath)
-    outpath_new <- file.path(dirname_og, paste0(fname_split[1], "_v1", ".", fname_split[2]))
-    idx <- 2
+
+    fname_og    <- basename(outpath)
+    dirname_og  <- dirname(outpath)
+    fname_base  <- tools::file_path_sans_ext(fname_og)
+    fname_ext   <- tools::file_ext(fname_og)
+    outpath_new <- file.path(dirname_og, paste0(fname_base, "_v1", ".", fname_ext))
+    idx         <- 2
 
     while(file.exists(outpath_new)){
-      fname_new <- paste0(fname_split[1], "_v", idx, ".", fname_split[2])
+      fname_new <- paste0(fname_base, "_v", idx, ".", fname_ext)
       outpath_new <- file.path(dirname_og, paste0(fname_new))
       idx <- idx + 1
     }
+
   } else {
     outpath_new <- outpath
   }
