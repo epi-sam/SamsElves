@@ -1,5 +1,8 @@
 # SamsElves 0.3.23
 
+- wait_on_slurm_job_id - new option to break on timeout
+- increment_file_version - bugfix to file extension finder
+
 # SamsElves 0.3.22
 
 2025-07-11
