@@ -62,6 +62,12 @@
 #' @param batch_size [int] how many jobs to group together to wait on (grep
 #'   limitation in max number, 500 is a good default, could increase near 900).
 #'   All jobs in batch 1 must finish before batch 2 is checked.
+#' @param break_on_timeout [lgl] if _any_ of your jobs timeout, should this
+#'   function break?  Failure itself is always determined based on the user's
+#'   filters, but failure _feedback_ always returns JobID, regardless of
+#'   filtering. This is due to how jobs are initially queried.  This may
+#'   included unwanted recycled `JobID`s, and it is **_up to the user_** to
+#'   determine which are relevant to their work.
 #'
 #' @return [std_out/std_err] std_out for sleep cycle duration & successful
 #'   ending, std_err printing failed job ids
@@ -74,6 +80,7 @@ wait_on_slurm_job_id <-
     filter_by         = c("jobidraw"),
     filter_regex      = NULL,
     break_on_failure  = TRUE,
+    break_on_timeout  = TRUE,
     dryrun            = FALSE,
     batch_size        = 500
   ) {
@@ -169,24 +176,31 @@ wait_on_slurm_job_id <-
         filter_regex
       )
 
-      # relevant if user does not filter by JobIDRaw (see `break_for_failed_jobs()`)
+      # relevant if user does not filter by JobIDRaw
+      # - see `break_for_failed_jobs()` & `break_for_timeout_jobs()`
       filter_str_fail_feedback <- paste0(
         "| tail -n +3 ",
         "| grep -vP 'batch|extern' ",
         "| sed 's/ \\+/ /g; s/^[[:space:]]*//; s/[[:space:]]*$//' ",
         "| cut -d' ' -f", "1,2"
       )
-
       # Build submission commands
-      cmd_base <- paste("sacct -j", job_id_regex_comma_quoted, formatting_str, filter_str)
-      cmd_pass <- paste0(cmd_base, " | grep -P 'RUNNING|PENDING'")
-      cmd_fail <- paste0(cmd_base, " | grep -P 'FAILED'")
+      cmd_base    <- paste("sacct -j", job_id_regex_comma_quoted, formatting_str, filter_str)
+      cmd_pass    <- paste0(cmd_base, " | grep -P 'RUNNING|PENDING'")
+      cmd_fail    <- paste0(cmd_base, " | grep -P 'FAILED'")
+      cmd_timeout <- paste0(cmd_base, " | grep -P 'TIMEOUT'")
       # need job_id included for failure feedback
       cmd_fail_feedback <-paste("sacct -j",
                                 job_id_regex_comma_quoted,
                                 formatting_str,
                                 filter_str_fail_feedback,
                                 "| grep -P 'FAILED'")
+      # need job_id included for failure feedback
+      cmd_timeout_feedback <-paste("sacct -j",
+                                job_id_regex_comma_quoted,
+                                formatting_str,
+                                filter_str_fail_feedback,
+                                "| grep -P 'TIMEOUT'")
 
       if(dryrun) return(list(cmd_base = cmd_base, cmd_pass = cmd_pass, cmd_fail = cmd_fail, cmd_fail_feedback = cmd_fail_feedback))
       if(!length(suppressWarnings(system(cmd_base, intern = TRUE)))) stop ("No jobs found: ", cmd_base)
@@ -201,7 +215,8 @@ wait_on_slurm_job_id <-
         Sys.sleep(cycle_sleep_sec)
         message(round((proc.time() - start.time)[[3]],0))
         # Stop if any jobs have FAILED State
-        if(break_on_failure) break_for_failed_jobs(cmd_fail, cmd_fail_feedback, job_id_regex_raw, filter_by)
+        if(break_on_failure) break_for_failed_jobs( cmd_fail,    cmd_fail_feedback,    job_id_regex_raw, filter_by)
+        if(break_on_timeout) break_for_timeout_jobs(cmd_timeout, cmd_timeout_feedback, job_id_regex_raw, filter_by)
       }
 
     }
@@ -231,15 +246,52 @@ break_for_failed_jobs <-
     filter_by
   ) {
     # if user is filtering on JobIDRaw, return relevant jobs and feedback, otherwise return all JobIDs found by initial Slurm query
-    jobid_present     <- any(grepl("jobidraw", filter_by))
-    failure_message   <- ifelse(jobid_present,
-                                "There is a failure among the launched jobs, investigate.\n",
-                                "There is a failure among the launched jobs, investigate. (NOTE! May include recycled JobIDs)\n")
-    cmd_fail_feedback <-ifelse(jobid_present,
-                               cmd_fail,
-                               cmd_fail_feedback)
-    fail_chk          <- suppressWarnings(system(cmd_fail, intern = TRUE))
-    fail_feedback     <- suppressWarnings(system(cmd_fail_feedback, intern = TRUE))
-    failed_jobs       <- paste(unique(regmatches(fail_feedback, regexpr(job_id_regex_raw, fail_feedback))), collapse = ", ")
+    jobid_present   <- any(grepl("jobidraw", filter_by))
+    failure_message <- ifelse(
+      jobid_present
+      , "There is a failure among the launched jobs, investigate.\n"
+      , "There is a failure among the launched jobs, investigate. (NOTE! May include recycled JobIDs)\n"
+    )
+    cmd_fail_feedback <- ifelse(
+      jobid_present,
+      cmd_fail,
+      cmd_fail_feedback
+    )
+    fail_chk      <- suppressWarnings(system(cmd_fail, intern = TRUE))
+    fail_feedback <- suppressWarnings(system(cmd_fail_feedback, intern = TRUE))
+    failed_jobs   <- paste(unique(regmatches(fail_feedback, regexpr(job_id_regex_raw, fail_feedback))), collapse = ", ")
     if(length(fail_chk)) stop(failure_message, failed_jobs)
+  }
+
+#' Helper function for wait_on_slurm_job_id - how do you want jobs to break and display user messages?
+#'
+#' @param cmd_timeout [chr]
+#' @param cmd_timeout_feedback [chr]
+#' @param job_id_regex_raw [regex]
+#' @param filter_by [chr]
+#'
+#' @return [none] stop on timeout
+break_for_timeout_jobs <-
+  function(
+    cmd_timeout,
+    cmd_timeout_feedback,
+    job_id_regex_raw,
+    filter_by
+  ) {
+    # if user is filtering on JobIDRaw, return relevant jobs and feedback, otherwise return all JobIDs found by initial Slurm query
+    jobid_present   <- any(grepl("jobidraw", filter_by))
+    timeout_message <- ifelse(
+      jobid_present
+      , "There is a timeout among the launched jobs, investigate.\n"
+      , "There is a timeout among the launched jobs, investigate. (NOTE! May include recycled JobIDs)\n"
+    )
+    cmd_timeout_feedback <- ifelse(
+      jobid_present,
+      cmd_timeout,
+      cmd_timeout_feedback
+    )
+    timeout_chk      <- suppressWarnings(system(cmd_timeout, intern = TRUE))
+    timeout_feedback <- suppressWarnings(system(cmd_timeout_feedback, intern = TRUE))
+    timeout_jobs     <- paste(unique(regmatches(timeout_feedback, regexpr(job_id_regex_raw, timeout_feedback))), collapse = ", ")
+    if(length(timeout_chk)) stop(timeout_message, timeout_jobs)
   }
