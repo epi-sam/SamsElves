@@ -1,3 +1,7 @@
+# SamsElves 0.3.24
+
+- assert_square - better verbosity control
+
 # SamsElves 0.3.23
 
 - wait_on_slurm_job_id - new option to break on timeout
