@@ -46,7 +46,11 @@ assert_square <- function(
 
   if(nrow(dt) == 0) {
     cnd_msg <- sprintf("%s has no rows.", dt_name)
-    if(stop_if_empty == TRUE) stop(cnd_msg) else warning(cnd_msg)
+    if (stop_if_empty == TRUE) {
+      stop(cnd_msg)
+    } else {
+      if (verbose == TRUE) warning(cnd_msg)
+    }
   }
 
   # Build a square of id_vars
@@ -56,13 +60,13 @@ assert_square <- function(
 
   # Identify missing rows
   missing_rows <- data.table::fsetdiff(id_vars_square, dt[, ..id_varnames], all = FALSE)
-  if(nrow(missing_rows) > 0) {
+  if(nrow(missing_rows) > 0 & verbose == TRUE) {
     message(paste0("Missing rows in the data.table, example: ", toString(paste(names(missing_rows), missing_rows[1, ], sep = ":") )))
   }
 
   # Identify duplicated rows
   duplicated_rows <- dt[duplicated(dt, by = id_varnames), ]
-  if(nrow(duplicated_rows) > 0) {
+  if(nrow(duplicated_rows) > 0 & verbose == TRUE) {
     message(paste0("Duplicated rows in the data.table, example: ", toString(paste(names(duplicated_rows), duplicated_rows[1, ], sep = ":") )))
   }
 
@@ -78,10 +82,12 @@ assert_square <- function(
 
   if(any(unlist(lapply(non_square_list, nrow))) > 0 ){
 
-    # assign("NON_SQUARE_LIST", non_square_list, envir = .GlobalEnv)
-
     cnd_msg <- sprintf("%s is not square.\n   - see returned list (invisible, must assign to an object) for duplicated / missing rows.", dt_name)
-    if(hard_stop == TRUE) stop(cnd_msg) else warning(cnd_msg)
+    if(hard_stop == TRUE) {
+      stop(cnd_msg)
+    } else {
+      if (verbose == TRUE) warning(cnd_msg)
+    }
 
   }
 
