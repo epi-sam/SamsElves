@@ -1,3 +1,7 @@
+# SamsElves 0.3.25
+
+- check_brace_balance - added new util to check a file's brace balance
+
 # SamsElves 0.3.24
 
 - assert_square - better verbosity control
