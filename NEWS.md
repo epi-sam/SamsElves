@@ -1,3 +1,9 @@
+# SamsElves 0.4.0
+
+- get/make latest/new output version machinery
+  - added ability to for a suffix e.g. 2025_01_01.01 or 2025_01_01.01_suffix 
+  are both valid, with no suffix being the default
+
 # SamsElves 0.3.25
 
 - check_brace_balance - added new util to check a file's brace balance
