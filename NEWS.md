@@ -3,6 +3,7 @@
 - get/make latest/new output version machinery
   - added ability to for a suffix e.g. 2025_01_01.01 or 2025_01_01.01_suffix 
   are both valid, with no suffix being the default
+- removed make_versioned_dir.R with competing/conflicting functions
 
 # SamsElves 0.3.25
 
