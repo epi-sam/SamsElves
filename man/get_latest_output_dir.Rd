@@ -4,10 +4,12 @@
 \alias{get_latest_output_dir}
 \title{Find the latest output directory with format YYYY_MM_DD.VV}
 \usage{
-get_latest_output_dir(root)
+get_latest_output_dir(root, suffix = "")
 }
 \arguments{
 \item{root}{[chr] path to root of output results}
+
+\item{suffix}{[chr] a suffix to append after the incremented version number index}
 }
 \value{
 [chr] path to latest output directory

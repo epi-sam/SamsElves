@@ -4,12 +4,14 @@
 \alias{make_new_output_dir}
 \title{Make a date-versioned output directory for output results.}
 \usage{
-make_new_output_dir(root, date)
+make_new_output_dir(root, date = "today", suffix = "")
 }
 \arguments{
 \item{root}{[chr] path to root of output results}
 
 \item{date}{[chr] character date in form of "YYYY_MM_DD" or "today". "today" will be interpreted as today's date.}
+
+\item{suffix}{[chr] a suffix to append after the incremented version number index}
 }
 \value{
 [chr] path to new output directory of the form "/<root>/YYYY_MM_DD.VV"

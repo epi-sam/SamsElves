@@ -2,10 +2,11 @@
 #'
 #' @param fpath [chr] Path to the file to check
 #'
-#' @returns
+#' @returns [chr] message
 #' @export
 #'
 #' @examples
+#' check_brace_balance("R/check_brace_balance.R")
 check_brace_balance <- function(fpath) {
   txt <- paste(readLines(fpath), collapse = "\n")
   chars <- strsplit(txt, "")[[1]]

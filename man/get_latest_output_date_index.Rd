@@ -4,14 +4,16 @@
 \alias{get_latest_output_date_index}
 \title{get the latest index for given an output dir and a date}
 \usage{
-get_latest_output_date_index(dir, date)
+get_latest_output_date_index(dir, date, suffix = "")
 
-get_latest_output_date_index(dir, date)
+get_latest_output_date_index(dir, date, suffix = "")
 }
 \arguments{
 \item{dir}{[chr] path to directory with versioned dirs}
 
 \item{date}{[chr] character in be YYYY_MM_DD format}
+
+\item{suffix}{[chr] a suffix to append after the incremented version number index}
 }
 \value{
 largest version in directory tree or 0 if there are no version OR

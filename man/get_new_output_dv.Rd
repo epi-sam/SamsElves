@@ -4,12 +4,14 @@
 \alias{get_new_output_dv}
 \title{Increment a new output folder date-version}
 \usage{
-get_new_output_dv(root, date = "today")
+get_new_output_dv(root, date = "today", suffix = "")
 }
 \arguments{
 \item{root}{[chr] path to root of output results}
 
 \item{date}{[chr] character date in form of "YYYY_MM_DD" or "today". "today" will be interpreted as today's date.}
+
+\item{suffix}{[chr] a suffix to append after the incremented version number index}
 }
 \value{
 [dbl] new output version of the form "YYYY_MM_DD.VV"

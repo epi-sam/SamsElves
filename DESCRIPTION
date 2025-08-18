@@ -12,6 +12,7 @@ Imports:
     rhdf5,
     DescTools,
     glue,
+    checkmate,
     yaml
 Suggests: 
     testthat
