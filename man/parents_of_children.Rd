@@ -13,6 +13,9 @@ parents_of_children(child_loc_ids, hierarchy, parent_level)
 
 \item{parent_level}{[int] Single level of the hierarchy - find all parent location_ids of child location_ids at this level}
 }
+\value{
+[int] vector of _unique_ parent location_ids
+}
 \description{
 Given a vector of location IDs, returns the vector of their unique parent IDs at a given level.
 }
