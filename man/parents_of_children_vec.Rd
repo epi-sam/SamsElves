@@ -19,5 +19,8 @@ at a single level) or length(child_loc_id_vec)}
 [int] vector of parent location_ids, NA if none found at a given level
 }
 \description{
-Faster, vectorized version parents_of_children
+Faster, vectorized version parents_of_children.
+Assumes `path_to_top_parent` string is structured left-to-right as:
+path_to_top_parent = "1,10,30,70,5555"
+levels             =  0, 1, 2, 3,   4
 }

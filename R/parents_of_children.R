@@ -95,7 +95,10 @@ parents_of_children <- function(
 
 #' Return a vector of parent location_ids at level x based on path_to_top_parent
 #'
-#' Faster, vectorized version parents_of_children
+#' Faster, vectorized version parents_of_children.
+#' Assumes `path_to_top_parent` string is structured left-to-right as:
+#' path_to_top_parent = "1,10,30,70,5555"
+#' levels             =  0, 1, 2, 3,   4
 #'
 #' @param child_loc_id_vec [int] vector of location_ids
 #' @param hierarchy [data.table] ihme location hierarchy (get_location_metadata)
@@ -122,17 +125,18 @@ parents_of_children_vec <- function(
 
   # need a newer, faster paradigm to vectorize this - maybe create a CJ grid with the hierarchy and child_loc_id_vec
   grid <- merge(
-    data.table::data.table(location_id = child_loc_id_vec)
-    , hierarchy[, .(location_id, path_to_top_parent, level)]
-    , by = "location_id"
-    , all.x = TRUE
+      x               = data.table::data.table(location_id = child_loc_id_vec)
+    , y               = hierarchy[, .(location_id, path_to_top_parent, level)]
+    , by              = "location_id"
+    , all.x           = TRUE
     , allow.cartesian = FALSE
+    , sort            = FALSE # ESSENTIAL to retain original order so vectorized assignment of output is correct
   )
 
   pttp_deconstructed <- strsplit(grid$path_to_top_parent, ",", fixed = TRUE)
   parents_at_lvl <- lapply(seq_along(pttp_deconstructed), function(idx) {
     # +1 because global (location_id 1) is level 0 (level is zero-indexed)
-    return(pttp_deconstructed[[idx]][parent_level_vec[[idx]] + 1])
+    return(pttp_deconstructed[[idx]] [parent_level_vec[[idx]] + 1])
   })
   parent_loc_id_vec <- as.integer(unlist(parents_at_lvl))
 
@@ -141,4 +145,43 @@ parents_of_children_vec <- function(
 
   return(parent_loc_id_vec)
 
+}
+
+
+#' Add `parent_location_id` column to a data.table (modified in place)
+#'
+#' @param dt [data.table] some table with columns `location_id`
+#' @param hierarchy [data.table] ihme location hierarchy (get_location_metadata)
+#' @param parent_level [int] single parent level for all location_ids in dt
+#'
+#' @returns [data.table] with new 'parent_id' column
+#' @export
+attach_parent_location_id <- function(dt, hierarchy, parent_level){
+  checkmate::assert_data_table(dt)
+  checkmate::assert_choice("location_id", names(dt))
+  checkmate::assert_disjunct("parent_location_id", names(dt))
+  checkmate::assert_disjunct("parent_level", names(dt))
+  checkmate::assert_disjunct("hierarchy", names(dt))
+  checkmate::assert_integerish(parent_level, len = 1)
+  # this will modify dt in place
+  dt[
+    ,
+    parent_location_id := parents_of_children_vec(
+      child_loc_id_vec   = location_id
+      , hierarchy        = hierarchy
+      , parent_level_vec = parent_level
+    )
+  ]
+  return(dt[])
+}
+
+#' Wrapper for attach_parent_location_id to attach national location_id (level 3)
+#'
+#' @param dt [data.table] some table with columns `location_id`
+#' @param hierarchy [data.table] ihme location hierarchy (get_location_metadata)
+#'
+#' @returns [data.table] with new 'parent_id' column
+#' @export
+attach_national_location_id <- function(dt, hierarchy) {
+  attach_parent_location_id(dt, hierarchy = hierarchy, parent_level = 3)
 }
