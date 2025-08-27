@@ -1,3 +1,10 @@
+# SamsElves 0.5.0
+
+- new hierarchy helper functions, fast and vectorized
+  - parents_of_children_vec
+  - attach_national_location_id
+  - attach_parent_location_id
+
 # SamsElves 0.4.0
 
 - get/make latest/new output version machinery
