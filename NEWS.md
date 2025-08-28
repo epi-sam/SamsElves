@@ -1,3 +1,8 @@
+# SamsElves 0.6.0
+
+- draw_transforms.R
+  - new function to transform draw data and summarize in various ways
+
 # SamsElves 0.5.0
 
 - new hierarchy helper functions, fast and vectorized
