@@ -6,23 +6,23 @@
 #'
 #' Defaults currently designed for interactive Rstudio sessions.
 #'
-#' @param code_root [path] Path to top-level code repo folder, require: path
+#' @param code_root [path: default here::here()] Path to top-level code repo folder, require: path
 #'   contains a `.git` subfolder
-#' @param jobname_filter [regex] When you run `squeue -u <username>`, what
+#' @param jobname_filter [regex: default "^rst_ide|^vscode"] When you run `squeue -u <username>`, what
 #'   `JobName` indicates your interactive Rstudio session? (case-sensitive)
 #'   - see defaults
-#' @param submitline_n_char [int] Length of submitted command string to expect
+#' @param submitline_n_char [int: default 1000L] Length of submitted command string to expect
 #'   from system `squeue -j <jobid> -o submitline\%xxx` call (set this much
 #'   longer than you'd think necessary)
-#' @param regex_to_extract [regex] What string do you want to extract after
+#' @param regex_to_extract [regex: default "singularity-images/rstudio/[[:graph:]]+\\.img"] What string do you want to extract after
 #'   running  `squeue -j <jobid> -o submitline\%xxx` (default - find Rstudio
 #'   image for provenance)
-#' @param regex_to_ignore [regex] If your `regex_to_extract` command finds more
+#' @param regex_to_ignore [regex: default "jpy"] If your `regex_to_extract` command finds more
 #'   strings than you want, this removes all strings matching this pattern
-#' @param system_user_name [chr] User's identifier, according to the cluster
-#' @param cluster_type [chr] Only 'slurm' currently available - methods/calls
-#'   may differ by system in the future. (case-insensitive)
-#' @param verbose [lgl] Do you want a std_err message of arguments to this
+#' @param system_user_name [chr: default Sys.info()[["user"]]] User's identifier, according to the cluster
+#' @param cluster_type [chr: default "slurm"] Only 'slurm' currently available - methods/calls
+#'   may differ by system in the future. (c ase-insensitive)
+#' @param verbose [lgl: default FALSE] Do you want a std_err message of arguments to this
 #'   function?
 #'
 #' @return [list] Full metadata shell, including git info, cluster submission
@@ -42,7 +42,7 @@
 #' # (NULL is good - no uncommitted changes, prints nothing)
 #' cat(metadata_shell$GIT$git_uncommitted)
 build_metadata_shell <- function(
-    code_root,
+    code_root         = here::here(),
     jobname_filter    = "^rst_ide|^vscode",
     submitline_n_char = 1000L,
     regex_to_extract  = "singularity-images/rstudio/[[:graph:]]+\\.img",
@@ -322,43 +322,6 @@ extract_command_string <- function (submit_command_text,
 #'
 extract_cores <- function() {
 
-  # 2025 Jan 24 - Deprecated in favor of nproc
-  # NOTE: This step finds cores with squeue, rather than sacct - eases formatting
-  # extract_cores <- function(system_user_name,
-  #                           jobname_filter,
-  #                           cluster_type) {
-  # # Find number of cores for all the user's jobs
-  # job_threads_txt <- system2(
-  #   command = "/opt/slurm/bin/squeue", # use full path to pass testing
-  #   args    = glue::glue("-o '%.10A %.5C' -u {system_user_name}"),
-  #   stdout  = TRUE
-  # )
-  # job_threads_df <- read.table(text = job_threads_txt, header = TRUE, sep = "")
-  #
-  # # Find jobids matching the user's desired string
-  # jobs_selected_df <- job_finder(system_user_name = system_user_name,
-  #                                jobname_filter   = jobname_filter,
-  #                                cluster_type     = cluster_type)
-  #
-  # # build a filter mask
-  # jobids_threads  <- job_threads_df$JOBID
-  # jobids_selected <- jobs_selected_df$jobid
-  # jobid_mask      <- jobids_threads %in% jobids_selected
-  #
-  # # Filter the thread table for jobids matching user's chosen interactive session
-  # n_cores_df <- job_threads_df[jobid_mask, "CPUS", drop = FALSE]
-  #
-  # # validate dimensions
-  # more_than_one_interactive_session <- ncol(n_cores_df) > 1 | nrow(n_cores_df) > 1
-  # if(more_than_one_interactive_session) {
-  #   message ("\nMetadata warning:
-  #            Attempting to find # of cores did not produce a single option (either # or jobs or # of columns) - please inspect.
-  #            Returning n_cores = 1, efficiency may be reduced.\n",
-  #            prt_multiline(n_cores_df))
-  #   n_cores <- 1
-  # } else {
-  #   n_cores <- n_cores_df$CPUS
-  # }
   n_cores <- as.integer(system2("nproc", stdout = TRUE))
   if(is.null(n_cores) || is.na(n_cores)) {
     message("\nMetadata warning:

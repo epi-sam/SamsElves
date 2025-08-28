@@ -99,12 +99,12 @@ test_that(
 # extract_submission_commands  ------------------------------------------------------
 
 submit_command_list <- extract_submission_commands(
-  jobname_filter = "^rst_ide",
+  jobname_filter    = "^rst_ide",
   submitline_n_char = 500,
-  regex_to_extract = "singularity-images/rstudio/[[:graph:]]+\\.img$",
-  regex_to_ignore = "jpy",
-  system_user_name = username,
-  cluster_type = "slurm"
+  regex_to_extract  = "singularity-images/rstudio/[[:graph:]]+\\.img$",
+  regex_to_ignore   = "jpy",
+  system_user_name  = username,
+  cluster_type      = "slurm"
 )
 
 test_that(
@@ -161,7 +161,7 @@ Matched no jobs to jobname_filter argument."
 
 # submitted metadata -----------------------------------------------------------
 
-test_that("metadata builds correctly for submittes jobs"
+test_that("metadata builds correctly for submitted jobs"
           , code = {
 
             std_out_root <- file.path("/mnt/share/temp/slurmoutput", Sys.info()[["user"]], "output")
@@ -170,14 +170,14 @@ test_that("metadata builds correctly for submittes jobs"
             path_script  <- file.path(root_code, "tests/test_scripts/metadata_submitted.R")
 
             job_id <- submit_job(
-              script_path = path_script
-              , threads = 1
-              , mem = "500M"
-              , runtime_min = 1
-              , account = "proj_cov_vpd"
+              script_path            = path_script
+              , threads              = 1
+              , mem                  = "500M"
+              , runtime_min          = 1
+              , account              = "proj_cov_vpd"
               , console_style_log_tf = TRUE
-              , dry_runTF = FALSE
-              , args_list = list(root_code = root_code)
+              , dry_runTF            = FALSE
+              , args_list            = list(root_code = root_code)
             )
             wait_on_slurm_job_id(job_id, initial_sleep_sec = 15, cycle_sleep_sec = 15)
             console_log_paths <- file.path(std_out_root, paste0("metadata_submitted_", job_id,  "_console.log"))

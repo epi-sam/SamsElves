@@ -5,7 +5,7 @@
 \title{Build metadata from a template}
 \usage{
 build_metadata_shell(
-  code_root,
+  code_root = here::here(),
   jobname_filter = "^rst_ide|^vscode",
   submitline_n_char = 1000L,
   regex_to_extract = "singularity-images/rstudio/[[:graph:]]+\\\\.img",
@@ -16,30 +16,30 @@ build_metadata_shell(
 )
 }
 \arguments{
-\item{code_root}{[path] Path to top-level code repo folder, require: path
+\item{code_root}{[path: default here::here()] Path to top-level code repo folder, require: path
 contains a `.git` subfolder}
 
-\item{jobname_filter}{[regex] When you run `squeue -u <username>`, what
+\item{jobname_filter}{[regex: default "^rst_ide|^vscode"] When you run `squeue -u <username>`, what
 `JobName` indicates your interactive Rstudio session? (case-sensitive)
 - see defaults}
 
-\item{submitline_n_char}{[int] Length of submitted command string to expect
+\item{submitline_n_char}{[int: default 1000L] Length of submitted command string to expect
 from system `squeue -j <jobid> -o submitline\%xxx` call (set this much
 longer than you'd think necessary)}
 
-\item{regex_to_extract}{[regex] What string do you want to extract after
+\item{regex_to_extract}{[regex: default "singularity-images/rstudio/[[:graph:]]+\\.img"] What string do you want to extract after
 running  `squeue -j <jobid> -o submitline\%xxx` (default - find Rstudio
 image for provenance)}
 
-\item{regex_to_ignore}{[regex] If your `regex_to_extract` command finds more
+\item{regex_to_ignore}{[regex: default "jpy"] If your `regex_to_extract` command finds more
 strings than you want, this removes all strings matching this pattern}
 
-\item{system_user_name}{[chr] User's identifier, according to the cluster}
+\item{system_user_name}{[chr: default Sys.info()[["user"]]] User's identifier, according to the cluster}
 
-\item{cluster_type}{[chr] Only 'slurm' currently available - methods/calls
-may differ by system in the future. (case-insensitive)}
+\item{cluster_type}{[chr: default "slurm"] Only 'slurm' currently available - methods/calls
+may differ by system in the future. (c ase-insensitive)}
 
-\item{verbose}{[lgl] Do you want a std_err message of arguments to this
+\item{verbose}{[lgl: default FALSE] Do you want a std_err message of arguments to this
 function?}
 }
 \value{
