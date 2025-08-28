@@ -1,3 +1,7 @@
+# SamsElves 0.6.1
+
+- attach_parent_location_id - improved assertions
+
 # SamsElves 0.6.0
 
 - draw_transforms.R
