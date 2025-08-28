@@ -12,7 +12,7 @@ attach_national_location_id(dt, hierarchy)
 \item{hierarchy}{[data.table] ihme location hierarchy (get_location_metadata)}
 }
 \value{
-[data.table] with new 'parent_id' column
+[data.table] with new 'parent_location_id' column
 }
 \description{
 Wrapper for attach_parent_location_id to attach national location_id (level 3)

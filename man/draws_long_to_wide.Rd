@@ -6,7 +6,7 @@
 \usage{
 draws_long_to_wide(
   DT,
-  id_varnames = find_id_varnames(DT, removals = c("draw_id", "value"), verbose = FALSE),
+  id_varnames = find_id_varnames(DT, removals = c("value"), verbose = FALSE),
   verbose = FALSE
 )
 }

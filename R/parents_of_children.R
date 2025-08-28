@@ -123,7 +123,7 @@ parents_of_children_vec <- function(
   if(length(parent_level_vec) == 1) parent_level_vec <- rep(parent_level_vec, length(child_loc_id_vec))
   checkmate::assert_true(length(child_loc_id_vec) == length(parent_level_vec))
 
-  # need a newer, faster paradigm to vectorize this - maybe create a CJ grid with the hierarchy and child_loc_id_vec
+  # faster, vectorized paradigm
   grid <- merge(
       x               = data.table::data.table(location_id = child_loc_id_vec)
     , y               = hierarchy[, .(location_id, path_to_top_parent, level)]
@@ -158,11 +158,13 @@ parents_of_children_vec <- function(
 #' @export
 attach_parent_location_id <- function(dt, hierarchy, parent_level){
   checkmate::assert_data_table(dt)
+  checkmate::assert_data_table(hierarchy)
+  checkmate::assert_integerish(parent_level, len = 1)
+  # assert no names overlap data.table column names
   checkmate::assert_choice("location_id", names(dt))
   checkmate::assert_disjunct("parent_location_id", names(dt))
   checkmate::assert_disjunct("parent_level", names(dt))
   checkmate::assert_disjunct("hierarchy", names(dt))
-  checkmate::assert_integerish(parent_level, len = 1)
   # this will modify dt in place
   dt[
     ,

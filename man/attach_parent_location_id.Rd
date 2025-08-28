@@ -14,7 +14,7 @@ attach_parent_location_id(dt, hierarchy, parent_level)
 \item{parent_level}{[int] single parent level for all location_ids in dt}
 }
 \value{
-[data.table] with new 'parent_id' column
+[data.table] with new 'parent_location_id' column
 }
 \description{
 Add `parent_location_id` column to a data.table (modified in place)
