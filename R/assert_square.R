@@ -28,12 +28,15 @@ assert_square <- function(
     , stop_if_empty = TRUE
 ){
 
-  # Validate inputs
-  if(!data.table::is.data.table(dt)) stop("dt must be a data.table")
-  if(!is.character(id_varnames)) stop("id_varnames must be a character vector")
-  if(!is.logical(verbose)) stop("verbose must be a logical")
-  varnames_missing <- setdiff(id_varnames, names(dt))
-  if(length(varnames_missing)) stop("Not all id_varnames are present in the data.table: ", toString(varnames_missing))
+  # assert inputs
+  # assert no duplicated column names
+  vars_dt <- colnames(dt)
+  vars_dt_uniq <- unique(vars_dt)
+  if(length(vars_dt) > length(vars_dt_uniq)) stop("dt has duplicated column names: ", toString(vars_dt[duplicated(vars_dt)]))
+  checkmate::assert_data_table(dt)
+  checkmate::assert_character(id_varnames, any.missing = FALSE, min.len = 1)
+  checkmate::assert_logical(verbose, len = 1)
+  checkmate::assert_subset(id_varnames, choices = colnames(dt))
 
   # Check for NA values
   if(!is.null(no_na_varnames)){
