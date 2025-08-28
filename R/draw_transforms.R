@@ -84,6 +84,8 @@ draws_wide_to_long <- function(DT, id_varnames = find_id_varnames(DT, verbose = 
   checkmate::assert_logical(verbose, len = 1)
   checkmate::assert_subset(id_varnames, choices = colnames(DT))
 
+  assert_square(DT, id_varnames = id_varnames)
+
   vars_draws = find_draws_varnames(DT)
 
   if(verbose == TRUE) message("wide to long - draw_id columns, e.g. : ", toString(vars_draws[1:5]))
@@ -109,11 +111,13 @@ draws_wide_to_long <- function(DT, id_varnames = find_id_varnames(DT, verbose = 
 #'
 #' @return [data.frame] draws in wide format
 #' @export
-draws_long_to_wide <- function(DT, id_varnames = find_id_varnames(DT, removals = c("draw_id", "value"), verbose = FALSE), verbose = FALSE){
+draws_long_to_wide <- function(DT, id_varnames = find_id_varnames(DT, removals = c("value"), verbose = FALSE), verbose = FALSE){
 
   checkmate::assert_data_table(DT)
-  checkmate::assert_subset(c("draw_id", "value", id_varnames), colnames(DT))
+  checkmate::assert_subset(c("value", id_varnames), colnames(DT))
   checkmate::assert_logical(verbose, len = 1)
+
+  assert_square(DT, id_varnames = id_varnames)
 
   names_prefix <- "draw_"
 
@@ -128,9 +132,10 @@ draws_long_to_wide <- function(DT, id_varnames = find_id_varnames(DT, removals =
   # faster than dcast
   DTW <- tidyr::pivot_wider(data = DT, names_from = "draw_id", values_from = "value", names_prefix = names_prefix)  %>%
     data.table::as.data.table()
+
   data.table::setnames(DTW, "draw_point_estimate", "point_estimate")
 
-  data.table::setorderv(DTW, id_varnames)
+  data.table::setorderv(DTW, find_id_varnames(DTW, verbose = FALSE))
 
   return(DTW)
 }
