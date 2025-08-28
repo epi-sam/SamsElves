@@ -1,3 +1,7 @@
+# SamsElves 0.6.2
+
+- build_metadata_shell - added sensible code_root default; documented defaults; fixed typos
+
 # SamsElves 0.6.1
 
 - attach_parent_location_id - improved assertions
