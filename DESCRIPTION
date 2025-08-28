@@ -13,6 +13,8 @@ Imports:
     DescTools,
     glue,
     checkmate,
+    tidyr,
+    dplyr,
     yaml
 Suggests: 
     testthat
