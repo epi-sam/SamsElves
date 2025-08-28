@@ -154,7 +154,7 @@ parents_of_children_vec <- function(
 #' @param hierarchy [data.table] ihme location hierarchy (get_location_metadata)
 #' @param parent_level [int] single parent level for all location_ids in dt
 #'
-#' @returns [data.table] with new 'parent_id' column
+#' @returns [data.table] with new 'parent_location_id' column
 #' @export
 attach_parent_location_id <- function(dt, hierarchy, parent_level){
   checkmate::assert_data_table(dt)
@@ -180,7 +180,7 @@ attach_parent_location_id <- function(dt, hierarchy, parent_level){
 #' @param dt [data.table] some table with columns `location_id`
 #' @param hierarchy [data.table] ihme location hierarchy (get_location_metadata)
 #'
-#' @returns [data.table] with new 'parent_id' column
+#' @returns [data.table] with new 'parent_location_id' column
 #' @export
 attach_national_location_id <- function(dt, hierarchy) {
   attach_parent_location_id(dt, hierarchy = hierarchy, parent_level = 3)
