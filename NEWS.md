@@ -1,3 +1,7 @@
+# SamsElves 0.7.0
+
+- pretty_print_lancet - added suite of Lancet formatting & support functions
+
 # SamsElves 0.6.2
 
 - build_metadata_shell - added sensible code_root default; documented defaults; fixed typos

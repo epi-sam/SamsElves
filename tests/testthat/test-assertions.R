@@ -148,3 +148,29 @@ test_that(
     )
   }
 )
+
+# assert_x_gte_y ---------------------------------------------------------------
+
+test_that(
+  "assert_x_gte_y() throws the proper errors",
+  {
+    lower = c(1, 2, 3)
+    mean = c(3, 3, 3)
+    expect_no_error(assert_x_gte_y(mean, lower))
+
+    x1 = 5
+    y2 = 10
+    expect_error(
+      assert_x_gte_y(x1, y2),
+      regexp = "x1 is less than/equal to y2 at index: 1 : \\(5 < 10\\)"
+    )
+
+    x3 = c(5, 15, 20)
+    y4 = c(10, 10, 25)
+    expect_error(
+      assert_x_gte_y(x3, y4),
+      regexp = "x3 is less than/equal to y4 at index: 1, 3 : \\(5 < 10\\), \\(20 < 25\\)"
+    )
+
+  }
+)
