@@ -109,3 +109,28 @@ assert_list_elements_and_types <- function(check_list, truth_list, allow_data_fr
   }
 
 }
+
+#' Assert Greater Than or Equal To
+#'
+#' @param x [num]eric vector
+#' @param y [num]eric vector
+#'
+#' @returns [none] stop if any elements of x are greater than y
+#' @export
+#'
+#' @examples
+#' lower = c(1, 2, 3)
+#' mean = c(3, 3, 3)
+#' assert_x_gt_y(mean, lower)
+#' mean = c(1, 2, 4)
+#' # assert_x_gt_y(lower, mean) # will stop
+assert_x_gte_y <- function(x, y){
+  x_name <- deparse(substitute(x))
+  y_name <- deparse(substitute(y))
+  if(any(x < y)){
+    bad_idx   <- which(x < y)
+    offenders <- paste0("(", x[bad_idx], " < ", y[bad_idx], ")")
+    # stop(paste0("Value is greater than comparator at index: ", paste0(bad_idx, collapse = ", "), " : ", paste0(offenders, collapse = ", ")))
+    stop(sprintf("%s is less than/equal to %s at index: %s : %s", x_name, y_name, paste0(bad_idx, collapse = ", "), toString(offenders)))
+  }
+}
