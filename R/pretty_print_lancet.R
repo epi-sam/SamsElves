@@ -94,6 +94,8 @@ fround <- function(x, digits = 1L, nsmall = 1L, decimal.mark = mid_dot()){
 #'
 #' @examples
 #' fround_dtype(0.123456789) # "0·1%"
+#' fround_dtype(0.123456789, 'pp', 3, 4) # "0·1230 pp"
+#' fround_dtype(55.8346, 'count', 3, 4, ".") # "55.8350"
 fround_dtype <- function(
     x
     , d_type       = "prop"
@@ -200,15 +202,6 @@ set_magnitude <- function(
       , .empty = 1
     )
   }))
-
-  checkmate::assert_true(
-    identical(
-      length(mag), length(mag_label)
-    )
-    && identical(
-      length(mag_label), length(denom)
-    )
-  )
 
   mag_list <- list(mag = mag, mag_label = mag_label, denom = denom)
   unique_element_lengths <- unique(unlist(Map(length, mag_list)))
@@ -333,6 +326,7 @@ fround_mag_clu <- function(
   # checkmate::assert_vector(clu, names = "named")
   # checkmate::assert_subset(names(clu), choices = c("central", "lower", "upper"))
   checkmate::assert_list(mag_list, names = "named")
+  checkmate::assert_names(names(mag_list), must.include = c("denom"))
   checkmate::assert_character(d_type, len = 1)
   checkmate::assert_character(decimal.mark, len = 1)
   checkmate::assert_character(negative_sign, len = 1)
@@ -341,12 +335,7 @@ fround_mag_clu <- function(
   checkmate::assert_integerish(digits_sigfig_count, len = 1, lower = 0)
   checkmate::assert_integerish(nsmall, len = 1, lower = 0)
 
-
-  req_mag_list <- c("denom")
-  if(!all(req_mag_list %in% names(mag_list))) stop("mag_list must have elements: ", toString(req_mag_list))
-  d_types_supported <- c("prop", "pp", "count")
-
-  clu <- switch_strict(
+  clu_fmt <- switch_strict(
     d_type
     , "prop"  = trimws(format(round(x = clu, digits = digits_round_prop), nsmall = nsmall, decimal.mark = decimal.mark))
     , "pp"    = trimws(format(round(x = clu, digits = digits_round_prop), nsmall = nsmall, decimal.mark = decimal.mark))
@@ -354,15 +343,24 @@ fround_mag_clu <- function(
 
       if(any(clu < 0)) stop("Formatting counts under 0 not yet supported: ", toString(clu))
 
-
       unlist(lapply(clu, function(x_i){
 
+        # lancet spec for counts under 10,000
         if(abs(round(x_i, 0)) <= 9999) {
           big.mark_count <- ""
           nsmall <- 0
         }
 
-        x_i <- signif(
+        # Still need accurate sig figs for numbers <= digits_sigfig_count e.g.
+        # c(10.5, 0.2, 20.3) should become c("10.5", "0.200", "20.3") if
+        # digits_sigfig_count = 3
+        x_i_rnd <- round(x_i)
+        digits_x_i_whole <- nchar(x_i_rnd) - ifelse(x_i_rnd == 0, 1, 0) # account for zero
+        if(abs(x_i) > 0 & digits_x_i_whole <= digits_sigfig_count) {
+          nsmall <- digits_sigfig_count - digits_x_i_whole
+        }
+
+        x_i_div <- signif(
           x        = (x_i / mag_list$denom)
           , digits = digits_sigfig_count
         )
@@ -370,42 +368,42 @@ fround_mag_clu <- function(
 
         # Ensure e.g. 95.0 million (89.0-101) retains same sigfigs across set of values
         if(
-          nchar(x_i) >= digits_sigfig_count
+          nchar(x_i_div) >= digits_sigfig_count
           & nsmall > 0
-          & !grepl("\\.", x_i)
+          & !grepl("\\.", x_i_div)
         ){
           nsmall <- 0
         }
 
-        x_i <- trimws(
+        x_i_chr <- trimws(
           format(
-            x              = x_i
+            x              = x_i_div
             , decimal.mark = decimal.mark
             , big.mark     = big.mark_count
             , nsmall       = nsmall
           )
         )
-        checkmate::assert_character(x_i, len = 1)
+        checkmate::assert_character(x_i_chr, len = 1)
 
         # zero pad formatted string to correct sig figs if too short
         if(
-          nchar(x_i) < (digits_sigfig_count + nchar(decimal.mark))
+          nchar(x_i_chr) < (digits_sigfig_count + nchar(decimal.mark))
           & nsmall > 0
         ) {
           # pad   <- required nchar                             - current nchar
-          n_zeros <- (digits_sigfig_count + nchar(decimal.mark)) - nchar(x_i)
+          n_zeros <- (digits_sigfig_count + nchar(decimal.mark)) - nchar(x_i_chr)
           zeros   <- rep.int("0", n_zeros)
-          x_i     <- sprintf("%s%s", x_i, zeros)
+          x_i_chr <- sprintf("%s%s", x_i_chr, zeros)
         }
-        return(unname(x_i)) # not sure how extra naming snuck in
+        return(unname(x_i_chr)) # not sure how extra naming snuck in
       }))
     }
   )
 
   # replace negative sign with Lancet standard
-  clu <- unlist(lapply(clu, function(x_i){sub("^-", negative_sign, x_i)}))
+  clu_fmt <- unlist(lapply(clu_fmt, function(x_i_chr){sub("^-", negative_sign, x_i_chr)}))
 
-  return(clu)
+  return(clu_fmt)
 }
 
 #' Format central/lower/upper sets to Lancet format (vectorized)

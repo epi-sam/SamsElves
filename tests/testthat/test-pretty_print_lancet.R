@@ -49,18 +49,19 @@ test_that("fmt_magnitude works",
             expect_equal(fmt_magnitude(123456789), "123.5 million")
           })
 
+# Integration tests -----
+
 test_that("fround_mag_clu works",
           {
             expect_equal(fround_mag_clu(clu = c(central = 0.2, lower = 0.1, upper = 0.3), d_type = "prop"), c(central = "0·2", lower = "0·1", upper = "0·3"))
-            expect_equal(fround_mag_clu(clu = c(central = 0.2, lower = -0.1, upper = 0.3), d_type = "prop"), c(central = "0·2", lower = "–0·1", upper = "0·3"))
-            expect_equal(fround_mag_clu(clu = c(central = 95e6, lower = 89e6, upper = 101e6), d_type = "count"), c(central = "95·0", lower = "89·0", upper = "101"))
+            expect_equal(fround_mag_clu(clu = c(central = 0.2, lower = -0.1, upper = 0.3), d_type = "pp"), c(central = "0·2", lower = "–0·1", upper = "0·3"))
+            expect_equal(fround_mag_clu(clu = c(central = 9.5e6, lower = 8.9e6, upper = 101e6), d_type = "count"), c(central = "9·50", lower = "8·90", upper = "101"))
             expect_equal(fround_mag_clu(clu = c(central = 95e6, lower = 96e6, upper = 97e6), d_type = "count"), c(central = "95·0", lower = "96·0", upper = "97·0"))
+            # trickier cases - need sig figs even for small numbers
+            expect_equal(fround_mag_clu(clu = c(central = 1, lower = 0.2, upper = 2), d_type = "count"), c(central = "1·00", lower = "0·200", upper = "2·00"))
+            expect_equal(fround_mag_clu(clu = c(central = 10.5, lower = 0.2, upper = 20.3), d_type = "count"), c(central = "10·5", lower = "0·200", upper = "20·3"))
           })
 
-test_that("fround_mag_clu isn't great for small decimal/integer count data sets - this should get fixed at some point",
-          {
-            expect_equal(fround_mag_clu(clu = c(central = 1, lower = 0.2, upper = 2), d_type = "count"), c(central = "1", lower = "0·2", upper = "2"))
-          })
 
 test_that("format_lancet_clu works",
           {
@@ -80,8 +81,6 @@ test_that("format_lancet_clu works",
                          , c("98·4–99·8", "98·4–99·8"))
           })
 
-
-# Integration tests -----
 
 test_that("format_lanced_clu errors correctly", {
   expect_error(
