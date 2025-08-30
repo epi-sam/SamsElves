@@ -1,3 +1,6 @@
+
+# Unit tests ----
+
 test_that("mid_dot works",
           {
             expect_equal(mid_dot(), "·")
@@ -10,18 +13,16 @@ test_that("thin_space works",
           {
             expect_equal(thin_space(), " ")
           })
+
 test_that("fround works",
           {
             expect_equal(fround(0.123456789), "0·1")
-            #' fround(0.123456789, digits = 3) # "0·123"
-            #' fround(0.123456789, digits = 3, nsmall = 4) # "0·1230"
             expect_equal(fround(0.123456789, digits = 3), "0·123")
             expect_equal(fround(0.123456789, digits = 3, nsmall = 4), "0·1230")
           })
 
 test_that("fround_dtype works",
           {
-            #' fround_dtype(0.123456789) # "0·1%"
             expect_equal(fround_dtype(0.123456789), "0·1%")
             expect_equal(fround_dtype(0.123456789, d_type = "pp"), "0·1 pp")
             expect_equal(fround_dtype(0.123456789, d_type = "count", digits = 3, nsmall = 4), "0·1230")
@@ -30,7 +31,6 @@ test_that("fround_dtype works",
 
 test_that("set_magnitude works",
           {
-            #' set_magnitude(c(1, 1e3, 1e6))
             expect_equal(
               set_magnitude(c(1, 1e3, 1e6, 1e9, 1e12, -1e6))
               , list(
@@ -51,10 +51,6 @@ test_that("fmt_magnitude works",
 
 test_that("fround_mag_clu works",
           {
-            #' fround_mag_clu(clu = c(central = 0.2, lower = 0.1, upper = 0.3), d_type = "prop") # "0·2" "0·1" "0·3"
-            #' fround_mag_clu(clu = c(central = 0.2, lower = -0.1, upper = 0.3), d_type = "pp") # "0·2" "–0·1" "0·3"
-            #' fround_mag_clu(clu = c(central = 95e6, lower = 89e6, upper = 101e6), d_type = "count") # "95.0" "89.0" "101"
-            #' fround_mag_clu(clu = c(central = 95e6, lower = 96e6, upper = 97e6), d_type = "count")
             expect_equal(fround_mag_clu(clu = c(central = 0.2, lower = 0.1, upper = 0.3), d_type = "prop"), c(central = "0·2", lower = "0·1", upper = "0·3"))
             expect_equal(fround_mag_clu(clu = c(central = 0.2, lower = -0.1, upper = 0.3), d_type = "prop"), c(central = "0·2", lower = "–0·1", upper = "0·3"))
             expect_equal(fround_mag_clu(clu = c(central = 95e6, lower = 89e6, upper = 101e6), d_type = "count"), c(central = "95·0", lower = "89·0", upper = "101"))
@@ -85,7 +81,7 @@ test_that("format_lancet_clu works",
           })
 
 
-# Integration
+# Integration tests -----
 
 test_that("format_lanced_clu errors correctly", {
   expect_error(
@@ -140,16 +136,15 @@ test_that("format_lancet_dt works",
             expect_equal(
               format_lancet_dt(dt = DT_prop, d_type = "prop", central_var = 'mean')
               ,
-                structure(
-                  list(
-                    location_did = c(1, 1, 1),
-                    location_name = c("Global", "Global", "Global"),
-                    me_name = c("vacc_dpt1", "vacc_dpt3", "wacky_fun"),
-                    clu_fmt = c("55·8% (50·7–60·7)", "54·7% (48·6–59·6)", "a decrease of 10·0% (–25·0 to 130·0)")
-                  ),
-                  row.names = c(NA, -3L),
-                  class = c("data.table", "data.frame")
-                )
+              structure(
+                list(
+                  location_did = c(1, 1, 1),
+                  location_name = c("Global", "Global", "Global"),
+                  me_name = c("vacc_dpt1", "vacc_dpt3", "wacky_fun"),
+                  clu_fmt = c("55·8% (50·7–60·7)", "54·7% (48·6–59·6)", "a decrease of 10·0% (–25·0 to 130·0)")
+                ),
+                row.names = c(NA, -3L),
+                class = c("data.table", "data.frame")
+              )
             )
-
           })
