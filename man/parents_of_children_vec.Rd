@@ -4,23 +4,30 @@
 \alias{parents_of_children_vec}
 \title{Return a vector of parent location_ids at level x based on path_to_top_parent}
 \usage{
-parents_of_children_vec(child_loc_id_vec, hierarchy, parent_level_vec)
+parents_of_children_vec(
+  child_loc_id_vec,
+  hierarchy,
+  parent_level_vec,
+  allow_self_as_parent = FALSE
+)
 }
 \arguments{
 \item{child_loc_id_vec}{[int] vector of location_ids}
 
-\item{hierarchy}{[data.table] ihme location hierarchy (get_location_metadata)}
+\item{hierarchy}{[data.frame] ihme location hierarchy (get_location_metadata)}
 
 \item{parent_level_vec}{[int] vector of levels for the parent of each
-location to return.  must be length 1 (find parents of all child locations
-at a single level) or length(child_loc_id_vec)}
+location to return.  must be length 1 (find parents of all child locations}
+
+\item{allow_self_as_parent}{[lgl: defautl FALSE] if TRUE, allow location_id
+at parent_level at a single level) or length(child_loc_id_vec)}
 }
 \value{
-[int] vector of parent location_ids, NA if none found at a given level
+[int] vector of parent location_ids, NA if none found at a given
+  level
 }
 \description{
-Faster, vectorized version parents_of_children.
-Assumes `path_to_top_parent` string is structured left-to-right as:
-path_to_top_parent = "1,10,30,70,5555"
+Faster, vectorized version parents_of_children. Assumes `path_to_top_parent`
+string is structured left-to-right as: path_to_top_parent = "1,10,30,70,5555"
 levels             =  0, 1, 2, 3,   4
 }

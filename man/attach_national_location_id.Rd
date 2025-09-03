@@ -2,18 +2,29 @@
 % Please edit documentation in R/parents_of_children.R
 \name{attach_national_location_id}
 \alias{attach_national_location_id}
-\title{Wrapper for attach_parent_location_id to attach national location_id (level 3)}
+\title{Wrapper for attach_parent_location_id for national location_id (level 3)}
 \usage{
-attach_national_location_id(dt, hierarchy)
+attach_national_location_id(
+  df,
+  hierarchy,
+  allow_self_as_parent = TRUE,
+  new_varname = "national_location_id"
+)
 }
 \arguments{
-\item{dt}{[data.table] some table with columns `location_id`}
+\item{df}{[data.frame] some table with columns `location_id`}
 
-\item{hierarchy}{[data.table] ihme location hierarchy (get_location_metadata)}
+\item{hierarchy}{[data.frame] ihme location hierarchy (get_location_metadata)}
+
+\item{allow_self_as_parent}{[lgl: default TRUE] if TRUE, allow location_id at
+level 3 to have itself as parent_location_id}
+
+\item{new_varname}{[string: default 'national_location_id'] name of new
+column to create}
 }
 \value{
 [data.table] with new 'parent_location_id' column
 }
 \description{
-Wrapper for attach_parent_location_id to attach national location_id (level 3)
+Wrapper for attach_parent_location_id for national location_id (level 3)
 }

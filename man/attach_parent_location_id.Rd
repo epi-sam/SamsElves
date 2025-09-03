@@ -4,14 +4,26 @@
 \alias{attach_parent_location_id}
 \title{Add `parent_location_id` column to a data.table (modified in place)}
 \usage{
-attach_parent_location_id(dt, hierarchy, parent_level)
+attach_parent_location_id(
+  df,
+  hierarchy,
+  parent_level,
+  allow_self_as_parent = FALSE,
+  new_varname = "parent_location_id"
+)
 }
 \arguments{
-\item{dt}{[data.table] some table with columns `location_id`}
+\item{df}{[data.frame] some table with columns `location_id`}
 
-\item{hierarchy}{[data.table] ihme location hierarchy (get_location_metadata)}
+\item{hierarchy}{[data.frame] ihme location hierarchy (get_location_metadata)}
 
 \item{parent_level}{[int] single parent level for all location_ids in dt}
+
+\item{allow_self_as_parent}{[lgl: default FALSE] if TRUE, allow location_id
+at parent_level to have itself as parent_location_id}
+
+\item{new_varname}{[string: default 'parent_location_id'] name of new column
+to create}
 }
 \value{
 [data.table] with new 'parent_location_id' column

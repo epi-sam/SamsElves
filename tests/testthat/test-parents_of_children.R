@@ -1,10 +1,9 @@
 # This allows testthat to function properly while not importing data.table formally
 # - must also add `.datatable.aware=TRUE` to at least one R/* file
+library(data.table)
 # If testing ever breaks, add data.table to imports for BOTH:
 # - DESCRIPTION file
-# - NAMESPACE file
-library(data.table)
-# Hierarchy with Washington, Arkansas, USA, Rajasthan, India, and Global
+# - NAMESPACE file# Hierarchy with Washington, Arkansas, USA, Rajasthan, India, and Global
 test_hier = data.table::data.table(
   'location_id'        = c(570, 526, 102, 4868, 163, 1),
   'path_to_top_parent' = c('1,102,570',
@@ -115,26 +114,28 @@ test_that(
     expect_identical(
       c(102L, 526L, NA, NA, NA, NA),
       parents_of_children_vec(
-        child_loc_id_vec   = test_hier$location_id
-        , hierarchy        = test_hier
-        , parent_level_vec = 1:6
+        child_loc_id_vec       = test_hier$location_id
+        , hierarchy            = test_hier
+        , parent_level_vec     = 1:6
+        , allow_self_as_parent = TRUE
       )
     )
     expect_identical(
-      c(570L, 526L, NA, 4868L, NA, NA),
+      c(102L, 102L, NA, 163L, NA, NA),
       parents_of_children_vec(
         child_loc_id_vec   = test_hier$location_id
         , hierarchy        = test_hier
-        , parent_level_vec = rep(2, length(test_hier$location_id))
+        , parent_level_vec = rep(1, length(test_hier$location_id))
       )
     )
 
     expect_identical(
       c(102L, 102L, 102L, 163L, 163L, NA),
       parents_of_children_vec(
-        child_loc_id_vec   = test_hier$location_id
-        , hierarchy        = test_hier
-        , parent_level_vec = 1
+        child_loc_id_vec       = test_hier$location_id
+        , hierarchy            = test_hier
+        , parent_level_vec     = 1
+        , allow_self_as_parent = TRUE
       )
     )
 
@@ -158,7 +159,7 @@ test_that(
         , hierarchy        = test_hier$location_id
         , parent_level_vec = 2
       )
-      , regexp = "Must be a data.table"
+      , regexp = "Must be of type 'data.frame'"
     )
     expect_error(
       parents_of_children_vec(
@@ -183,17 +184,19 @@ test_that(
   "attach_parent_location_id works",
   {
     test_dt0 <- attach_parent_location_id(
-      dt = copy(test_hier)
+      df = data.table::copy(test_hier)
       , hierarchy = test_hier
       , parent_level = 0
+      , allow_self_as_parent = TRUE
     )
     test_dt1 <- attach_parent_location_id(
-      dt = copy(test_hier)
+      df = data.table::copy(test_hier)
       , hierarchy = test_hier
       , parent_level = 1
+      , allow_self_as_parent = TRUE
     )
     test_dt_nat <- attach_national_location_id(
-      dt = copy(fra_hier)
+      df = data.table::copy(fra_hier)
       , hierarchy = fra_hier
     )
     expect_identical(
@@ -208,7 +211,7 @@ test_that(
       c(97896L, 97896L, 97896L, 97896L, 97896L, 97896L, 97896L, 97896L,
         97896L, 97896L, 97896L, 97896L, 97896L, 97896L, 338L, 350L, 363L,
         387L, 364L),
-      test_dt_nat$parent_location_id
+      test_dt_nat$national_location_id
     )
   }
 )
