@@ -1,3 +1,7 @@
+# SamsElves 0.7.1
+
+- format_lancet_dt - improved tests; fround_dtype - improved docstring
+
 # SamsElves 0.7.0
 
 - pretty_print_lancet - added suite of Lancet formatting & support functions
