@@ -20,7 +20,7 @@ Assert Greater Than or Equal To
 \examples{
 lower = c(1, 2, 3)
 mean = c(3, 3, 3)
-assert_x_gt_y(mean, lower)
+assert_x_gte_y(mean, lower)
 mean = c(1, 2, 4)
-# assert_x_gt_y(lower, mean) # will stop
+# assert_x_gte_y(lower, mean) # stop
 }

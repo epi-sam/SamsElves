@@ -31,4 +31,6 @@ Format and round with data-type suffix
 }
 \examples{
 fround_dtype(0.123456789) # "0·1\%"
+fround_dtype(0.123456789, 'pp', 3, 4) # "0·1230 pp"
+fround_dtype(c(55.8346, 123.456789), 'count', 3, 4, ".") # "55.8350"  "123.4570"
 }

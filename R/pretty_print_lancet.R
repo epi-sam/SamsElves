@@ -95,7 +95,7 @@ fround <- function(x, digits = 1L, nsmall = 1L, decimal.mark = mid_dot()){
 #' @examples
 #' fround_dtype(0.123456789) # "0·1%"
 #' fround_dtype(0.123456789, 'pp', 3, 4) # "0·1230 pp"
-#' fround_dtype(55.8346, 'count', 3, 4, ".") # "55.8350"
+#' fround_dtype(c(55.8346, 123.456789), 'count', 3, 4, ".") # "55.8350"  "123.4570"
 fround_dtype <- function(
     x
     , d_type       = "prop"
@@ -291,7 +291,7 @@ fmt_magnitude <- function(
 #'   percentage point or count
 #' @param mag_list [named list] output from `set_magnitude()` - must be based on
 #'   **central** value of a central/lower/upper set - central _and_ all UI values inherit the
-#'   same rounding rules as the central.
+#'   same scale as the central tendency.
 #' @param decimal.mark [chr] e.g. (default mid_dot() Lancet standard)
 #' @param negative_sign [chr] negative sign (default "–" Lancet standard)
 #' @param big.mark_count [chr] big mark for counts - Lancet specifies narrow

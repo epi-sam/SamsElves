@@ -103,20 +103,22 @@ test_that("format_lancet_dt works",
             DT_count <- data.table::data.table(
               location_did    = rep(1, 2)
               , location_name = rep("Global", 2)
-              , me_name       = c("vacc_dpt1", "vacc_dpt3")
-              , mean          = c(55.8e6, 54.7e6)
-              , lower         = c(50.7e6, 48.6e6)
-              , upper         = c(60.7e6, 59.6e6)
+              , mean          = c(55.8e6, 54.7e9)
+              , lower         = c(50.7e6, 48.6e9)
+              , upper         = c(60.7e6, 59.6e9)
             )
 
             expect_equal(
-              format_lancet_dt(dt = DT_count, d_type = "count", central_var = 'mean')
+              format_lancet_dt(
+                dt          = DT_count,
+                d_type      = "count",
+                central_var = 'mean'
+              )
               , structure(
                 list(
                   location_did = c(1, 1),
                   location_name = c("Global", "Global"),
-                  me_name = c("vacc_dpt1", "vacc_dpt3"),
-                  clu_fmt = c("55·8 million (50·7–60·7)", "54·7 million (48·6–59·6)")
+                  clu_fmt = c("55·8 million (50·7–60·7)", "54·7 billion (48·6–59·6)")
                 ),
                 row.names = c(NA, -2L),
                 class = c("data.table", "data.frame")
@@ -126,24 +128,30 @@ test_that("format_lancet_dt works",
             DT_prop <- data.table::data.table(
               location_did    = rep(1, 3)
               , location_name = rep("Global", 3)
-              , me_name       = c("vacc_dpt1", "vacc_dpt3", "wacky_fun")
-              , mean          = c(.558, .547, -0.1)
-              , lower         = c(.507, .486, -0.25)
-              , upper         = c(.607, .596, 1.3)
+              , data_space    = c("all_positive", "mixed_negative", "all_negative")
+              , mean          = c(.558, -0.1, -0.1)
+              , lower         = c(.507, -0.25, -0.2)
+              , upper         = c(.607, 1.3, -0.05)
             )
 
             expect_equal(
-              format_lancet_dt(dt = DT_prop, d_type = "prop", central_var = 'mean')
+              format_lancet_dt(
+                dt          = DT_prop,
+                d_type      = "prop",
+                central_var = 'mean'
+              )
               ,
               structure(
                 list(
                   location_did = c(1, 1, 1),
                   location_name = c("Global", "Global", "Global"),
-                  me_name = c("vacc_dpt1", "vacc_dpt3", "wacky_fun"),
-                  clu_fmt = c("55·8% (50·7–60·7)", "54·7% (48·6–59·6)", "a decrease of 10·0% (–25·0 to 130·0)")
+                  data_space = c("all_positive", "mixed_negative", "all_negative"),
+                  clu_fmt = c("55·8% (50·7–60·7)", "a decrease of 10·0% (–25·0 to 130·0)", "a decrease of 10·0% (5·0–20·0)"
+                  )
                 ),
-                row.names = c(NA, -3L),
-                class = c("data.table", "data.frame")
+                row.names = c(NA, -3L
+                )
+                , class = c("data.table", "data.frame")
               )
             )
           })

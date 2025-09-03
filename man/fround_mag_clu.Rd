@@ -24,7 +24,7 @@ percentage point or count}
 
 \item{mag_list}{[named list] output from `set_magnitude()` - must be based on
 **central** value of a central/lower/upper set - central _and_ all UI values inherit the
-same rounding rules as the central.}
+same scale as the central tendency.}
 
 \item{digits_round_prop}{[int] passed to `round()` for proportions}
 
