@@ -186,7 +186,7 @@ attach_parent_location_id <- function(
     , parent_level_vec     = parent_level
     , allow_self_as_parent = allow_self_as_parent
   )
-  return(df)
+  return(as.data.table(df))
 }
 
 #' Wrapper for attach_parent_location_id for national location_id (level 3)
