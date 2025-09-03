@@ -1,3 +1,9 @@
+# SamsElves 0.7.2
+
+- parents_of_children.R - parents_of_children_vec given allow_self_as_parent option, 
+which is usable by attach_parent/national_location_id; new_varname is settable by user; 
+removed data.table dependency
+
 # SamsElves 0.7.1
 
 - format_lancet_dt - improved tests; fround_dtype - improved docstring
