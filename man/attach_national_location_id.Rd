@@ -17,7 +17,7 @@ attach_national_location_id(
 \item{hierarchy}{[data.frame] ihme location hierarchy (get_location_metadata)}
 
 \item{allow_self_as_parent}{[lgl: default TRUE] if TRUE, allow location_id at
-level 3 to have itself as parent_location_id}
+level 3 to have itself as national_location_id}
 
 \item{new_varname}{[string: default 'national_location_id'] name of new
 column to create}
