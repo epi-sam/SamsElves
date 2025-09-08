@@ -128,14 +128,21 @@ parents_of_children_vec <- function(
 
   hier_sub <- subset(hierarchy, select = vars_hier_req) # safe for data.frame or data.table
 
-  # faster, vectorized paradigm
-  grid <- merge(
-    x               = data.frame(location_id = child_loc_id_vec)
-    , y               = hier_sub
+  # Faster, vectorized paradigm. Using data.table's merge is ESSENTIAL to retain
+  # original order so vectorized assignment of output is correct, even with
+  # missing values.
+  # Using base R merge() is NOT safe - it sorts NAs to the bottom by default
+  # This is WRONG
+  # grid <- merge(
+  #   x                 = data.frame(location_id = child_loc_id_vec)
+  #   , y               = as.data.frame(hier_sub)
+  grid <- data.table::merge.data.table(
+    x                 = data.table::data.table(location_id = child_loc_id_vec)
+    , y               = data.table::as.data.table(hier_sub)
     , by              = "location_id"
     , all.x           = TRUE
     , allow.cartesian = FALSE
-    , sort            = FALSE # ESSENTIAL to retain original order so vectorized assignment of output is correct
+    , sort            = FALSE
   )
 
   pttp_deconstructed <- strsplit(grid$path_to_top_parent, ",", fixed = TRUE)

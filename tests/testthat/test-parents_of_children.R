@@ -103,6 +103,7 @@ test_that(
         , allow_self_as_parent = TRUE
       )
     )
+
     expect_identical(
       c(102L, 102L, NA, 163L, NA, NA),
       parents_of_children_vec(
@@ -118,6 +119,17 @@ test_that(
         child_loc_id_vec       = test_hier$location_id
         , hierarchy            = test_hier
         , parent_level_vec     = 1
+        , allow_self_as_parent = TRUE
+      )
+    )
+
+    # must handle NA correctly (base R merge does not)
+    expect_identical(
+      c(NA, 102L, 102L),
+      parents_of_children_vec(
+        child_loc_id_vec       = c(NA, 102, 570)
+        , hierarchy            = test_hier
+        , parent_level_vec     = c(1, 1, 1)
         , allow_self_as_parent = TRUE
       )
     )
