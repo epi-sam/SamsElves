@@ -15,23 +15,6 @@ test_hier = data.table::data.table(
   'level'              = c(3, 3, 2, 3, 2, 1)
 )
 
-fra_hier <- data.table::data.table(
-  location_id = c(97896L, 60222L, 60245L, 60236L,
-                  60250L, 60257L, 60260L, 60271L, 60277L, 60286L, 60292L, 97868L,
-                  60319L, 60325L, 338L, 350L, 363L, 387L, 364L)
-  , ihme_loc_id = c("FRA_97896", "FRA_60222", "FRA_60245", "FRA_60236", "FRA_60250", "FRA_60257",
-                    "FRA_60260", "FRA_60271", "FRA_60277", "FRA_60286", "FRA_60292",
-                    "FRA_97868", "FRA_60319", "FRA_60325", "FRA_338", "FRA_350",
-                    "FRA_363", "FRA_387", "FRA_364")
-  , level = c(3L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 4L, 3L, 3L, 3L, 3L, 3L)
-  , path_to_top_parent = c("1,64,73,97896", "1,64,73,97896,60222", "1,64,73,97896,60245", "1,64,73,97896,60236",
-                           "1,64,73,97896,60250", "1,64,73,97896,60257", "1,64,73,97896,60260",
-                           "1,64,73,97896,60271", "1,64,73,97896,60277", "1,64,73,97896,60286",
-                           "1,64,73,97896,60292", "1,64,73,97896,97868", "1,64,73,97896,60319",
-                           "1,64,73,97896,60325", "1,103,104,338", "1,103,104,350", "1,103,104,363",
-                           "1,4,9,387", "1,166,174,364")
-)
-
 test_that(
   "parents_of_children works",
   {
@@ -176,42 +159,6 @@ test_that(
         , parent_level_vec = rep(2,2)
       )
       , regexp = "Assertion on 'length\\(child_loc_id_vec\\) == length\\(parent_level_vec\\)' failed: Must be TRUE."
-    )
-  }
-)
-
-test_that(
-  "attach_parent_location_id works",
-  {
-    test_dt0 <- attach_parent_location_id(
-      df = data.table::copy(test_hier)
-      , hierarchy = test_hier
-      , parent_level = 0
-      , allow_self_as_parent = TRUE
-    )
-    test_dt1 <- attach_parent_location_id(
-      df = data.table::copy(test_hier)
-      , hierarchy = test_hier
-      , parent_level = 1
-      , allow_self_as_parent = TRUE
-    )
-    test_dt_nat <- attach_national_location_id(
-      df = data.table::copy(fra_hier)
-      , hierarchy = fra_hier
-    )
-    expect_identical(
-      c(1L, 1L, 1L, 1L, 1L, 1L),
-      test_dt0$parent_location_id
-    )
-    expect_identical(
-      c(102L, 102L, 102L, 163L, 163L, NA),
-      test_dt1$parent_location_id
-    )
-    expect_identical(
-      c(97896L, 97896L, 97896L, 97896L, 97896L, 97896L, 97896L, 97896L,
-        97896L, 97896L, 97896L, 97896L, 97896L, 97896L, 338L, 350L, 363L,
-        387L, 364L),
-      test_dt_nat$national_location_id
     )
   }
 )

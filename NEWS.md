@@ -1,3 +1,17 @@
+# SamsElves 0.8.0
+
+Addressing need for data.frame/table agnostic functions to add hierarchy metadata.
+
+- attach_ids.R - new functions to attach various ids to a data.frame/table based on a hierarchy
+  - attach_location_id
+  - attach_ihme_loc_id
+  - attach_parent_location_id
+  - attach_national_location_id
+  - attach_national_ihme_loc_id
+- df_dt_column_mod.R - helper functions to modify columns in a data.frame or data.table
+  - add_column
+  - drop_column
+
 # SamsElves 0.7.2
 
 - parents_of_children.R - parents_of_children_vec given allow_self_as_parent option, 
