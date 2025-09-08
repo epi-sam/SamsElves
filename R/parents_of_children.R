@@ -118,17 +118,20 @@ parents_of_children_vec <- function(
   checkmate::assert_integerish(child_loc_id_vec)
   checkmate::assert_vector(child_loc_id_vec)
   checkmate::assert_data_frame(hierarchy)
-  checkmate::assert_subset(c('path_to_top_parent', 'location_id', 'level'), choices = names(hierarchy))
+  vars_hier_req <- c('path_to_top_parent', 'location_id', 'level')
+  checkmate::assert_subset(vars_hier_req, choices = names(hierarchy))
   checkmate::assert_integerish(parent_level_vec)
   checkmate::assert_vector(parent_level_vec)
   checkmate::assert_logical(allow_self_as_parent, len = 1)
   if(length(parent_level_vec) == 1) parent_level_vec <- rep(parent_level_vec, length(child_loc_id_vec))
   checkmate::assert_true(length(child_loc_id_vec) == length(parent_level_vec))
 
+  hier_sub <- subset(hierarchy, select = vars_hier_req) # safe for data.frame or data.table
+
   # faster, vectorized paradigm
   grid <- merge(
-    x               = data.table::data.table(location_id = child_loc_id_vec)
-    , y               = hierarchy[, .(location_id, path_to_top_parent, level)]
+    x               = data.frame(location_id = child_loc_id_vec)
+    , y               = hier_sub
     , by              = "location_id"
     , all.x           = TRUE
     , allow.cartesian = FALSE
@@ -155,62 +158,3 @@ parents_of_children_vec <- function(
 }
 
 
-#' Add `parent_location_id` column to a data.table (modified in place)
-#'
-#' @param df [data.frame] some table with columns `location_id`
-#' @param hierarchy [data.frame] ihme location hierarchy (get_location_metadata)
-#' @param parent_level [int] single parent level for all location_ids in dt
-#' @param allow_self_as_parent [lgl: default FALSE] if TRUE, allow location_id
-#'   at parent_level to have itself as parent_location_id
-#' @param new_varname [string: default 'parent_location_id'] name of new column
-#'   to create
-#'
-#' @returns [data.table] with new 'parent_location_id' column
-#' @export
-attach_parent_location_id <- function(
-    df
-    , hierarchy
-    , parent_level
-    , allow_self_as_parent = FALSE
-    , new_varname          = "parent_location_id"
-){
-  checkmate::assert_data_frame(df)
-  checkmate::assert_data_frame(hierarchy)
-  checkmate::assert_integerish(parent_level, len = 1)
-  checkmate::assert_choice("location_id", names(df))
-  # assert no names overlap data.table column names
-  checkmate::assert_disjunct(new_varname, names(df))
-  df[[new_varname]] <- parents_of_children_vec(
-    child_loc_id_vec     = df$location_id
-    , hierarchy            = hierarchy
-    , parent_level_vec     = parent_level
-    , allow_self_as_parent = allow_self_as_parent
-  )
-  return(as.data.table(df))
-}
-
-#' Wrapper for attach_parent_location_id for national location_id (level 3)
-#'
-#' @param hierarchy [data.frame] ihme location hierarchy (get_location_metadata)
-#' @param df [data.frame] some table with columns `location_id`
-#' @param allow_self_as_parent [lgl: default TRUE] if TRUE, allow location_id at
-#'   level 3 to have itself as national_location_id
-#' @param new_varname [string: default 'national_location_id'] name of new
-#'   column to create
-#'
-#' @returns [data.table] with new 'parent_location_id' column
-#' @export
-attach_national_location_id <- function(
-    df
-    , hierarchy
-    , allow_self_as_parent = TRUE
-    , new_varname          = "national_location_id"
-) {
-  attach_parent_location_id(
-    df
-    , hierarchy            = hierarchy
-    , parent_level         = 3
-    , allow_self_as_parent = allow_self_as_parent
-    , new_varname          = new_varname
-    )
-}
