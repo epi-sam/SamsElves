@@ -21,7 +21,7 @@
 #' add_new_column(dt, "c", c(TRUE, FALSE, TRUE)) # modified in place
 #' print(dt)
 #' class(dt)
-add_new_column <- function(x, varname, vec){
+add_column <- function(x, varname, vec){
   checkmate::assert_data_frame(x)
   if(inherits(x, "data.table")){
     x[, (varname) := vec]

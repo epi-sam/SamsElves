@@ -115,7 +115,7 @@ attach_parent_location_id <- function(
   checkmate::assert_choice("location_id", names(df))
   # assert no names overlap df column names
   checkmate::assert_disjunct(new_varname, names(df))
-  df <- add_new_column(
+  df <- add_column(
     x         = df
     , varname = new_varname
     , vec     = parents_of_children_vec(
