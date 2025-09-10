@@ -1,3 +1,9 @@
+# SamsElves 0.9.0
+
+New hierarchy helpers
+
+- map_iso_to_ihme_loc_id - map ISO3 codes to ihme_loc_id
+
 # SamsElves 0.8.0
 
 Addressing need for data.frame/table agnostic functions to add hierarchy metadata.
