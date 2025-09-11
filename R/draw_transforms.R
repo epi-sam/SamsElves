@@ -151,6 +151,8 @@ draws_long_to_wide <- function(DT, id_varnames = find_id_varnames(DT, removals =
 #' @param vars_draws [character] draw columns
 #' @param verbose [lgl] print debug messages?
 #' @param remove_vars_draws [lgl] remove draw columns?
+#' @param remove_mean [lgl] remove mean column?
+#' @param remove_median [lgl] remove median column?
 #' @param fix_mean_zero [lgl] Some sets of draws have only a single value,
 #'   leading to a non-zero mean, and zeros in the UI.  This will set the mean to
 #'   zero if mean is > 0 and the upper is 0, or if mean < 0 and lower is 0.
@@ -261,8 +263,20 @@ draws_year_diff <- function(DT, yr_vec, id_varnames = find_id_varnames(DT, verbo
 
 #' If draws are available, calculate the difference between:
 #'
-#'  1) the PE and mean of draws
-#'  2) the PE and median of draws
+#'  1) the PE and the UI of the draws (to ensure PE is within UI)
+#'  2) the PE and mean of draws
+#'  3) the PE and median of draws
+#'
+#' @param DT [data.table] input draws (wide format)
+#' @param remove_vars_draws [lgl] remove draw columns?
+#' @param verbose [lgl] print debug messages and information regarding metrics 1-3 above?
+#'
+#' @return [data.table] a data.table with the columns:
+#'
+#'    - `point_estimate_in_ui`: 1 = point_estimate is within UI of draws, 0 = if not
+#'    - `pe_mean_difference`: difference between `point_estimate` and `mean` of draws
+#'    - `pe_median_difference`: difference between `point_estimate` and `median` of draws
+#' @export
 get_draw_pe_ui_difference <- function(DT, remove_vars_draws = TRUE, verbose = FALSE) {
   checkmate::assert_data_table(DT)
   if (!any(grepl('^draw_', colnames(DT)))) stop('No draws in `DT`')
@@ -280,7 +294,7 @@ get_draw_pe_ui_difference <- function(DT, remove_vars_draws = TRUE, verbose = FA
 
   DT[,
     `:=` (
-      pe_in_ui = data.table::fifelse(
+      point_estimate_in_ui = data.table::fifelse(
         point_estimate >= lower & point_estimate <= upper, 1, 0
       ),
       pe_mean_difference = point_estimate - mean,
@@ -290,10 +304,13 @@ get_draw_pe_ui_difference <- function(DT, remove_vars_draws = TRUE, verbose = FA
 
   if(verbose) {
     cat("\n")
-    if (any(DT$pe_in_ui == 0)) {
-      num_zero_rows <- length(which(DT$pe_in_ui == 0))
+    if (any(DT$point_estimate_in_ui == 0)) {
+      num_zero_rows <- length(which(DT$point_estimate_in_ui == 0))
       pct_out_of_ui <- round(num_zero_rows / nrow(DT) * 100, digits = 2)
-      warning(pct_out_of_ui, " of rows have point_estimate outside of UI from draws.")
+      warning(
+        pct_out_of_ui, "% (n = ", num_zero_rows,
+        ") of rows have point_estimate outside of UI from draws."
+      )
       cat("\n\n")
     }
 
