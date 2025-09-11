@@ -165,12 +165,15 @@ draws_to_mean_ci <- function(
     , remove_vars_draws     = TRUE
     , remove_point_estimate = FALSE
     , remove_mean           = FALSE
-    , remove_median         = FALSE
+    , remove_median         = TRUE
     , fix_mean_zero         = FALSE
     , verbose               = FALSE
 ){
   checkmate::assert_data_table(DT)
   checkmate::assert_logical(remove_vars_draws, len = 1)
+  checkmate::assert_logical(remove_point_estimate, len = 1)
+  checkmate::assert_logical(remove_mean, len = 1)
+  checkmate::assert_logical(remove_median, len = 1)
   checkmate::assert_logical(fix_mean_zero, len = 1)
   checkmate::assert_logical(verbose, len = 1)
   checkmate::assert_subset(c(id_varnames, vars_draws_pe), colnames(DT))
