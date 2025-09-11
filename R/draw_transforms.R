@@ -258,3 +258,51 @@ draws_year_diff <- function(DT, yr_vec, id_varnames = find_id_varnames(DT, verbo
   return(draws_to_mean_ci(DTW))
 }
 
+
+#' If draws are available, calculate the difference between:
+#'
+#'  1) the PE and mean of draws
+#'  2) the PE and median of draws
+get_draw_pe_ui_difference <- function(DT, remove_vars_draws = TRUE, verbose = FALSE) {
+  checkmate::assert_data_table(DT)
+  if (!any(grepl('^draw_', colnames(DT)))) stop('No draws in `DT`')
+  checkmate::assert_subset(x = 'point_estimate', choices = colnames(DT))
+  checkmate::assert_logical(x = remove_vars_draws, len = 1)
+  checkmate::assert_logical(x = verbose, len = 1)
+
+  DT <- draws_to_mean_ci(
+    DT = DT,
+    remove_vars_draws = remove_vars_draws,
+    remove_point_estimate = FALSE,
+    remove_mean = FALSE,
+    remove_median = FALSE
+  )
+
+  DT[,
+    `:=` (
+      pe_in_ui = data.table::fifelse(
+        point_estimate >= lower & point_estimate <= upper, 1, 0
+      ),
+      pe_mean_difference = point_estimate - mean,
+      pe_median_difference = point_estimate - median
+    )
+  ]
+
+  if(verbose) {
+    cat("\n")
+    if (any(DT$pe_in_ui == 0)) {
+      num_zero_rows <- length(which(DT$pe_in_ui == 0))
+      pct_out_of_ui <- round(num_zero_rows / nrow(DT) * 100, digits = 2)
+      warning(pct_out_of_ui, " of rows have point_estimate outside of UI from draws.")
+      cat("\n\n")
+    }
+
+    message('Summary of difference between point_estimate minus mean of draws:')
+    print(summary(DT$pe_mean_difference))
+
+    cat("\n\n")
+    message('Summary of difference between point_estimate minus median of draws:')
+    print(summary(DT$pe_median_difference))
+  }
+  return(DT)
+}
