@@ -165,6 +165,7 @@ draws_to_mean_ci <- function(
     , remove_vars_draws     = TRUE
     , remove_point_estimate = FALSE
     , remove_mean           = FALSE
+    , remove_median         = FALSE
     , fix_mean_zero         = FALSE
     , verbose               = FALSE
 ){
@@ -174,7 +175,7 @@ draws_to_mean_ci <- function(
   checkmate::assert_logical(verbose, len = 1)
   checkmate::assert_subset(c(id_varnames, vars_draws_pe), colnames(DT))
 
-  vars_draws <- setdiff(vars_draws_pe, "point_estimate")
+  vars_draws <- PERD_regex(include_PE = FALSE)
 
   if(verbose == TRUE) message("draws to mean/95%CI - draw columns, e.g. : ", toString(vars_draws[1:5]))
 
@@ -182,6 +183,7 @@ draws_to_mean_ci <- function(
   DT[, mean := base::rowMeans(.SD), .SDcols = vars_draws]
   DT[, lower := matrixStats::rowQuantiles(as.matrix(.SD), probs = 0.025), .SDcols = vars_draws]
   DT[, upper := matrixStats::rowQuantiles(as.matrix(.SD), probs = 0.975), .SDcols = vars_draws]
+  DT[, median := matrixStats::rowQuantiles(as.matrix(.SD), probs = 0.5), .SDcols = vars_draws]
 
   # post process
   # some sets of draws have only a single value, leading to a non-zero mean, and zeros in the UI
@@ -192,6 +194,7 @@ draws_to_mean_ci <- function(
   if(remove_vars_draws == TRUE) DT[, c(vars_draws) := NULL]
   if(remove_point_estimate == TRUE) DT[, point_estimate := NULL]
   if(remove_mean == TRUE) DT[, mean := NULL]
+  if(remove_median) DT[, median := NULL]
 
   data.table::setorderv(DT, id_varnames)
 
