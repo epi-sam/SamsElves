@@ -202,3 +202,39 @@ test_that("draws_year_diff works", {
       )
   )
 })
+
+
+test_that("get_draw_pe_ui_difference works", {
+  expect_equal(
+    get_draw_pe_ui_difference(
+      data.table::data.table(
+        location_id    = 8L,
+        age_group_id   = 22L,
+        sex_id         = 3L,
+        metric_id      = 3L,
+        source         = "ST-GPR",
+        measure_id     = 18L,
+        draw_0 = 0.6,
+        draw_1 = 0.4,
+        draw_2 = 0.3,
+        point_estimate = 0.42
+      )
+    ),
+    data.table::data.table(
+      location_id    = 8L,
+      age_group_id   = 22L,
+      sex_id         = 3L,
+      metric_id      = 3L,
+      source         = "ST-GPR",
+      measure_id     = 18L,
+      point_estimate = 0.42,
+      mean           = mean(c(0.6, 0.4, 0.3)),
+      lower          = as.numeric(quantile(c(0.6, 0.4, 0.3), 0.025)),
+      upper          = as.numeric(quantile(c(0.6, 0.4, 0.3), 0.975)),
+      median         = median(c(0.6, 0.4, 0.3)),
+      point_estimate_in_ui = 1,
+      pe_mean_difference   = 0.42 - mean(c(0.6, 0.4, 0.3)),
+      pe_median_difference = 0.42 - median(c(0.6, 0.4, 0.3))
+    )
+  )
+})

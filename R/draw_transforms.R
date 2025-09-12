@@ -151,6 +151,8 @@ draws_long_to_wide <- function(DT, id_varnames = find_id_varnames(DT, removals =
 #' @param vars_draws [character] draw columns
 #' @param verbose [lgl] print debug messages?
 #' @param remove_vars_draws [lgl] remove draw columns?
+#' @param remove_mean [lgl] remove mean column?
+#' @param remove_median [lgl] remove median column?
 #' @param fix_mean_zero [lgl] Some sets of draws have only a single value,
 #'   leading to a non-zero mean, and zeros in the UI.  This will set the mean to
 #'   zero if mean is > 0 and the upper is 0, or if mean < 0 and lower is 0.
@@ -165,16 +167,25 @@ draws_to_mean_ci <- function(
     , remove_vars_draws     = TRUE
     , remove_point_estimate = FALSE
     , remove_mean           = FALSE
+    , remove_median         = TRUE
     , fix_mean_zero         = FALSE
     , verbose               = FALSE
 ){
   checkmate::assert_data_table(DT)
   checkmate::assert_logical(remove_vars_draws, len = 1)
+  checkmate::assert_logical(remove_point_estimate, len = 1)
+  checkmate::assert_logical(remove_mean, len = 1)
+  checkmate::assert_logical(remove_median, len = 1)
   checkmate::assert_logical(fix_mean_zero, len = 1)
   checkmate::assert_logical(verbose, len = 1)
   checkmate::assert_subset(c(id_varnames, vars_draws_pe), colnames(DT))
 
-  vars_draws <- setdiff(vars_draws_pe, "point_estimate")
+  vars_draws <- grep(
+    pattern = PERD_regex(include_PE = FALSE),
+    x = colnames(DT),
+    value = TRUE
+  )
+
 
   if(verbose == TRUE) message("draws to mean/95%CI - draw columns, e.g. : ", toString(vars_draws[1:5]))
 
@@ -182,6 +193,7 @@ draws_to_mean_ci <- function(
   DT[, mean := base::rowMeans(.SD), .SDcols = vars_draws]
   DT[, lower := matrixStats::rowQuantiles(as.matrix(.SD), probs = 0.025), .SDcols = vars_draws]
   DT[, upper := matrixStats::rowQuantiles(as.matrix(.SD), probs = 0.975), .SDcols = vars_draws]
+  DT[, median := matrixStats::rowQuantiles(as.matrix(.SD), probs = 0.5), .SDcols = vars_draws]
 
   # post process
   # some sets of draws have only a single value, leading to a non-zero mean, and zeros in the UI
@@ -192,6 +204,7 @@ draws_to_mean_ci <- function(
   if(remove_vars_draws == TRUE) DT[, c(vars_draws) := NULL]
   if(remove_point_estimate == TRUE) DT[, point_estimate := NULL]
   if(remove_mean == TRUE) DT[, mean := NULL]
+  if(remove_median) DT[, median := NULL]
 
   data.table::setorderv(DT, id_varnames)
 
@@ -252,3 +265,66 @@ draws_year_diff <- function(DT, yr_vec, id_varnames = find_id_varnames(DT, verbo
   return(draws_to_mean_ci(DTW))
 }
 
+
+#' If draws are available, calculate the difference between:
+#'
+#'  1) the PE and the UI of the draws (to ensure PE is within UI)
+#'  2) the PE and mean of draws
+#'  3) the PE and median of draws
+#'
+#' @param DT [data.table] input draws (wide format)
+#' @param remove_vars_draws [lgl] remove draw columns?
+#' @param verbose [lgl] print debug messages and information regarding metrics 1-3 above?
+#'
+#' @return [data.table] a data.table with the columns:
+#'
+#'    - `point_estimate_in_ui`: 1 = point_estimate is within UI of draws, 0 = if not
+#'    - `pe_mean_difference`: difference between `point_estimate` and `mean` of draws
+#'    - `pe_median_difference`: difference between `point_estimate` and `median` of draws
+#' @export
+get_draw_pe_ui_difference <- function(DT, remove_vars_draws = TRUE, verbose = FALSE) {
+  checkmate::assert_data_table(DT)
+  if (!any(grepl('^draw_', colnames(DT)))) stop('No draws in `DT`')
+  checkmate::assert_subset(x = 'point_estimate', choices = colnames(DT))
+  checkmate::assert_logical(x = remove_vars_draws, len = 1)
+  checkmate::assert_logical(x = verbose, len = 1)
+
+  DT <- draws_to_mean_ci(
+    DT = DT,
+    remove_vars_draws = remove_vars_draws,
+    remove_point_estimate = FALSE,
+    remove_mean = FALSE,
+    remove_median = FALSE
+  )
+
+  DT[,
+    `:=` (
+      point_estimate_in_ui = data.table::fifelse(
+        point_estimate >= lower & point_estimate <= upper, 1, 0
+      ),
+      pe_mean_difference = point_estimate - mean,
+      pe_median_difference = point_estimate - median
+    )
+  ]
+
+  if(verbose) {
+    cat("\n")
+    if (any(DT$point_estimate_in_ui == 0)) {
+      num_zero_rows <- length(which(DT$point_estimate_in_ui == 0))
+      pct_out_of_ui <- round(num_zero_rows / nrow(DT) * 100, digits = 2)
+      warning(
+        pct_out_of_ui, "% (n = ", num_zero_rows,
+        ") of rows have point_estimate outside of UI from draws."
+      )
+      cat("\n\n")
+    }
+
+    message('Summary of difference between point_estimate minus mean of draws:')
+    print(summary(DT$pe_mean_difference))
+
+    cat("\n\n")
+    message('Summary of difference between point_estimate minus median of draws:')
+    print(summary(DT$pe_median_difference))
+  }
+  return(DT[])
+}
