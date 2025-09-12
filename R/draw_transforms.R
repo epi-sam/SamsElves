@@ -321,5 +321,5 @@ get_draw_pe_ui_difference <- function(DT, remove_vars_draws = TRUE, verbose = FA
     message('Summary of difference between point_estimate minus median of draws:')
     print(summary(DT$pe_median_difference))
   }
-  return(DT)
+  return(DT[])
 }
