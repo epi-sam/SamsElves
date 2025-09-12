@@ -180,7 +180,12 @@ draws_to_mean_ci <- function(
   checkmate::assert_logical(verbose, len = 1)
   checkmate::assert_subset(c(id_varnames, vars_draws_pe), colnames(DT))
 
-  vars_draws <- PERD_regex(include_PE = FALSE)
+  vars_draws <- grep(
+    pattern = PERD_regex(include_PE = FALSE),
+    x = colnames(DT),
+    value = TRUE
+  )
+
 
   if(verbose == TRUE) message("draws to mean/95%CI - draw columns, e.g. : ", toString(vars_draws[1:5]))
 
