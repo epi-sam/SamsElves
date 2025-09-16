@@ -11,6 +11,7 @@ aggregate_from_children_to_parents(
   varname_weights = NULL,
   hierarchy,
   hierarchy_id = "location_id",
+  start_level = max(hierarchy$level),
   stop_level = 3L,
   require_square = TRUE,
   require_rows = TRUE,
@@ -27,45 +28,53 @@ aggregate_from_children_to_parents(
 
 \item{varnames_to_aggregate_by}{[chr] e.g c("year_id", "age_group_id")}
 
-\item{varname_weights}{[chr] (default NULL) - if you want to weight the
+\item{varname_weights}{[chr: default NULL] - if you want to weight the
 aggregation by a variable, e.g. population.  If NULL, do a simple
 children-to-parent sum the values in varnames_to_aggregate within each
 combination of varnames_to_aggregate_by.  If not NULL, calculate weights
 for all children of each parent before aggregation.  Weights sum to 1
 between all children, within each combination of varnames_to_aggregate_by.}
 
-\item{hierarchy}{[data.table] e.g. a location hierarchy with required
-columns: `hierarchy_id`, path_to_top_parent, level, most_detailed}
+\item{hierarchy}{[data.table: default "location_id"] e.g. a location
+hierarchy with required columns: `hierarchy_id`, path_to_top_parent, level,
+most_detailed}
 
 \item{hierarchy_id}{[chr] What variable does your hierarchy define, e.g.
 "location_id" (2024-11-21 only supported option)}
 
-\item{stop_level}{[x] (default 3L) Stops aggregation when the child level ==
+\item{start_level}{[int: default max(hierarchy$level)] What level to start
+aggregating}
+
+\item{stop_level}{[int: default 3] Stops aggregation when the child level ==
 stop_level (e.g. 3L aggregate up to national for locations, but no further;
 regional scalars mean regions are larger than combined countries under them
 from e.g. small islands)}
 
-\item{require_square}{[lgl] (default TRUE) If TRUE, will check inputs and
-outputs for square (i.e. all variables are present for all combinations of}
+\item{require_square}{[lgl: default TRUE] If TRUE, will check inputs and
+outputs for square (i.e. all variables are present for all combinations of
+hierarchy_id and varnames_to_aggregate_by).  If FALSE, will warn if not
+square.}
 
-\item{require_rows}{[lgl] (default TRUE) If TRUE, assert_squarec checks data
+\item{require_rows}{[lgl: default TRUE] If TRUE, assert_square checks data
 has > 0 rows}
 
-\item{verbose}{[lgl] message each parent and children being aggregated?}
+\item{verbose}{[lgl: default TRUE] message each parent and children being
+aggregated?}
 
-\item{v_verbose}{[lgl] message each parent that is not all.equal() to its
-aggregated children (if parent already exists in the dataset)?}
+\item{v_verbose}{[lgl: default FALSE] message each parent that is not
+all.equal() to its aggregated children (if parent already exists in the
+dataset)?}
 
-\item{tolerance_all_equal}{[dbl] (Default NULL uses all.equal's defaults)
-Tolerance for all.equal mean relative differnce check between parent and
-aggregated children (if parent is already in DT).  A value of 1 means the
-aggregated children are double the value of the parent (you probably did
-something wrong).  Use large values for large allowance in differnces due
-to rounding, etc.  Adjust the tolerance to your operation's mathematical
-limitations.}
+\item{tolerance_all_equal}{[dbl: default NULL] If NULL, use all.equal's
+default tolerance for all.equal mean relative differnce check between
+parent and aggregated children (if parent is already in DT).  A value of 1
+means the aggregated children are double the value of the parent (you
+probably did something wrong).  Use large values for large allowance in
+differnces due to rounding, etc.  Adjust the tolerance to your operation's
+mathematical limitations.}
 
-\item{aa_hard_stop}{[lgl] (default FALSE) If TRUE, will stop if a parent is
-not all.equal() to its aggregated children, within user-specified level of
+\item{aa_hard_stop}{[lgl: default FALSE] If TRUE, stop if a parent is not
+`all.equal()` to its aggregated children, within user-specified level of
 tolerance.}
 }
 \value{
