@@ -1,3 +1,12 @@
+# SamsElves 0.9.2
+
+Feature
+
+aggregate_parents_from_children 
+
+- added start level; refined assertions
+
+
 # SamsElves 0.9.1
 
 Bugfix
