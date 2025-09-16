@@ -153,6 +153,7 @@ draws_long_to_wide <- function(DT, id_varnames = find_id_varnames(DT, removals =
 #' @param remove_vars_draws [lgl] remove draw columns?
 #' @param remove_mean [lgl] remove mean column?
 #' @param remove_median [lgl] remove median column?
+#' @param remove_pe_percentile [lgl] remove the point_estimate's percentile in the draws column?
 #' @param fix_mean_zero [lgl] Some sets of draws have only a single value,
 #'   leading to a non-zero mean, and zeros in the UI.  This will set the mean to
 #'   zero if mean is > 0 and the upper is 0, or if mean < 0 and lower is 0.
@@ -168,6 +169,7 @@ draws_to_mean_ci <- function(
     , remove_point_estimate = FALSE
     , remove_mean           = FALSE
     , remove_median         = TRUE
+    , remove_pe_percentile  = TRUE
     , fix_mean_zero         = FALSE
     , verbose               = FALSE
 ){
