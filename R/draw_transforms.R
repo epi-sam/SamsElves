@@ -188,14 +188,12 @@ draws_to_mean_ci <- function(
     value = TRUE
   )
 
-
   if(verbose == TRUE) message("draws to mean/95%CI - draw columns, e.g. : ", toString(vars_draws[1:5]))
 
   DT <- data.table::as.data.table(DT)
   DT[, mean := base::rowMeans(.SD), .SDcols = vars_draws]
   DT[, lower := matrixStats::rowQuantiles(as.matrix(.SD), probs = 0.025), .SDcols = vars_draws]
   DT[, upper := matrixStats::rowQuantiles(as.matrix(.SD), probs = 0.975), .SDcols = vars_draws]
-  DT[, median := matrixStats::rowQuantiles(as.matrix(.SD), probs = 0.5), .SDcols = vars_draws]
 
   # post process
   # some sets of draws have only a single value, leading to a non-zero mean, and zeros in the UI
@@ -203,10 +201,12 @@ draws_to_mean_ci <- function(
     DT[mean > 0 & upper == 0, mean := 0]
     DT[mean > 0 & lower == 0, lower := 0]
   }
+
+  if(!remove_median) DT[, median := matrixStats::rowQuantiles(as.matrix(.SD), probs = 0.5), .SDcols = vars_draws]
+  if(!remove_pe_percentile) DT[, pe_percentile := rowMeans(point_estimate >= as.matrix(.SD)), .SDcols = vars_draws]
   if(remove_vars_draws == TRUE) DT[, c(vars_draws) := NULL]
   if(remove_point_estimate == TRUE) DT[, point_estimate := NULL]
   if(remove_mean == TRUE) DT[, mean := NULL]
-  if(remove_median) DT[, median := NULL]
 
   data.table::setorderv(DT, id_varnames)
 
