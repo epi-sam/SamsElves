@@ -16,7 +16,8 @@ Imports:
     tidyr,
     dplyr,
     here,
-    yaml
+    yaml,
+    ggplot2
 Suggests: 
     testthat
 Encoding: UTF-8
