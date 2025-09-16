@@ -1,3 +1,9 @@
+# SamsElves 0.9.1
+
+Bugfix
+
+- assert_square - assert_no_na arg no longer resets the hard_stop flag
+
 # SamsElves 0.9.0
 
 New hierarchy helpers
