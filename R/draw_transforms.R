@@ -296,7 +296,8 @@ get_draw_pe_ui_difference <- function(DT, remove_vars_draws = TRUE, verbose = TR
     remove_vars_draws = remove_vars_draws,
     remove_point_estimate = FALSE,
     remove_mean = FALSE,
-    remove_median = FALSE
+    remove_median = FALSE,
+    remove_pe_percentile = FALSE
   )
 
   DT[,
@@ -311,12 +312,30 @@ get_draw_pe_ui_difference <- function(DT, remove_vars_draws = TRUE, verbose = TR
 
   if(verbose) {
     cat("\n")
+
+    message('Summary of the distribution of the point_estimate:')
+    print(summary(DT$point_estimate))
+
+    cat("\n\n")
+
+    message('Summary of the distribution of the mean of the draws:')
+    print(summary(DT$mean))
+
+    cat("\n\n")
+
+    message('Summary of the distribution of the median of the draws:')
+    print(summary(DT$median))
+
+    cat("\n\n")
+
     if (any(DT$point_estimate_in_ui == 0)) {
       num_zero_rows <- length(which(DT$point_estimate_in_ui == 0))
       pct_out_of_ui <- round(num_zero_rows / nrow(DT) * 100, digits = 2)
       warning(
         pct_out_of_ui, "% (n = ", num_zero_rows,
-        ") of rows have point_estimate outside of UI from draws."
+        ") of rows have point_estimate outside of UI from draws. ",
+        "You can subset rows that have PE outside of you by subsetting",
+        " the returned data.table to point_estimate_in_ui == 0."
       )
       cat("\n\n")
     }
@@ -327,6 +346,10 @@ get_draw_pe_ui_difference <- function(DT, remove_vars_draws = TRUE, verbose = TR
     cat("\n\n")
     message('Summary of difference between point_estimate minus median of draws:')
     print(summary(DT$pe_median_difference))
+
+    cat("\n\n")
+    message('Summary of percentile of point_estimate relative to draws:')
+    print(summary(DT$pe_percentile))
   }
   return(DT[])
 }
