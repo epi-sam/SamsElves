@@ -284,7 +284,7 @@ draws_year_diff <- function(DT, yr_vec, id_varnames = find_id_varnames(DT, verbo
 #'    - `pe_mean_difference`: difference between `point_estimate` and `mean` of draws
 #'    - `pe_median_difference`: difference between `point_estimate` and `median` of draws
 #' @export
-get_draw_pe_ui_difference <- function(DT, remove_vars_draws = TRUE, verbose = FALSE) {
+get_draw_pe_ui_difference <- function(DT, remove_vars_draws = TRUE, verbose = TRUE) {
   checkmate::assert_data_table(DT)
   if (!any(grepl('^draw_', colnames(DT)))) stop('No draws in `DT`')
   checkmate::assert_subset(x = 'point_estimate', choices = colnames(DT))
