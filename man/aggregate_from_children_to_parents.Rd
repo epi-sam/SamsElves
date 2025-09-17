@@ -13,6 +13,7 @@ aggregate_from_children_to_parents(
   start_level = max(hierarchy$level),
   stop_level = 3L,
   varname_weights = NULL,
+  aggregate_proportions = FALSE,
   add_regional_scalars = FALSE,
   release_id = NULL,
   location_set_id = 35,
@@ -54,6 +55,9 @@ combination of varnames_to_aggregate_by.  If not NULL, calculate weights
 for all children of each parent before aggregation.  Weights sum to 1
 between all children, within each combination of varnames_to_aggregate_by.}
 
+\item{aggregate_proportions}{[lgl: default FALSE] If TRUE, only apply
+regional scalars to varname_weights}
+
 \item{add_regional_scalars}{[lgl: default FALSE] If TRUE, will add regional
 scalars (e.g. GBD Regions) to the hierarchy, and aggregate them
 automatically.  This assumes your hierarchy is a location hierarchy with
@@ -72,6 +76,9 @@ square.}
 
 \item{require_rows}{[lgl: default TRUE] If TRUE, assert_square checks data
 has > 0 rows}
+
+\item{require_all_most_detailed}{[lgl: default TRUE] If TRUE, require that
+all most_detailed locations in the hierarchy are present in DT}
 
 \item{verbose}{[lgl: default TRUE] message each parent and children being
 aggregated?}

@@ -1,10 +1,7 @@
-# started: 2025 Jan 13 19:22:05
-# purpose: suite of function to transform draws from wide to long format and
-# vice versa, and compute mean and 95% CI of draws
-# updated: 2025 Aug 27 - adding point_estimates
-
-
 #' Regex to identify draw columns + point estimate + anything else the user deems helpful
+#'
+#' @param include_PE [lgl] include point_estimate in regex?
+#' @param additions [chr] additional regex to include
 #'
 #' @returns [chr] regex to identify draw columns + point estimate
 PERD_regex <- function(include_PE = TRUE, additions = NULL) {
@@ -19,7 +16,8 @@ PERD_regex <- function(include_PE = TRUE, additions = NULL) {
 #'
 #' e.g. "draw_1", "draw_2", ..., "draw_10", "draw_11", ...
 #'
-#' @param draw_varnames
+#' @param draw_varnames [chr] vector of variable names
+#' @param pe_varname [chr] name of point estimate variable, if present
 #'
 #' @returns [chr] ordered vector of variable names
 #' @export
@@ -58,8 +56,11 @@ find_draws_varnames <- function(DT, draws_rgx = PERD_regex()) {
 #' Interactive helper
 #'
 #' @param DT [data.frame]
+#' @param additions [chr] additional regex to include
+#' @param removals [chr] variable names to exclude
+#' @param verbose [lgl] print debug messages?
 #'
-#' @return [chr] vector of variable names
+#' @returns [chr] vector of variable names
 #' @export
 find_id_varnames <- function(DT, additions = NULL, removals = "value", verbose = TRUE){
   checkmate::assert_data_table(DT)
@@ -76,7 +77,7 @@ find_id_varnames <- function(DT, additions = NULL, removals = "value", verbose =
 #' @param id_varnames [character] columns to keep as is
 #' @param verbose [lgl] print debug messages?
 #'
-#' @return [data.frame] draws in long format
+#' @returns [data.frame] draws in long format
 #' @export
 draws_wide_to_long <- function(DT, id_varnames = find_id_varnames(DT, verbose = FALSE), verbose = FALSE){
   checkmate::assert_data_table(DT)
@@ -109,7 +110,7 @@ draws_wide_to_long <- function(DT, id_varnames = find_id_varnames(DT, verbose = 
 #' @param id_varnames [character] columns to keep as is
 #' @param verbose [lgl] print debug messages?
 #'
-#' @return [data.frame] draws in wide format
+#' @returns [data.frame] draws in wide format
 #' @export
 draws_long_to_wide <- function(DT, id_varnames = find_id_varnames(DT, removals = c("value"), verbose = FALSE), verbose = FALSE){
 
@@ -140,22 +141,23 @@ draws_long_to_wide <- function(DT, id_varnames = find_id_varnames(DT, removals =
   return(DTW)
 }
 
-
-#' Transform wide draws to mean and 95% CI
+#' Transform wide draws to mean and 95 percent CI
 #'
-#' For now, retaining point estimate _and_ mean by default since much processing
+#' For now, retaining point estimate and mean by default since much processing
 #' code depends on mean column
 #'
 #' @param DT [data.table] input draws in wide format
 #' @param id_varnames [character] columns to keep as is
-#' @param vars_draws [character] draw columns
-#' @param verbose [lgl] print debug messages?
+#' @param vars_draws_pe [chr] vector of variable names in `DT` that are draws + point_estimate
 #' @param remove_vars_draws [lgl] remove draw columns?
+#' @param remove_point_estimate [lgl] remove point_estimate column?
+#' @param remove_mean [lgl] remove mean column?
 #' @param fix_mean_zero [lgl] Some sets of draws have only a single value,
 #'   leading to a non-zero mean, and zeros in the UI.  This will set the mean to
 #'   zero if mean is > 0 and the upper is 0, or if mean < 0 and lower is 0.
+#' @param verbose [lgl] print debug messages?
 #'
-#' @return [data.table] mean and 95% CI of draws (columns: mean, lower, upper),
+#' @returns [data.table] mean and 95 percent CI of draws (columns: mean, lower, upper),
 #'   with or without draw columns, depending on `remove_vars_draws`
 #' @export
 draws_to_mean_ci <- function(
@@ -168,6 +170,7 @@ draws_to_mean_ci <- function(
     , fix_mean_zero         = FALSE
     , verbose               = FALSE
 ){
+
   checkmate::assert_data_table(DT)
   checkmate::assert_logical(remove_vars_draws, len = 1)
   checkmate::assert_logical(fix_mean_zero, len = 1)
@@ -202,8 +205,9 @@ draws_to_mean_ci <- function(
 #' Pivot long draws wide by years
 #'
 #' @param DT [data.table] input draws
+#' @param yr_vec [int] vector of years to pivot wide
 #'
-#' @return [data.table] draws in wide format
+#' @returns [data.table] draws in wide format
 #' @export
 draws_years_to_wide <- function(DT, yr_vec = NULL){
   checkmate::assert_data_table(DT)
@@ -230,7 +234,7 @@ draws_years_to_wide <- function(DT, yr_vec = NULL){
 #' @param yr_vec [int] 2 years to compare
 #' @param id_varnames [character] columns to keep as id columns
 #'
-#' @return [data.table] a table of mean and 95% CI for the difference between
+#' @returns [data.table] a table of mean and 95% CI for the difference between
 #'   the two years, by id_varnames
 #' @export
 draws_year_diff <- function(DT, yr_vec, id_varnames = find_id_varnames(DT, verbose = FALSE)){

@@ -6,6 +6,11 @@
 \usage{
 PERD_regex(include_PE = TRUE, additions = NULL)
 }
+\arguments{
+\item{include_PE}{[lgl] include point_estimate in regex?}
+
+\item{additions}{[chr] additional regex to include}
+}
 \value{
 [chr] regex to identify draw columns + point estimate
 }

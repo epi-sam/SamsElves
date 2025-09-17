@@ -8,6 +8,12 @@ find_id_varnames(DT, additions = NULL, removals = "value", verbose = TRUE)
 }
 \arguments{
 \item{DT}{[data.frame]}
+
+\item{additions}{[chr] additional regex to include}
+
+\item{removals}{[chr] variable names to exclude}
+
+\item{verbose}{[lgl] print debug messages?}
 }
 \value{
 [chr] vector of variable names

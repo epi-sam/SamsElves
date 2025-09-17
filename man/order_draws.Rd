@@ -7,7 +7,9 @@
 order_draws(draw_varnames, pe_varname = "point_estimate")
 }
 \arguments{
-\item{draw_varnames}{}
+\item{draw_varnames}{[chr] vector of variable names}
+
+\item{pe_varname}{[chr] name of point estimate variable, if present}
 }
 \value{
 [chr] ordered vector of variable names

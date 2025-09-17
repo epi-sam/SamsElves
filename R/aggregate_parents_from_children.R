@@ -64,6 +64,10 @@
 #' @param aa_hard_stop [lgl: default FALSE] If TRUE, stop if a parent is not
 #'   `all.equal()` to its aggregated children, within user-specified level of
 #'   tolerance.
+#' @param aggregate_proportions [lgl: default FALSE] If TRUE, only apply
+#'   regional scalars to varname_weights
+#' @param require_all_most_detailed [lgl: default TRUE] If TRUE, require that
+#'   all most_detailed locations in the hierarchy are present in DT
 #'
 #' @return [data.table] aggregated data.table
 #' @export
@@ -77,6 +81,7 @@ aggregate_from_children_to_parents <- function(
     , start_level               = max(hierarchy$level)
     , stop_level                = 3L
     , varname_weights           = NULL
+    , aggregate_proportions     = FALSE
     , add_regional_scalars      = FALSE
     , release_id                = NULL
     , location_set_id           = 35
@@ -115,9 +120,21 @@ aggregate_from_children_to_parents <- function(
   )
   if(hierarchy_id %in% varnames_to_aggregate) stop(sprintf("%s cannot be an aggregated variable", hierarchy_id))
   if(hierarchy_id %in% varnames_to_aggregate_by) stop(sprintf("cannot aggregate by %s", hierarchy_id))
+  if(start_level > max(hierarchy$level)) stop("start_level cannot be greater than max(hierarchy$level)")
 
   if(require_all_most_detailed == TRUE){
     assert_x_in_y(hierarchy[most_detailed == 1, location_id], DT[[hierarchy_id]])
+  }
+
+  measure_range             <- range(unlist(DT[, ..varnames_to_aggregate]))
+  measure_likely_proportion <- all(min(measure_range) >= -1L & max(measure_range) <= 1L)
+  if(measure_likely_proportion && is.null(varname_weights)){
+    warning("
+It looks like you're aggregating proportions without weights!
+
+- If you want to aggregate proportions, set `varname_weights`,
+  - e.g. to a population variable
+")
   }
 
   # Set start message depending on if we're aggregating with weights
@@ -168,6 +185,34 @@ aggregate_from_children_to_parents <- function(
   # Outer Loop - Levels --------------------------------------------------------
   for (level_i in levels_rev){
 
+    # Regional Scalars -----------------------------------------------------
+    if(level_i == 2 && add_regional_scalars == TRUE){
+      message("\n --- Applying regional scalars at level 2--- \n")
+
+      vars_to_multiply <- c(varnames_to_aggregate, varname_weights)
+      # only multiply weights if we're aggregating proportions
+      if(aggregate_proportions == TRUE) vars_to_multiply <- varname_weights
+
+      # quality check
+      if(aggregate_proportions == FALSE && measure_likely_proportion == TRUE){
+        warning("
+It looks like you're aggregating proportions with regional scalars!
+
+ - YOU HAVE NOT set `aggregate_proportions = TRUE` and probably should!
+
+ - If you want to aggregate proportions with scalars:
+   - set `aggregate_proportions = TRUE`
+   - only the weights will be multiplied by regional scalars")
+      }
+
+      DT <- apply_regional_scalars(
+        DT               = DT,
+        vars_to_multiply = vars_to_multiply,
+        release_id       = release_id,
+        location_set_id  = location_set_id
+      )
+    }
+
     if(level_i == stop_level) {message("\nDone aggregating at level = ", level_i); break}
 
     parent_level <- level_i - 1
@@ -185,6 +230,9 @@ aggregate_from_children_to_parents <- function(
       , parent_level = parent_level
     )
 
+    # Temporary data.table to hold all parents at this level before binding
+    DT_level <- data.table::data.table()
+
     # Inner Loop - Locations ---------------------------------------------------
     for (parent_i in parents_of_level){
 
@@ -201,7 +249,7 @@ aggregate_from_children_to_parents <- function(
 
       if(verbose) message("- Parent: ", parent_i, "\n   - Children: ", toString(children))
 
-      if (length(children) > 0){
+      if (length(children) > 0) {
         dt_children <- DT[get(hierarchy_id) %in% children]
 
         # If children aren't square, aggregation will go wrong
@@ -218,13 +266,13 @@ aggregate_from_children_to_parents <- function(
           }
           , warning = function(assert_square_cnd){
             assert_square_cnd
-            message("Square check warning Inspect parent and its children.")
-            message(sprintf("level = %s; parent = %s; children = %s", level_i, parent_i, toString(children)))
+            message("\nSquare check warning. Inspect parent and its children.")
+            message(sprintf("level = %s; parent = %s; children = %s \n", level_i, parent_i, toString(children)))
           }
           , error = function(assert_square_cnd){
             assert_square_cnd
-            message("Square check failed. Inspect parent and its children.")
-            message(sprintf("level = %s; parent = %s; children = %s", level_i, parent_i, toString(children)))
+            message("\nSquare check failed. Inspect parent and its children.")
+            message(sprintf("level = %s; parent = %s; children = %s \n", level_i, parent_i, toString(children)))
           }
         )
 
@@ -265,26 +313,27 @@ aggregate_from_children_to_parents <- function(
             message("   - Parent: ", parent_i, " already exists and is not all.equal() to aggregated children", " - ", toString(catch_aa))
           }
           if(not_aa & aa_hard_stop) {
-            stop("Parent is not all.equal() to aggregated children")
+            stop(sprintf("Parent (%s) is not all.equal() to aggregated children (%s)\n - %s"
+                         , parent_i, toString(children), toString(catch_aa)))
           }
         }
 
-        DT <- rbind(DT[!location_id == parent_i], dt_parent_agg, fill = TRUE)
+        DT_level <- data.table::rbindlist(list(DT_level, dt_parent_agg), use.names = TRUE, fill = TRUE)
+        # DT <- rbind(DT[!location_id == parent_i], dt_parent_agg, fill = TRUE)
 
-      }
-    }
+      } # End If Children Exist
 
-    # Regional Scalars -----------------------------------------------------
-    if(level_i == 2 && add_regional_scalars == TRUE){
-      message("\n --- Applying regional scalars at level 2--- \n")
-      DT <- apply_regional_scalars(
-        DT               = DT,
-        vars_to_multiply = varnames_to_aggregate,
-        release_id       = release_id,
-        location_set_id  = location_set_id
-      )
-    }
-  }
+    } # End Inner Loop - Locations
+
+    # Bind aggregated parents at this level back onto DT
+    DT <- data.table::rbindlist(
+      list(DT[!location_id %in% parents_of_level], DT_level)
+      , use.names = TRUE
+      , fill = TRUE
+    )
+
+  } # End Outer Loop - Levels
+
 
   # Assert & Return ------------------------------------------------------------
   assert_square(
