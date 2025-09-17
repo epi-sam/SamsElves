@@ -40,8 +40,6 @@ assert_square <- function(
 
   # Check for NA values
   if(!is.null(no_na_varnames)){
-    # enforce stop behavior by not returning on.exit values
-    hard_stop <- TRUE
     assert_no_na(dt, no_na_varnames, verbose = verbose)
   }
 

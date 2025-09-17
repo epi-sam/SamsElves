@@ -1,3 +1,24 @@
+# SamsElves 0.9.3
+
+aggregate_from_children_to_parents
+
+- option to apply regional scalars
+
+# SamsElves 0.9.2
+
+Feature
+
+aggregate_parents_from_children 
+
+- added start level; refined assertions
+
+
+# SamsElves 0.9.1
+
+Bugfix
+
+- assert_square - assert_no_na arg no longer resets the hard_stop flag
+
 # SamsElves 0.9.0
 
 New hierarchy helpers
