@@ -1,3 +1,13 @@
+# SamsElves 0.9.4
+
+aggregate_from_children_to_parents
+
+- debugged regional scalar/weighted aggregation interaction
+
+docstrings
+
+- debugged warnings leading to build corruptions
+
 # SamsElves 0.9.3
 
 aggregate_from_children_to_parents
