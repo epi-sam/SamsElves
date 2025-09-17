@@ -26,17 +26,14 @@ apply_regional_scalars <- function(DT, vars_to_multiply, release_id, location_se
   checkmate::assert_integerish(release_id, len = 1, any.missing = FALSE)
   checkmate::assert_integerish(location_set_id, len = 1, any.missing = FALSE)
 
-  message("Reading regional scalars from database")
-  regional_scalars <- get_regional_scalars(
-    release_id        = 34
-    , location_set_id = 35
-    , year_id         = 1980:2026
-  )
+  year_ids <- min(DT$year_id):max(DT$year_id)
+  message(sprintf("Reading regional scalars from database for release_id %s, location_set_id %s, year_ids %s"
+                  , release_id, location_set_id, paste0(range(year_ids), collapse = "-")))
 
   regional_scalars <- get_regional_scalars(
     release_id        = release_id
     , location_set_id = location_set_id
-    , year_id         = min(DT$year_id):max(DT$year_id)
+    , year_id         = year_ids
   )
 
   DT <- merge(
