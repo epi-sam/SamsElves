@@ -1,3 +1,9 @@
+# SamsElves 0.9.3
+
+aggregate_from_children_to_parents
+
+- option to apply regional scalars
+
 # SamsElves 0.9.2
 
 Feature
