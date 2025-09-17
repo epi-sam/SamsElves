@@ -153,6 +153,7 @@ draws_long_to_wide <- function(DT, id_varnames = find_id_varnames(DT, removals =
 #' @param remove_vars_draws [lgl] remove draw columns?
 #' @param remove_mean [lgl] remove mean column?
 #' @param remove_median [lgl] remove median column?
+#' @param remove_pe_percentile [lgl] remove the point_estimate's percentile in the draws column?
 #' @param fix_mean_zero [lgl] Some sets of draws have only a single value,
 #'   leading to a non-zero mean, and zeros in the UI.  This will set the mean to
 #'   zero if mean is > 0 and the upper is 0, or if mean < 0 and lower is 0.
@@ -168,6 +169,7 @@ draws_to_mean_ci <- function(
     , remove_point_estimate = FALSE
     , remove_mean           = FALSE
     , remove_median         = TRUE
+    , remove_pe_percentile  = TRUE
     , fix_mean_zero         = FALSE
     , verbose               = FALSE
 ){
@@ -186,14 +188,12 @@ draws_to_mean_ci <- function(
     value = TRUE
   )
 
-
   if(verbose == TRUE) message("draws to mean/95%CI - draw columns, e.g. : ", toString(vars_draws[1:5]))
 
   DT <- data.table::as.data.table(DT)
   DT[, mean := base::rowMeans(.SD), .SDcols = vars_draws]
   DT[, lower := matrixStats::rowQuantiles(as.matrix(.SD), probs = 0.025), .SDcols = vars_draws]
   DT[, upper := matrixStats::rowQuantiles(as.matrix(.SD), probs = 0.975), .SDcols = vars_draws]
-  DT[, median := matrixStats::rowQuantiles(as.matrix(.SD), probs = 0.5), .SDcols = vars_draws]
 
   # post process
   # some sets of draws have only a single value, leading to a non-zero mean, and zeros in the UI
@@ -201,10 +201,12 @@ draws_to_mean_ci <- function(
     DT[mean > 0 & upper == 0, mean := 0]
     DT[mean > 0 & lower == 0, lower := 0]
   }
+
+  if(!remove_median) DT[, median := matrixStats::rowQuantiles(as.matrix(.SD), probs = 0.5), .SDcols = vars_draws]
+  if(!remove_pe_percentile) DT[, pe_percentile := rowMeans(point_estimate >= as.matrix(.SD)), .SDcols = vars_draws]
   if(remove_vars_draws == TRUE) DT[, c(vars_draws) := NULL]
   if(remove_point_estimate == TRUE) DT[, point_estimate := NULL]
   if(remove_mean == TRUE) DT[, mean := NULL]
-  if(remove_median) DT[, median := NULL]
 
   data.table::setorderv(DT, id_varnames)
 
@@ -282,7 +284,7 @@ draws_year_diff <- function(DT, yr_vec, id_varnames = find_id_varnames(DT, verbo
 #'    - `pe_mean_difference`: difference between `point_estimate` and `mean` of draws
 #'    - `pe_median_difference`: difference between `point_estimate` and `median` of draws
 #' @export
-get_draw_pe_ui_difference <- function(DT, remove_vars_draws = TRUE, verbose = FALSE) {
+get_draw_pe_ui_difference <- function(DT, remove_vars_draws = TRUE, verbose = TRUE) {
   checkmate::assert_data_table(DT)
   if (!any(grepl('^draw_', colnames(DT)))) stop('No draws in `DT`')
   checkmate::assert_subset(x = 'point_estimate', choices = colnames(DT))
@@ -294,7 +296,8 @@ get_draw_pe_ui_difference <- function(DT, remove_vars_draws = TRUE, verbose = FA
     remove_vars_draws = remove_vars_draws,
     remove_point_estimate = FALSE,
     remove_mean = FALSE,
-    remove_median = FALSE
+    remove_median = FALSE,
+    remove_pe_percentile = FALSE
   )
 
   DT[,
@@ -309,12 +312,30 @@ get_draw_pe_ui_difference <- function(DT, remove_vars_draws = TRUE, verbose = FA
 
   if(verbose) {
     cat("\n")
+
+    message('Summary of the distribution of the point_estimate:')
+    print(summary(DT$point_estimate))
+
+    cat("\n\n")
+
+    message('Summary of the distribution of the mean of the draws:')
+    print(summary(DT$mean))
+
+    cat("\n\n")
+
+    message('Summary of the distribution of the median of the draws:')
+    print(summary(DT$median))
+
+    cat("\n\n")
+
     if (any(DT$point_estimate_in_ui == 0)) {
       num_zero_rows <- length(which(DT$point_estimate_in_ui == 0))
       pct_out_of_ui <- round(num_zero_rows / nrow(DT) * 100, digits = 2)
       warning(
         pct_out_of_ui, "% (n = ", num_zero_rows,
-        ") of rows have point_estimate outside of UI from draws."
+        ") of rows have point_estimate outside of UI from draws. ",
+        "You can subset rows that have PE outside of you by subsetting",
+        " the returned data.table to point_estimate_in_ui == 0."
       )
       cat("\n\n")
     }
@@ -325,6 +346,10 @@ get_draw_pe_ui_difference <- function(DT, remove_vars_draws = TRUE, verbose = FA
     cat("\n\n")
     message('Summary of difference between point_estimate minus median of draws:')
     print(summary(DT$pe_median_difference))
+
+    cat("\n\n")
+    message('Summary of percentile of point_estimate relative to draws:')
+    print(summary(DT$pe_percentile))
   }
   return(DT[])
 }
