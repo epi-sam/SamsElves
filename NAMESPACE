@@ -3,6 +3,7 @@
 export(add_column)
 export(aggregate_from_children_to_parents)
 export(apply_comma_string_to_list)
+export(apply_regional_scalars)
 export(assert_git_diff)
 export(assert_git_hash)
 export(assert_list_elements_and_types)

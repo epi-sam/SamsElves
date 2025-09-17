@@ -8,13 +8,17 @@ aggregate_from_children_to_parents(
   DT,
   varnames_to_aggregate,
   varnames_to_aggregate_by,
-  varname_weights = NULL,
   hierarchy,
   hierarchy_id = "location_id",
   start_level = max(hierarchy$level),
   stop_level = 3L,
+  varname_weights = NULL,
+  add_regional_scalars = FALSE,
+  release_id = NULL,
+  location_set_id = 35,
   require_square = TRUE,
   require_rows = TRUE,
+  require_all_most_detailed = TRUE,
   verbose = TRUE,
   v_verbose = FALSE,
   tolerance_all_equal = NULL,
@@ -27,13 +31,6 @@ aggregate_from_children_to_parents(
 \item{varnames_to_aggregate}{[chr] e.g. c("mean", "upper", "lower")}
 
 \item{varnames_to_aggregate_by}{[chr] e.g c("year_id", "age_group_id")}
-
-\item{varname_weights}{[chr: default NULL] - if you want to weight the
-aggregation by a variable, e.g. population.  If NULL, do a simple
-children-to-parent sum the values in varnames_to_aggregate within each
-combination of varnames_to_aggregate_by.  If not NULL, calculate weights
-for all children of each parent before aggregation.  Weights sum to 1
-between all children, within each combination of varnames_to_aggregate_by.}
 
 \item{hierarchy}{[data.table: default "location_id"] e.g. a location
 hierarchy with required columns: `hierarchy_id`, path_to_top_parent, level,
@@ -49,6 +46,24 @@ aggregating}
 stop_level (e.g. 3L aggregate up to national for locations, but no further;
 regional scalars mean regions are larger than combined countries under them
 from e.g. small islands)}
+
+\item{varname_weights}{[chr: default NULL] - if you want to weight the
+aggregation by a variable, e.g. population.  If NULL, do a simple
+children-to-parent sum the values in varnames_to_aggregate within each
+combination of varnames_to_aggregate_by.  If not NULL, calculate weights
+for all children of each parent before aggregation.  Weights sum to 1
+between all children, within each combination of varnames_to_aggregate_by.}
+
+\item{add_regional_scalars}{[lgl: default FALSE] If TRUE, will add regional
+scalars (e.g. GBD Regions) to the hierarchy, and aggregate them
+automatically.  This assumes your hierarchy is a location hierarchy with
+location_id, path_to_top_parent, level, most_detailed columns.}
+
+\item{release_id}{[int: default NULL] required only if add_regional_scalars =
+TRUE}
+
+\item{location_set_id}{[int: default 35] required only if
+add_regional_scalars = TRUE}
 
 \item{require_square}{[lgl: default TRUE] If TRUE, will check inputs and
 outputs for square (i.e. all variables are present for all combinations of

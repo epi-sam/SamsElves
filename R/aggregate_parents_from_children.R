@@ -35,6 +35,14 @@
 #'   stop_level (e.g. 3L aggregate up to national for locations, but no further;
 #'   regional scalars mean regions are larger than combined countries under them
 #'   from e.g. small islands)
+#' @param add_regional_scalars [lgl: default FALSE] If TRUE, will add regional
+#'   scalars (e.g. GBD Regions) to the hierarchy, and aggregate them
+#'   automatically.  This assumes your hierarchy is a location hierarchy with
+#'   location_id, path_to_top_parent, level, most_detailed columns.
+#' @param release_id [int: default NULL] required only if add_regional_scalars =
+#'   TRUE
+#' @param location_set_id [int: default 35] required only if
+#'   add_regional_scalars = TRUE
 #' @param require_square [lgl: default TRUE] If TRUE, will check inputs and
 #'   outputs for square (i.e. all variables are present for all combinations of
 #'   hierarchy_id and varnames_to_aggregate_by).  If FALSE, will warn if not
@@ -64,18 +72,22 @@ aggregate_from_children_to_parents <- function(
     DT
     , varnames_to_aggregate
     , varnames_to_aggregate_by
-    , varname_weights    = NULL
     , hierarchy
-    , hierarchy_id        = "location_id"
-    , start_level         = max(hierarchy$level)
-    , stop_level          = 3L
-    , require_square      = TRUE
-    , require_rows        = TRUE
-    , verbose             = TRUE
-    , v_verbose           = FALSE
-    , tolerance_all_equal = NULL
-    , aa_hard_stop        = FALSE
-){
+    , hierarchy_id              = "location_id"
+    , start_level               = max(hierarchy$level)
+    , stop_level                = 3L
+    , varname_weights           = NULL
+    , add_regional_scalars      = FALSE
+    , release_id                = NULL
+    , location_set_id           = 35
+    , require_square            = TRUE
+    , require_rows              = TRUE
+    , require_all_most_detailed = TRUE
+    , verbose                   = TRUE
+    , v_verbose                 = FALSE
+    , tolerance_all_equal       = NULL
+    , aa_hard_stop              = FALSE
+ ){
 
   # Arg Validations
   checkmate::assert_character(hierarchy_id, len = 1)
@@ -86,9 +98,16 @@ aggregate_from_children_to_parents <- function(
   checkmate::assert_character(varnames_to_aggregate_by, any.missing = FALSE, min.len = 1)
   checkmate::assert_data_table(DT)
   checkmate::assert_data_table(hierarchy)
+  if(add_regional_scalars == TRUE ){
+    if(hierarchy_id != "location_id")
+      stop("add_regional_scalars only designed for location hierarchies")
+    if(!stop_level %in% 0L:2L)
+      stop("add_regional_scalars requires aggregation to level 2 (GBD Region) or above")
+    if(!exists("get_regional_scalars", envir = .GlobalEnv))
+      stop("add_regional_scalars requires user to source get_regional_scalars() from central functions")
+  }
 
   varnames_hier <- c("path_to_top_parent", "level", "most_detailed", hierarchy_id)
-
   assert_x_in_y(varnames_hier, colnames(hierarchy))
   assert_x_in_y(
     c(hierarchy_id, varnames_to_aggregate, varnames_to_aggregate_by)
@@ -97,20 +116,25 @@ aggregate_from_children_to_parents <- function(
   if(hierarchy_id %in% varnames_to_aggregate) stop(sprintf("%s cannot be an aggregated variable", hierarchy_id))
   if(hierarchy_id %in% varnames_to_aggregate_by) stop(sprintf("cannot aggregate by %s", hierarchy_id))
 
-  # Set a flag for whether we're aggregating with weights
+  if(require_all_most_detailed == TRUE){
+    assert_x_in_y(hierarchy[most_detailed == 1, location_id], DT[[hierarchy_id]])
+  }
+
+  # Set start message depending on if we're aggregating with weights
   agg_msg <- ""
   agg_with_weights <- !is.null(varname_weights)
   if(agg_with_weights) {
     checkmate::assert_character(varname_weights, len = 1, any.missing = FALSE)
     assert_x_in_y(varname_weights, colnames(DT))
-    agg_msg <- sprintf(" - with weights: %s", varname_weights)
+    agg_msg <- sprintf("\n - with weights: %s", varname_weights)
   }
 
   # aggregation will drop all undefined variables - warn the user
   keep_vars    <- unique(c(hierarchy_id, varnames_to_aggregate_by, varname_weights, varnames_to_aggregate))
   non_agg_vars <- setdiff(colnames(DT), keep_vars)
   if (length(non_agg_vars) & verbose){
-    message(paste("The following variables will be dropped during aggregation:", toString(non_agg_vars)))
+    message("\nAggregation keeps only hierarchy_id, varnames_to_aggregate_by, varname_weights, varnames_to_aggregate")
+    message(sprintf("\nThe following variables will be dropped during aggregation: %s", toString(non_agg_vars)))
   }
 
   # Select only what's necessary
@@ -136,12 +160,12 @@ aggregate_from_children_to_parents <- function(
 
   data.table::setkeyv(DT, varnames_to_aggregate_by)
 
-  # Define levels
-  levels_rev <- sort(start_level:stop_level, decreasing = TRUE) # reverse hierarchy levels for bottom-up aggregation
+  # reverse hierarchy levels for bottom-up aggregation
+  levels_rev <- sort(start_level:stop_level, decreasing = TRUE)
 
-  message("Aggregating from level ", levels_rev[1], " to ", levels_rev[length(levels_rev)])
-  message(agg_msg)
+  message("\nAggregating from level ", levels_rev[1], " to ", levels_rev[length(levels_rev)], agg_msg)
 
+  # Outer Loop - Levels --------------------------------------------------------
   for (level_i in levels_rev){
 
     if(level_i == stop_level) {message("\nDone aggregating at level = ", level_i); break}
@@ -150,10 +174,10 @@ aggregate_from_children_to_parents <- function(
     message("\nChild level ", level_i, " to parent level ", parent_level, " (", max(levels_rev), " levels total)")
 
     # Outer loop: for each hierarchy level, starting at leaf nodes and going up
-    # to a pre-specified level (3, counties), aggregate all children to their
-    # parent level, then repeat and roll those up to the next parent level
-    # parents_of_level <- hierarchy[level == level_i - 1 & most_detailed == 0, location_id]
-    # loc_ids_i        <- hierarchy[level == level_i]$location_id
+    # to a pre-specified level (e.g. 3 = counties), aggregate all children to
+    # their parent level, then repeat and roll those up to the next parent
+    # level.
+
     parents_of_level <- parents_of_children(
       # child_loc_ids  = loc_ids_i
       child_loc_ids  = hierarchy[level == level_i]$location_id
@@ -161,6 +185,7 @@ aggregate_from_children_to_parents <- function(
       , parent_level = parent_level
     )
 
+    # Inner Loop - Locations ---------------------------------------------------
     for (parent_i in parents_of_level){
 
       # Inner loop: Find children, aggregate selected columns for all children
@@ -179,36 +204,31 @@ aggregate_from_children_to_parents <- function(
       if (length(children) > 0){
         dt_children <- DT[get(hierarchy_id) %in% children]
 
-        # if(nrow(dt_children) == 0){
-        #   stop("No rows for children of parent ", parent_i, " at level ", level_i)
-        # }
-
         # If children aren't square, aggregation will go wrong
         withCallingHandlers(
           {
-            # set this up to trigger a warning if the square check fails
+            # set this up to trigger a helpful warning if the square check fails
             square_catch <- assert_square(
               dt              = dt_children
               , id_varnames   = unique(c(hierarchy_id, varnames_to_aggregate_by))
               , hard_stop     = FALSE
-              , stop_if_empty = TRUE
+              , stop_if_empty = require_rows
               , verbose       = FALSE
-              ,
             )
           }
           , warning = function(assert_square_cnd){
             assert_square_cnd
-            message("Square check failed. Inspect parent and its children.")
-            message(paste("level:", level_i, "parent:", parent_i, "children:", toString(children)))
+            message("Square check warning Inspect parent and its children.")
+            message(sprintf("level = %s; parent = %s; children = %s", level_i, parent_i, toString(children)))
           }
           , error = function(assert_square_cnd){
             assert_square_cnd
             message("Square check failed. Inspect parent and its children.")
-            message(paste("level:", level_i, "parent:", parent_i, "children:", toString(children)))
+            message(sprintf("level = %s; parent = %s; children = %s", level_i, parent_i, toString(children)))
           }
         )
 
-        # Prepare weights
+        # Weights --------------------------------------------------------------
         if(agg_with_weights){
           # agggregate weights so they're available at the next level
           dt_child_weights_agg <- dt_children[, lapply(.SD, function(x) sum(x)), by = varnames_to_aggregate_by, .SDcols = varname_weights]
@@ -216,7 +236,7 @@ aggregate_from_children_to_parents <- function(
           dt_children[, (varnames_to_aggregate) := lapply(.SD, function(x) x * get(varname_weights)), .SDcols = varnames_to_aggregate]
         }
 
-        # We finally get to aggregate something
+        # Aggregate ------------------------------------------------------------
         dt_parent_agg <- dt_children[, lapply(.SD, function(x) sum(x)), by = varnames_to_aggregate_by, .SDcols = varnames_to_aggregate]
 
         if(agg_with_weights){
@@ -226,9 +246,11 @@ aggregate_from_children_to_parents <- function(
           dt_parent_agg <- merge(dt_parent_agg, dt_child_weights_agg, by = varnames_to_aggregate_by, all.x = TRUE)
         }
 
-        dt_parent_agg[[hierarchy_id]] <- parent_i
+        # some parents/children may not have any rows - use set()
+        data.table::set(dt_parent_agg, j = hierarchy_id, value = parent_i)
         data.table::setcolorder(dt_parent_agg, keep_vars)
 
+        # all.equal() Check ----------------------------------------------------
         # If the parent was already in DT, signal if it's not all.equal() to our aggregation
         if(parent_i %in% DT[[hierarchy_id]]){
           data.table::setkeyv(DT, varnames_to_aggregate_by)
@@ -251,8 +273,20 @@ aggregate_from_children_to_parents <- function(
 
       }
     }
+
+    # Regional Scalars -----------------------------------------------------
+    if(level_i == 2 && add_regional_scalars == TRUE){
+      message("\n --- Applying regional scalars at level 2--- \n")
+      DT <- apply_regional_scalars(
+        DT               = DT,
+        vars_to_multiply = varnames_to_aggregate,
+        release_id       = release_id,
+        location_set_id  = location_set_id
+      )
+    }
   }
 
+  # Assert & Return ------------------------------------------------------------
   assert_square(
     dt              = DT
     , id_varnames   = unique(c(hierarchy_id, varnames_to_aggregate_by))
