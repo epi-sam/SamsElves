@@ -61,6 +61,8 @@ plot_draw_pe_distribution <- function(
   plot_scatters(DT, plot_vs_pe_column, by_page_var, facet_var, color_scatter_var, plot_vars, verbose)
 
   dev.off()
+
+  message('pdf saved to: ', output_path)
 }
 
 make_histogram <- function(DT, hist_plot_title) {
