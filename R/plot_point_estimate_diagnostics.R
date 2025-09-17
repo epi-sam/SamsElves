@@ -1,3 +1,22 @@
+
+#' Plots histogram of the percentile of the `point_estimate` relative to the
+#' draws and scatters of `point_estimate` versus either the `mean` or `median`
+#' of the draws.
+#'
+#' @param DT [data.table] summarized draws from `get_draw_pe_ui_difference()`
+#' @param hist_plot_title Title of histogram plot
+#' @param plot_vs_pe_column Statistic to plot versus the `point_estimate` (can only be either `mean` or `median`)
+#' @param by_page_var Variable (age, sex, location, or year) that differentiates by page
+#' @param facet_var Variable (age, sex, location, or year) to facet plots by
+#' @param color_scatter_var Variable (age, sex, location, or year) to differentiate by color in each plot
+#' @param output_path Full path to save the pdf of plots to (must have `.pdf` extension)
+#' @param pdf_height Height of pdf
+#' @param pdf_width Width of pdf
+#' @param verbose `TRUE` or `FALSE` - should the function notify you the variables that are printing?
+#'
+#' @note Does not return anything, but saves pdf to `output_path`
+#'
+#' @export
 plot_draw_pe_distribution <- function(
     DT,
     hist_plot_title,
