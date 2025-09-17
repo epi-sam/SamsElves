@@ -431,7 +431,7 @@ fround_mag_clu <- function(
 #' @param big.mark_count [chr] big mark for counts - Lancet specifies narrow
 #'   space for counts between 9999 and 1 million
 #' @param mean_neg_text [chr: default "a decrease of "] text to prepend if central is negative
-#' e.g. Lance prefers "a decrease of 99·4% (98·4–99·8)"
+#' e.g. Lance prefers "a decrease of 99·4\% (98·4–99·8)"
 #' @param UI_only [lgl] return only the UI?
 #' @param assert_clu_relationships [lgl] enforce correct relationship between central/upper/lower
 #'   values? This should _ALWAYS_ be `TRUE` _UNLESS_ you only care about the

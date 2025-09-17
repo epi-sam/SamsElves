@@ -2,7 +2,7 @@
 % Please edit documentation in R/draw_transforms.R
 \name{draws_to_mean_ci}
 \alias{draws_to_mean_ci}
-\title{Transform wide draws to mean and 95% CI}
+\title{Transform wide draws to mean and 95 percent CI}
 \usage{
 draws_to_mean_ci(
   DT,
@@ -20,21 +20,25 @@ draws_to_mean_ci(
 
 \item{id_varnames}{[character] columns to keep as is}
 
+\item{vars_draws_pe}{[chr] vector of variable names in `DT` that are draws + point_estimate}
+
 \item{remove_vars_draws}{[lgl] remove draw columns?}
+
+\item{remove_point_estimate}{[lgl] remove point_estimate column?}
+
+\item{remove_mean}{[lgl] remove mean column?}
 
 \item{fix_mean_zero}{[lgl] Some sets of draws have only a single value,
 leading to a non-zero mean, and zeros in the UI.  This will set the mean to
 zero if mean is > 0 and the upper is 0, or if mean < 0 and lower is 0.}
 
 \item{verbose}{[lgl] print debug messages?}
-
-\item{vars_draws}{[character] draw columns}
 }
 \value{
-[data.table] mean and 95% CI of draws (columns: mean, lower, upper),
+[data.table] mean and 95 percent CI of draws (columns: mean, lower, upper),
   with or without draw columns, depending on `remove_vars_draws`
 }
 \description{
-For now, retaining point estimate _and_ mean by default since much processing
+For now, retaining point estimate and mean by default since much processing
 code depends on mean column
 }

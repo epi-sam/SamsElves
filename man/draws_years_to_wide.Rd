@@ -8,6 +8,8 @@ draws_years_to_wide(DT, yr_vec = NULL)
 }
 \arguments{
 \item{DT}{[data.table] input draws}
+
+\item{yr_vec}{[int] vector of years to pivot wide}
 }
 \value{
 [data.table] draws in wide format

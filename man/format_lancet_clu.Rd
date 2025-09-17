@@ -44,7 +44,7 @@ percentage point or count}
 space for counts between 9999 and 1 million}
 
 \item{mean_neg_text}{[chr: default "a decrease of "] text to prepend if central is negative
-e.g. Lance prefers "a decrease of 99·4% (98·4–99·8)"}
+e.g. Lance prefers "a decrease of 99·4\% (98·4–99·8)"}
 
 \item{UI_only}{[lgl] return only the UI?}
 
