@@ -4,6 +4,7 @@
 #' @param additions [chr] additional regex to include
 #'
 #' @returns [chr] regex to identify draw columns + point estimate
+#' @export
 PERD_regex <- function(include_PE = TRUE, additions = NULL) {
   checkmate::assert_logical(include_PE, len = 1)
   checkmate::assert_character(additions, len = 1, null.ok = TRUE)
