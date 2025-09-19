@@ -1,3 +1,8 @@
+# SamsElves 0.9.5
+
+- read_parquet_partitioned - new function to read stgpr parquet files direclty 
+  from disk to get all locations
+
 # SamsElves 0.9.4
 
 aggregate_from_children_to_parents
