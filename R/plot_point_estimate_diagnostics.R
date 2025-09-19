@@ -112,21 +112,21 @@ merge_ihme_metadata <- function(DT) {
   if(!('super_region_name' %in% colnames(DT))) {
     DT <- data.table::merge.data.table(
       x = DT,
-      y = location_metadata,
+      y = plot_location_metadata,
       by = 'location_id'
     )
   }
   if(!('sex_name' %in% colnames(DT))) {
     DT <- data.table::merge.data.table(
       x = DT,
-      y = sex_metadata,
+      y = plot_sex_metadata,
       by = 'sex_id'
     )
   }
   if('age_group_name' %in% colnames(DT)) DT$age_group_name <- NULL
   DT <- data.table::merge.data.table(
     x = DT,
-    y = age_metadata,
+    y = plot_age_metadata,
     by = 'age_group_id'
   )
   return(DT)
