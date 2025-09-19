@@ -140,25 +140,23 @@ draws_long_to_wide <- function(DT, id_varnames = find_id_varnames(DT, removals =
   return(DTW)
 }
 
-
-#' Transform wide draws to mean and 95% CI
+#' Transform wide draws to mean and 95 percent CI
 #'
-#' For now, retaining point estimate _and_ mean by default since much processing
+#' For now, retaining point estimate and mean by default since much processing
 #' code depends on mean column
 #'
 #' @param DT [data.table] input draws in wide format
 #' @param id_varnames [character] columns to keep as is
-#' @param vars_draws [character] draw columns
-#' @param verbose [lgl] print debug messages?
+#' @param vars_draws_pe [chr] vector of variable names in `DT` that are draws + point_estimate
 #' @param remove_vars_draws [lgl] remove draw columns?
+#' @param remove_point_estimate [lgl] remove point_estimate column?
 #' @param remove_mean [lgl] remove mean column?
-#' @param remove_median [lgl] remove median column?
-#' @param remove_pe_percentile [lgl] remove the point_estimate's percentile in the draws column?
 #' @param fix_mean_zero [lgl] Some sets of draws have only a single value,
 #'   leading to a non-zero mean, and zeros in the UI.  This will set the mean to
 #'   zero if mean is > 0 and the upper is 0, or if mean < 0 and lower is 0.
+#' @param verbose [lgl] print debug messages?
 #'
-#' @return [data.table] mean and 95% CI of draws (columns: mean, lower, upper),
+#' @returns [data.table] mean and 95 percent CI of draws (columns: mean, lower, upper),
 #'   with or without draw columns, depending on `remove_vars_draws`
 #' @export
 draws_to_mean_ci <- function(
@@ -168,25 +166,17 @@ draws_to_mean_ci <- function(
     , remove_vars_draws     = TRUE
     , remove_point_estimate = FALSE
     , remove_mean           = FALSE
-    , remove_median         = TRUE
-    , remove_pe_percentile  = TRUE
     , fix_mean_zero         = FALSE
     , verbose               = FALSE
 ){
+
   checkmate::assert_data_table(DT)
   checkmate::assert_logical(remove_vars_draws, len = 1)
-  checkmate::assert_logical(remove_point_estimate, len = 1)
-  checkmate::assert_logical(remove_mean, len = 1)
-  checkmate::assert_logical(remove_median, len = 1)
   checkmate::assert_logical(fix_mean_zero, len = 1)
   checkmate::assert_logical(verbose, len = 1)
   checkmate::assert_subset(c(id_varnames, vars_draws_pe), colnames(DT))
 
-  vars_draws <- grep(
-    pattern = PERD_regex(include_PE = FALSE),
-    x = colnames(DT),
-    value = TRUE
-  )
+  vars_draws <- setdiff(vars_draws_pe, "point_estimate")
 
   if(verbose == TRUE) message("draws to mean/95%CI - draw columns, e.g. : ", toString(vars_draws[1:5]))
 
