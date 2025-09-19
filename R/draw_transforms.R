@@ -204,11 +204,12 @@ draws_to_mean_ci <- function(
 #' function also keeps the `point_estimate` if present in draws.
 #'
 #' @param DT [data.table] input draws in wide format
+#' @param remove_draws [lgl] should draws be removed? (defaults to `TRUE`)
 #'
 #' @return [data.table] Summarized draws, where draw columns are removed.
 #' @export
 summarize_draws_pe <- function(
-    DT
+    DT, remove_draws = TRUE
 ){
   checkmate::assert_data_table(DT)
   checkmate::assert_logical(keep_draw_columns, len = 1)
@@ -221,7 +222,7 @@ summarize_draws_pe <- function(
   DT[, upper := matrixStats::rowQuantiles(as.matrix(.SD), probs = 0.975), .SDcols = vars_draws]
   DT[, median := matrixStats::rowQuantiles(as.matrix(.SD), probs = 0.5), .SDcols = vars_draws]
   DT[, pe_percentile := rowMeans(point_estimate >= as.matrix(.SD)), .SDcols = vars_draws]
-  DT[, c(vars_draws) := NULL]
+  if (removed_draws) DT[, c(vars_draws) := NULL]
 
   return(DT[])
 }
