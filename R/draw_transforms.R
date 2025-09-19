@@ -291,29 +291,23 @@ draws_year_diff <- function(DT, yr_vec, id_varnames = find_id_varnames(DT, verbo
 #'  3) the PE and median of draws
 #'
 #' @param DT [data.table] input draws (wide format)
-#' @param remove_vars_draws [lgl] remove draw columns?
-#' @param verbose [lgl] print debug messages and information regarding metrics 1-3 above?
+#' @param print_summary_stats [lgl] print information regarding metrics 1-3 above?
 #'
 #' @return [data.table] a data.table with the columns:
 #'
 #'    - `point_estimate_in_ui`: 1 = point_estimate is within UI of draws, 0 = if not
 #'    - `pe_mean_difference`: difference between `point_estimate` and `mean` of draws
 #'    - `pe_median_difference`: difference between `point_estimate` and `median` of draws
+#'
 #' @export
-get_draw_pe_ui_difference <- function(DT, remove_vars_draws = TRUE, verbose = TRUE) {
+get_draw_pe_ui_difference <- function(DT, print_summary_stats = TRUE) {
   checkmate::assert_data_table(DT)
   if (!any(grepl('^draw_', colnames(DT)))) stop('No draws in `DT`')
   checkmate::assert_subset(x = 'point_estimate', choices = colnames(DT))
-  checkmate::assert_logical(x = remove_vars_draws, len = 1)
-  checkmate::assert_logical(x = verbose, len = 1)
+  checkmate::assert_logical(x = print_summary_stats, len = 1)
 
-  DT <- draws_to_mean_ci(
-    DT = DT,
-    remove_vars_draws = remove_vars_draws,
-    remove_point_estimate = FALSE,
-    remove_mean = FALSE,
-    remove_median = FALSE,
-    remove_pe_percentile = FALSE
+  DT <- summarize_draws_pe(
+    DT = DT
   )
 
   DT[,
@@ -326,7 +320,7 @@ get_draw_pe_ui_difference <- function(DT, remove_vars_draws = TRUE, verbose = TR
     )
   ]
 
-  if(verbose) {
+  if(print_summary_stats) {
     cat("\n")
 
     message('Summary of the distribution of the point_estimate:')
