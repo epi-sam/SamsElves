@@ -191,14 +191,40 @@ draws_to_mean_ci <- function(
     DT[mean > 0 & upper == 0, mean := 0]
     DT[mean > 0 & lower == 0, lower := 0]
   }
-
-  if(!remove_median) DT[, median := matrixStats::rowQuantiles(as.matrix(.SD), probs = 0.5), .SDcols = vars_draws]
-  if(!remove_pe_percentile) DT[, pe_percentile := rowMeans(point_estimate >= as.matrix(.SD)), .SDcols = vars_draws]
   if(remove_vars_draws == TRUE) DT[, c(vars_draws) := NULL]
   if(remove_point_estimate == TRUE) DT[, point_estimate := NULL]
   if(remove_mean == TRUE) DT[, mean := NULL]
 
   data.table::setorderv(DT, id_varnames)
+
+  return(DT[])
+}
+
+#' Transform wide draws to mean and 95% CI
+#'
+#' For now, retaining point estimate _and_ mean by default since much processing
+#' code depends on mean column
+#'
+#' @param DT [data.table] input draws in wide format
+#'
+#' @return [data.table] mean and 95% CI of draws (columns: mean, lower, upper),
+#'   with or without draw columns, depending on `remove_vars_draws`
+#' @export
+summarize_draws_pe <- function(
+    DT
+){
+  checkmate::assert_data_table(DT)
+  checkmate::assert_logical(keep_draw_columns, len = 1)
+  checkmate::assert_logical(print_summary, len = 1)
+
+  vars_draws <- find_draws_varnames(DT, draws_rgx = PERD_regex(include_PE = FALSE))
+
+  DT[, mean := base::rowMeans(.SD), .SDcols = vars_draws]
+  DT[, lower := matrixStats::rowQuantiles(as.matrix(.SD), probs = 0.025), .SDcols = vars_draws]
+  DT[, upper := matrixStats::rowQuantiles(as.matrix(.SD), probs = 0.975), .SDcols = vars_draws]
+  DT[, median := matrixStats::rowQuantiles(as.matrix(.SD), probs = 0.5), .SDcols = vars_draws]
+  DT[, pe_percentile := rowMeans(point_estimate >= as.matrix(.SD)), .SDcols = vars_draws]
+  DT[, c(vars_draws) := NULL]
 
   return(DT[])
 }
