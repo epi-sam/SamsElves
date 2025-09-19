@@ -200,15 +200,12 @@ draws_to_mean_ci <- function(
   return(DT[])
 }
 
-#' Transform wide draws to mean and 95% CI
-#'
-#' For now, retaining point estimate _and_ mean by default since much processing
-#' code depends on mean column
+#' Summarize draws by getting the mean, median, upper, lower of draws. This
+#' function also keeps the `point_estimate` if present in draws.
 #'
 #' @param DT [data.table] input draws in wide format
 #'
-#' @return [data.table] mean and 95% CI of draws (columns: mean, lower, upper),
-#'   with or without draw columns, depending on `remove_vars_draws`
+#' @return [data.table] Summarized draws, where draw columns are removed.
 #' @export
 summarize_draws_pe <- function(
     DT
