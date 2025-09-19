@@ -212,8 +212,7 @@ summarize_draws_pe <- function(
     DT, remove_draws = TRUE
 ){
   checkmate::assert_data_table(DT)
-  checkmate::assert_logical(keep_draw_columns, len = 1)
-  checkmate::assert_logical(print_summary, len = 1)
+  checkmate::assert_logical(remove_draws, len = 1)
 
   vars_draws <- find_draws_varnames(DT, draws_rgx = PERD_regex(include_PE = FALSE))
 
@@ -222,7 +221,7 @@ summarize_draws_pe <- function(
   DT[, upper := matrixStats::rowQuantiles(as.matrix(.SD), probs = 0.975), .SDcols = vars_draws]
   DT[, median := matrixStats::rowQuantiles(as.matrix(.SD), probs = 0.5), .SDcols = vars_draws]
   DT[, pe_percentile := rowMeans(point_estimate >= as.matrix(.SD)), .SDcols = vars_draws]
-  if (removed_draws) DT[, c(vars_draws) := NULL]
+  if (remove_draws) DT[, c(vars_draws) := NULL]
 
   return(DT[])
 }
