@@ -1,3 +1,9 @@
+# SamsElves 0.9.6
+
+find_draws_varnames 
+
+- easier method to include/exclude PE
+
 # SamsElves 0.9.5
 
 - read_parquet_partitioned - new function to read stgpr parquet files direclty 
