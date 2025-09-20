@@ -2,7 +2,8 @@
 % Please edit documentation in R/draw_transforms.R
 \name{order_draws}
 \alias{order_draws}
-\title{Order character draw names in order of their numeric indices}
+\title{Order character draw names in order of their numeric indices.  PERD
+compliant.}
 \usage{
 order_draws(draw_varnames, pe_varname = "point_estimate")
 }

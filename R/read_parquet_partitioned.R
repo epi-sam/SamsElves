@@ -13,6 +13,7 @@
 #' @param verbose [lgl: default TRUE] Print progress messages?
 #'
 #' @returns [data.table] Combined data from all parquet files in the directory.
+#' @export
 read_parquet_partitioned <- function(
     dir
     , fnames_ignored = c("manifest", "partition")
