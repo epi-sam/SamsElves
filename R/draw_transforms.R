@@ -13,7 +13,8 @@ PERD_regex <- function(include_PE = TRUE, additions = NULL) {
 }
 
 
-#' Order character draw names in order of their numeric indices
+#' Order character draw names in order of their numeric indices.  PERD
+#' compliant.
 #'
 #' e.g. "draw_1", "draw_2", ..., "draw_10", "draw_11", ...
 #'
@@ -38,17 +39,17 @@ order_draws <- function(draw_varnames, pe_varname = "point_estimate"){
 #' Find draw variable names in a data.table
 #'
 #' @param DT [data.table]
-#' @param draws_rgx [chr] regex to identify draw columns + point estimate
+#' @param include_PE [lgl] include point_estimate in search? Passed to PERD_regex()
+#' @param additions [chr: default NULL] additional regex to include. Passed to PERD_regex()
 #'
 #' @returns [chr] vector of variable names
 #' @export
-find_draws_varnames <- function(DT, draws_rgx = PERD_regex()) {
+find_draws_varnames <- function(DT, include_PE = TRUE, additions = NULL) {
   checkmate::assert_data_table(DT)
-  checkmate::assert_character(draws_rgx, len = 1)
+  draws_rgx <- PERD_regex(include_PE = include_PE, additions = additions)
   perd_varnames <- grep(draws_rgx, colnames(DT), value = TRUE)
-  # sort the PE up front for visibility
-  # checkmate::assert_integerish(length(perd_varnames), lower = 1)
   if(!length(perd_varnames) >= 1) stop("No draw/PE columns found")
+  # sort the PE up front for visibility
   return(order_draws(perd_varnames))
 }
 

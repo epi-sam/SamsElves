@@ -4,12 +4,14 @@
 \alias{find_draws_varnames}
 \title{Find draw variable names in a data.table}
 \usage{
-find_draws_varnames(DT, draws_rgx = PERD_regex())
+find_draws_varnames(DT, include_PE = TRUE, additions = NULL)
 }
 \arguments{
 \item{DT}{[data.table]}
 
-\item{draws_rgx}{[chr] regex to identify draw columns + point estimate}
+\item{include_PE}{[lgl] include point_estimate in search? Passed to PERD_regex()}
+
+\item{additions}{[chr: default NULL] additional regex to include. Passed to PERD_regex()}
 }
 \value{
 [chr] vector of variable names
