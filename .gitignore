@@ -1,4 +1,5 @@
 pubtab_source_meta.R
 .Rproj.user
 .Rhistory
+*.rda
 .Renviron

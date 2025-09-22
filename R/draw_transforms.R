@@ -203,6 +203,32 @@ draws_to_mean_ci <- function(
   return(DT[])
 }
 
+#' Summarize draws by getting the mean, median, upper, lower of draws. This
+#' function also keeps the `point_estimate` if present in draws.
+#'
+#' @param DT [data.table] input draws in wide format
+#' @param remove_draws [lgl] should draws be removed? (defaults to `TRUE`)
+#'
+#' @return [data.table] Summarized draws, where draw columns are removed.
+#' @export
+summarize_draws_pe <- function(
+    DT, remove_draws = TRUE
+){
+  checkmate::assert_data_table(DT)
+  checkmate::assert_logical(remove_draws, len = 1)
+
+  vars_draws <- find_draws_varnames(DT, draws_rgx = PERD_regex(include_PE = FALSE))
+
+  DT[, mean := base::rowMeans(.SD), .SDcols = vars_draws]
+  DT[, lower := matrixStats::rowQuantiles(as.matrix(.SD), probs = 0.025), .SDcols = vars_draws]
+  DT[, upper := matrixStats::rowQuantiles(as.matrix(.SD), probs = 0.975), .SDcols = vars_draws]
+  DT[, median := matrixStats::rowQuantiles(as.matrix(.SD), probs = 0.5), .SDcols = vars_draws]
+  DT[, pe_percentile := rowMeans(point_estimate >= as.matrix(.SD)), .SDcols = vars_draws]
+  if (remove_draws) DT[, c(vars_draws) := NULL]
+
+  return(DT[])
+}
+
 
 #' Pivot long draws wide by years
 #'
@@ -258,3 +284,83 @@ draws_year_diff <- function(DT, yr_vec, id_varnames = find_id_varnames(DT, verbo
   return(draws_to_mean_ci(DTW))
 }
 
+
+#' If draws are available, calculate the difference between:
+#'
+#'  1) the PE and the UI of the draws (to ensure PE is within UI)
+#'  2) the PE and mean of draws
+#'  3) the PE and median of draws
+#'
+#' @param DT [data.table] input draws (wide format)
+#' @param print_summary_stats [lgl] print information regarding metrics 1-3 above?
+#'
+#' @return [data.table] a data.table with the columns:
+#'
+#'    - `point_estimate_in_ui`: 1 = point_estimate is within UI of draws, 0 = if not
+#'    - `pe_mean_difference`: difference between `point_estimate` and `mean` of draws
+#'    - `pe_median_difference`: difference between `point_estimate` and `median` of draws
+#'
+#' @export
+get_draw_pe_ui_difference <- function(DT, print_summary_stats = TRUE) {
+  checkmate::assert_data_table(DT)
+  if (!any(grepl('^draw_', colnames(DT)))) stop('No draws in `DT`')
+  checkmate::assert_subset(x = 'point_estimate', choices = colnames(DT))
+  checkmate::assert_logical(x = print_summary_stats, len = 1)
+
+  DT <- summarize_draws_pe(
+    DT = DT
+  )
+
+  DT[,
+    `:=` (
+      point_estimate_in_ui = data.table::fifelse(
+        point_estimate >= lower & point_estimate <= upper, 1, 0
+      ),
+      pe_mean_difference = point_estimate - mean,
+      pe_median_difference = point_estimate - median
+    )
+  ]
+
+  if(print_summary_stats) {
+    cat("\n")
+
+    message('Summary of the distribution of the point_estimate:')
+    print(summary(DT$point_estimate))
+
+    cat("\n\n")
+
+    message('Summary of the distribution of the mean of the draws:')
+    print(summary(DT$mean))
+
+    cat("\n\n")
+
+    message('Summary of the distribution of the median of the draws:')
+    print(summary(DT$median))
+
+    cat("\n\n")
+
+    if (any(DT$point_estimate_in_ui == 0)) {
+      num_zero_rows <- length(which(DT$point_estimate_in_ui == 0))
+      pct_out_of_ui <- round(num_zero_rows / nrow(DT) * 100, digits = 2)
+      warning(
+        pct_out_of_ui, "% (n = ", num_zero_rows,
+        ") of rows have point_estimate outside of UI from draws. ",
+        "You can subset rows that have PE outside of you by subsetting",
+        " the returned data.table to point_estimate_in_ui == 0."
+      )
+      cat("\n\n")
+    }
+
+    message('Summary of difference between point_estimate minus mean of draws:')
+    print(summary(DT$pe_mean_difference))
+
+    cat("\n\n")
+    message('Summary of difference between point_estimate minus median of draws:')
+    print(summary(DT$pe_median_difference))
+
+    cat("\n\n")
+    message('Summary of percentile of point_estimate relative to draws:')
+    print(summary(DT$pe_percentile))
+  }
+  return(DT[])
+}

@@ -11,4 +11,8 @@ if(interactive()){
   devtools::load_all()
 
   rm(.pkgs, .pkg)
+
+  if(file.exists('~/.Rprofile')) {
+    source('~/.Rprofile')
+  }
 }
