@@ -12,7 +12,7 @@ test_hier = data.table::data.table(
                            '1,163,4868',
                            '1,163',
                            '1'),
-  'level'              = c(3, 3, 2, 3, 2, 1)
+  'level'              = c(2, 2, 1, 2, 1, 0)
 )
 
 test_that(
@@ -22,7 +22,7 @@ test_that(
     res <- parents_of_children(
       child_loc_ids = 102,
       hierarchy     = test_hier,
-      parent_level  = 1
+      parent_level  = 0
     )
     expect_equal(res, 1)
 
@@ -30,7 +30,7 @@ test_that(
     res <- parents_of_children(
       child_loc_ids = c(102, 570),
       hierarchy     = test_hier,
-      parent_level  = 1
+      parent_level  = 0
     )
     expect_equal(res, c(1))
 
@@ -38,7 +38,7 @@ test_that(
     res <- parents_of_children(
       child_loc_ids = c(526, 4868),
       hierarchy     = test_hier,
-      parent_level  = 2
+      parent_level  = 1
     )
     expect_equal(res, c(102, 163))
   }
@@ -85,8 +85,8 @@ test_that(
       parents_of_children(
         child_loc_ids = 102,
         hierarchy     = test_hier,
-        parent_level  = 3
-      ), regexp       = "Parent level 3 is greater than or equal to child level 2."
+        parent_level  = 2
+      ), regexp       = "Parent level 2 is greater than or equal to child level 1."
     )
   }
 )

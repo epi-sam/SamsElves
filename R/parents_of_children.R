@@ -58,21 +58,18 @@ parent_of_child <- function(
 ) {
   validate_parents_of_children_inputs(child_location_id, hierarchy, parent_level)
 
-  all_parents = hierarchy[location_id == child_location_id, path_to_top_parent]
-  all_parents = as.integer(unlist(strsplit(all_parents, ",")))
-
-  for (parent in all_parents){
-    # Loop through all parents of this child.
-    # If the parent you're checking exists on parent_level, then return.
-    if (hierarchy[location_id == parent, level] == parent_level){
-      return(parent)
-    }
+  all_parents <- hierarchy[location_id == child_location_id, path_to_top_parent]
+  all_parents <- as.integer(unlist(strsplit(all_parents, ",")))
+  # +1 because global (location_id 1) is level 0 (level is zero-indexed)
+  parent_id <- all_parents[parent_level + 1]
+  checkmate::assert_integerish(parent_id, len = 1, any.missing = TRUE)
+  if(is.na(parent_id)) {
+    msg_multiline(hierarchy[location_id == child_location_id])
+    stop(sprintf("child location_id %i: no parent location_id found at level %i", child_location_id, parent_level))
   }
-  # Ideally, this never triggers, but if it does you at least have a good error message.
-  stop(sprintf("Oops, something went wrong inside parents_of_children! Revisit inputs:
-       child_location_id %i \n
-       hierarchy %s \n
-       parent_level %i", child_location_id, head(hierarchy), parent_level))
+
+  return(parent_id)
+
 }
 
 #' @title parents_of_children
