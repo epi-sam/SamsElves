@@ -1,5 +1,5 @@
 if(FALSE){ # for debugging - tests use a different folder structure
-  library("data.table")
+  library(data.table)
   DT   <- read_file("tests/testthat/fixtures/agg_data.csv")
   HIER <- read_file("tests/testthat/fixtures/agg_hier.csv")
 }

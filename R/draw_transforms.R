@@ -36,20 +36,37 @@ order_draws <- function(draw_varnames, pe_varname = "point_estimate"){
 }
 
 
+#' #' Find draw variable names in a data.table
+#' #'
+#' #' @param DT [data.table]
+#' #' @param draws_rgx [chr] regex to identify draw columns + point estimate
+#' #'
+#' #' @returns [chr] vector of variable names
+#' #' @export
+#' find_draws_varnames <- function(DT, draws_rgx = PERD_regex()) {
+#'   checkmate::assert_data_table(DT)
+#'   checkmate::assert_character(draws_rgx, len = 1)
+#'   perd_varnames <- grep(draws_rgx, colnames(DT), value = TRUE)
+#'   # sort the PE up front for visibility
+#'   # checkmate::assert_integerish(length(perd_varnames), lower = 1)
+#'   if(!length(perd_varnames) >= 1) stop("No draw/PE columns found")
+#'   return(order_draws(perd_varnames))
+#' }
+
 #' Find draw variable names in a data.table
 #'
 #' @param DT [data.table]
-#' @param draws_rgx [chr] regex to identify draw columns + point estimate
+#' @param include_PE [lgl] include point_estimate in search? Passed to PERD_regex()
+#' @param additions [chr: default NULL] additional regex to include. Passed to PERD_regex()
 #'
 #' @returns [chr] vector of variable names
 #' @export
-find_draws_varnames <- function(DT, draws_rgx = PERD_regex()) {
+find_draws_varnames <- function(DT, include_PE = TRUE, additions = NULL) {
   checkmate::assert_data_table(DT)
-  checkmate::assert_character(draws_rgx, len = 1)
+  draws_rgx <- PERD_regex(include_PE = include_PE, additions = additions)
   perd_varnames <- grep(draws_rgx, colnames(DT), value = TRUE)
-  # sort the PE up front for visibility
-  # checkmate::assert_integerish(length(perd_varnames), lower = 1)
   if(!length(perd_varnames) >= 1) stop("No draw/PE columns found")
+  # sort the PE up front for visibility
   return(order_draws(perd_varnames))
 }
 
@@ -61,7 +78,12 @@ find_draws_varnames <- function(DT, draws_rgx = PERD_regex()) {
 #'
 #' @return [chr] vector of variable names
 #' @export
-find_id_varnames <- function(DT, additions = NULL, removals = "value", verbose = TRUE){
+find_id_varnames <- function(
+    DT
+    , additions = NULL
+    , removals  = "value"
+    , verbose   = TRUE
+){
   checkmate::assert_data_table(DT)
   ret_vec <- grep(PERD_regex(additions = additions), colnames(DT), value = TRUE, invert = TRUE)
   ret_vec <- setdiff(ret_vec, removals)
@@ -86,12 +108,12 @@ draws_wide_to_long <- function(DT, id_varnames = find_id_varnames(DT, verbose = 
 
   assert_square(DT, id_varnames = id_varnames)
 
-  vars_draws = find_draws_varnames(DT)
+  vars_draws_pe = find_draws_varnames(DT, include_PE = TRUE)
 
-  if(verbose == TRUE) message("wide to long - draw_id columns, e.g. : ", toString(vars_draws[1:5]))
+  if(verbose == TRUE) message("wide to long - draw_id columns, e.g. : ", toString(vars_draws_pe[1:5]))
 
   # faster than melt()
-  DT <- tidyr::pivot_longer(data = DT, cols = all_of(vars_draws), names_to = "draw_id", values_to = "value") %>%
+  DT <- tidyr::pivot_longer(data = DT, cols = all_of(vars_draws_pe), names_to = "draw_id", values_to = "value") %>%
     # dplyr::mutate(draw = as.integer(sub("^draw_", "", draw))) %>% turns point-estimates to NA
     dplyr::mutate(draw_id = sub("^draw_", "", draw_id)) %>%
     data.table::as.data.table()
@@ -140,7 +162,7 @@ draws_long_to_wide <- function(DT, id_varnames = find_id_varnames(DT, removals =
   return(DTW)
 }
 
-#' Transform wide draws to mean and 95 percent CI
+#' Transform wide draws to mean and 95\% CI
 #'
 #' For now, retaining point estimate and mean by default since much processing
 #' code depends on mean column
@@ -156,13 +178,13 @@ draws_long_to_wide <- function(DT, id_varnames = find_id_varnames(DT, removals =
 #'   zero if mean is > 0 and the upper is 0, or if mean < 0 and lower is 0.
 #' @param verbose [lgl] print debug messages?
 #'
-#' @returns [data.table] mean and 95 percent CI of draws (columns: mean, lower, upper),
+#' @returns [data.table] mean and 95\% CI of draws (columns: mean, lower, upper),
 #'   with or without draw columns, depending on `remove_vars_draws`
 #' @export
 draws_to_mean_ci <- function(
     DT
     , id_varnames           = find_id_varnames(DT, verbose = FALSE)
-    , vars_draws_pe         = find_draws_varnames(DT)
+    , vars_draws            = find_draws_varnames(DT, include_PE = FALSE)
     , remove_vars_draws     = TRUE
     , remove_point_estimate = FALSE
     , remove_mean           = FALSE
@@ -174,9 +196,7 @@ draws_to_mean_ci <- function(
   checkmate::assert_logical(remove_vars_draws, len = 1)
   checkmate::assert_logical(fix_mean_zero, len = 1)
   checkmate::assert_logical(verbose, len = 1)
-  checkmate::assert_subset(c(id_varnames, vars_draws_pe), colnames(DT))
-
-  vars_draws <- setdiff(vars_draws_pe, "point_estimate")
+  checkmate::assert_subset(c(id_varnames, vars_draws), colnames(DT))
 
   if(verbose == TRUE) message("draws to mean/95%CI - draw columns, e.g. : ", toString(vars_draws[1:5]))
 
@@ -208,19 +228,20 @@ draws_to_mean_ci <- function(
 #'
 #' @return [data.table] Summarized draws, where draw columns are removed.
 #' @export
-summarize_draws_pe <- function(
-    DT, remove_draws = TRUE
+draws_pe_summarize <- function(
+    DT
+    , remove_draws = TRUE
 ){
   checkmate::assert_data_table(DT)
   checkmate::assert_logical(remove_draws, len = 1)
 
-  vars_draws <- find_draws_varnames(DT, draws_rgx = PERD_regex(include_PE = FALSE))
+  vars_draws <- find_draws_varnames(DT, include_PE = FALSE)
 
-  DT[, mean := base::rowMeans(.SD), .SDcols = vars_draws]
-  DT[, lower := matrixStats::rowQuantiles(as.matrix(.SD), probs = 0.025), .SDcols = vars_draws]
-  DT[, upper := matrixStats::rowQuantiles(as.matrix(.SD), probs = 0.975), .SDcols = vars_draws]
-  DT[, median := matrixStats::rowQuantiles(as.matrix(.SD), probs = 0.5), .SDcols = vars_draws]
-  DT[, pe_percentile := rowMeans(point_estimate >= as.matrix(.SD)), .SDcols = vars_draws]
+  DT[, mean          := base::rowMeans(.SD), .SDcols = vars_draws]
+  DT[, lower         := matrixStats::rowQuantiles(as.matrix(.SD), probs = 0.025), .SDcols = vars_draws]
+  DT[, upper         := matrixStats::rowQuantiles(as.matrix(.SD), probs = 0.975), .SDcols = vars_draws]
+  DT[, median        := matrixStats::rowQuantiles(as.matrix(.SD), probs = 0.5), .SDcols = vars_draws]
+  DT[, pe_percentile := base::rowMeans(point_estimate >= as.matrix(.SD)), .SDcols = vars_draws]
   if (remove_draws) DT[, c(vars_draws) := NULL]
 
   return(DT[])
@@ -298,21 +319,23 @@ draws_year_diff <- function(DT, yr_vec, id_varnames = find_id_varnames(DT, verbo
 #'
 #' @export
 get_draw_pe_ui_difference <- function(DT, print_summary_stats = TRUE) {
+
   checkmate::assert_data_table(DT)
   if (!any(grepl('^draw_', colnames(DT)))) stop('No draws in `DT`')
   checkmate::assert_subset(x = 'point_estimate', choices = colnames(DT))
   checkmate::assert_logical(x = print_summary_stats, len = 1)
 
-  DT <- summarize_draws_pe(
-    DT = DT
+  DT <- draws_pe_summarize(
+    DT             = DT
+    , remove_draws = TRUE
   )
 
   DT[,
     `:=` (
       point_estimate_in_ui = data.table::fifelse(
-        point_estimate >= lower & point_estimate <= upper, 1, 0
+        point_estimate >= lower & point_estimate <= upper, TRUE, FALSE
       ),
-      pe_mean_difference = point_estimate - mean,
+      pe_mean_difference   = point_estimate - mean,
       pe_median_difference = point_estimate - median
     )
   ]

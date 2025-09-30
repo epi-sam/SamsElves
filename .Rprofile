@@ -12,7 +12,7 @@ if(interactive()){
 
   rm(.pkgs, .pkg)
 
-  if(file.exists('~/.Rprofile')) {
-    source('~/.Rprofile')
-  }
+  # used to include NCH libary in .libPaths()
+  # - used for data_raw structures
+  if(file.exists('~/.Rprofile')) source('~/.Rprofile')
 }
