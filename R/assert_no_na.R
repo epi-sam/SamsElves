@@ -15,9 +15,11 @@ assert_no_na <- function(dt, varnames = names(dt), verbose = TRUE){
   # Rowwise checks are slow - only perform full checks if any NA are found
   if (anyNA(dt[, ..varnames])) {
     na_rows <- dt[dt[, .I[apply(.SD, 1, anyNA)], .SDcols = varnames]]
+    # subset to varnames only for easier reading
+    na_rows <- na_rows[, ..varnames]
 
     if(nrow(na_rows) > 0) {
-      stop("NA values found - example row: ", toString(paste(names(na_rows), na_rows[1, ], sep = ":") ))
+      stop("NA values found - example row of required columns: ", toString(paste(names(na_rows), na_rows[1, ], sep = ":") ))
     }
   }
 
