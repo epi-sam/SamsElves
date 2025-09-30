@@ -1,3 +1,11 @@
+# SamsElves 0.9.7
+
+Fixes 
+
+- read_parquet_partitioned - now exported
+- parents_of_children - failed unhelpfully with partial hierarchy table
+- assert_no_na - more helpful message
+
 # SamsElves 0.9.6
 
 find_draws_varnames 
