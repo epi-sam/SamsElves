@@ -6,16 +6,18 @@ Author: Sam Byrne (ssbyrne@uw.edu)
 Description: Helper functions for the data science at IHME
 License: none
 Imports:
-    data.table,
-    readr,
     argparse,
-    rhdf5,
+    checkmate,
+    dplyr,
+    data.table,
     DescTools,
     glue,
-    checkmate,
-    tidyr,
-    dplyr,
     here,
+    readr,
+    rhdf5,
+    styler,
+    tidyr,
+    tibble,
     yaml
 Suggests: 
     testthat
