@@ -3,6 +3,7 @@
 release_id_current <- 34
 
 # FIXME SB - 2025 Sep 29 - merges are losing age groups as well, dropping rows from DT
+# - need to get all age groups from this call
 
 plot_age_metadata <- ihme::get_age_metadata(release_id = release_id_current)
 plot_age_metadata <- plot_age_metadata |>
