@@ -1,3 +1,12 @@
+# SamsElves 0.9.8
+
+New functions
+
+- csv_to_tribble - new function to make reference tables
+  - read a csv, and write a tibble that's easier to update by hand
+  - allows creation of reference tables in code that are easier to maintain
+- align_commas_in_tribble - helper to align commas in tribble code files
+
 # SamsElves 0.9.7
 
 Fixes 
