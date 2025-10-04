@@ -1,3 +1,11 @@
+# SamsElves 0.9.9
+
+Patch
+
+- aggregate_from_children_to_parents
+  - by default, drops unused locations (e.g. if a location is in DT, but not in the hierarchy provided, it is dropped)
+  - by default, stops if any children of a parent specified by the hierarchy are missing from DT
+
 # SamsElves 0.9.8
 
 New functions

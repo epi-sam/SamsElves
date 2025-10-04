@@ -29,7 +29,7 @@
 #'   most_detailed
 #' @param hierarchy_id [chr] What variable does your hierarchy define, e.g.
 #'   "location_id" (2024-11-21 only supported option)
-#' @param remove_ids_not_in_hierarchy [lgl: default TRUE] If TRUE, remove any
+#' @param drop_ids_not_in_hierarchy [lgl: default TRUE] If TRUE, remove any
 #'   hierarchy_id in DT that are not in the hierarchy (e.g. location_id not in
 #'   location hierarchy)
 #' @param require_all_children [lgl: default TRUE] If TRUE, stop if any parent
@@ -83,7 +83,7 @@ aggregate_from_children_to_parents <- function(
     , varnames_to_aggregate_by
     , hierarchy
     , hierarchy_id                = "location_id"
-    , remove_ids_not_in_hierarchy = TRUE
+    , drop_ids_not_in_hierarchy = TRUE
     , require_all_children        = TRUE
     , start_level                 = max(hierarchy$level)
     , stop_level                  = 3L
@@ -164,7 +164,7 @@ It looks like you're aggregating proportions without weights!
   # Select only what's necessary
   DT        <- DT[, ..keep_vars]
   hierarchy <- hierarchy[, ..varnames_hier]
-  if (remove_ids_not_in_hierarchy == TRUE) {
+  if (drop_ids_not_in_hierarchy == TRUE) {
     ids_not_in_hierarchy <- setdiff(DT[[hierarchy_id]], hierarchy[[hierarchy_id]])
     if(length(ids_not_in_hierarchy) > 0 & verbose){
       warning(sprintf("\nRemoved %s %s(s) from DT not found in the hierarchy: %s", length(ids_not_in_hierarchy), hierarchy_id, toString(ids_not_in_hierarchy)))
