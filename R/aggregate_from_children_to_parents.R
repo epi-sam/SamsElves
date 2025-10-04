@@ -168,6 +168,7 @@ It looks like you're aggregating proportions without weights!
     ids_not_in_hierarchy <- setdiff(DT[[hierarchy_id]], hierarchy[[hierarchy_id]])
     if(length(ids_not_in_hierarchy) > 0 & verbose){
       warning(sprintf("\nRemoved %s %s(s) from DT not found in the hierarchy: %s", length(ids_not_in_hierarchy), hierarchy_id, toString(ids_not_in_hierarchy)))
+      DT <- DT[!get(hierarchy_id) %in% ids_not_in_hierarchy]
     }
   }
   # Assert completeness
