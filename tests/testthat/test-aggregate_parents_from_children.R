@@ -382,6 +382,7 @@ test_that("most_detailed and missing location error systems work", {
     , require_all_most_detailed = FALSE
     , verbose                   = FALSE
   ) %>%
+    expect_warning(regexp = "It looks like you're aggregating proportions without weights!") %>%
     expect_message(regexp = "level = 4; parent = 51; children = 53660, 53661") %>%
     expect_error(regexp = "dt_children has no rows")
 
@@ -396,7 +397,10 @@ test_that("most_detailed and missing location error systems work", {
     , require_all_most_detailed = FALSE
     , require_rows              = FALSE # user override
     , verbose                   = FALSE
-  )  %>% expect_no_error()
+  )  %>%
+    expect_warning(regexp = "It looks like you're aggregating proportions without weights!") %>%
+    expect_message(regexp = "Aggregating from level 5 to 3") %>%
+    expect_no_error()
 
 
 })

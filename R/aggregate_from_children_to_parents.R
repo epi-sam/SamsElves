@@ -29,6 +29,11 @@
 #'   most_detailed
 #' @param hierarchy_id [chr] What variable does your hierarchy define, e.g.
 #'   "location_id" (2024-11-21 only supported option)
+#' @param remove_ids_not_in_hierarchy [lgl: default TRUE] If TRUE, remove any
+#'   hierarchy_id in DT that are not in the hierarchy (e.g. location_id not in
+#'   location hierarchy)
+#' @param require_all_children [lgl: default TRUE] If TRUE, stop if any parent
+#'   is missing children in DT
 #' @param start_level [int: default max(hierarchy$level)] What level to start
 #'   aggregating
 #' @param stop_level [int: default 3] Stops aggregation when the child level ==
@@ -77,21 +82,23 @@ aggregate_from_children_to_parents <- function(
     , varnames_to_aggregate
     , varnames_to_aggregate_by
     , hierarchy
-    , hierarchy_id              = "location_id"
-    , start_level               = max(hierarchy$level)
-    , stop_level                = 3L
-    , varname_weights           = NULL
-    , aggregate_proportions     = FALSE
-    , add_regional_scalars      = FALSE
-    , release_id                = NULL
-    , location_set_id           = 35
-    , require_square            = TRUE
-    , require_rows              = TRUE
-    , require_all_most_detailed = TRUE
-    , verbose                   = TRUE
-    , v_verbose                 = FALSE
-    , tolerance_all_equal       = NULL
-    , aa_hard_stop              = FALSE
+    , hierarchy_id                = "location_id"
+    , remove_ids_not_in_hierarchy = TRUE
+    , require_all_children        = TRUE
+    , start_level                 = max(hierarchy$level)
+    , stop_level                  = 3L
+    , varname_weights             = NULL
+    , aggregate_proportions       = FALSE
+    , add_regional_scalars        = FALSE
+    , release_id                  = NULL
+    , location_set_id             = 35
+    , require_square              = TRUE
+    , require_rows                = TRUE
+    , require_all_most_detailed   = TRUE
+    , verbose                     = TRUE
+    , v_verbose                   = FALSE
+    , tolerance_all_equal         = NULL
+    , aa_hard_stop                = FALSE
  ){
 
   # Arg Validations
@@ -155,8 +162,14 @@ It looks like you're aggregating proportions without weights!
   }
 
   # Select only what's necessary
-  DT <- DT[, ..keep_vars]
+  DT        <- DT[, ..keep_vars]
   hierarchy <- hierarchy[, ..varnames_hier]
+  if (remove_ids_not_in_hierarchy == TRUE) {
+    ids_not_in_hierarchy <- setdiff(DT[[hierarchy_id]], hierarchy[[hierarchy_id]])
+    if(length(ids_not_in_hierarchy) > 0 & verbose){
+      warning(sprintf("\nRemoved %s %s(s) from DT not found in the hierarchy: %s", length(ids_not_in_hierarchy), hierarchy_id, toString(ids_not_in_hierarchy)))
+    }
+  }
   # Assert completeness
   DT_incomplete <- DT[!complete.cases(DT)]
   hierarchy_incomplete <- hierarchy[!complete.cases(hierarchy)]
@@ -206,10 +219,10 @@ It looks like you're aggregating proportions with regional scalars!
       }
 
       DT <- apply_regional_scalars(
-        DT               = DT,
-        vars_to_multiply = vars_to_multiply,
-        release_id       = release_id,
-        location_set_id  = location_set_id
+        DT               = DT
+        , vars_to_multiply = vars_to_multiply
+        , release_id       = release_id
+        , location_set_id  = location_set_id
       )
     }
 
@@ -217,39 +230,48 @@ It looks like you're aggregating proportions with regional scalars!
 
     parent_level <- level_i - 1
     message("\nChild level ", level_i, " to parent level ", parent_level, " (", max(levels_rev), " levels total)")
-
     # Outer loop: for each hierarchy level, starting at leaf nodes and going up
     # to a pre-specified level (e.g. 3 = counties), aggregate all children to
     # their parent level, then repeat and roll those up to the next parent
     # level.
 
     parents_of_level <- parents_of_children(
-      # child_loc_ids  = loc_ids_i
       child_loc_ids  = hierarchy[level == level_i]$location_id
       , hierarchy    = hierarchy
       , parent_level = parent_level
     )
 
     # Temporary data.table to hold all parents at this level before binding
-    DT_level <- data.table::data.table()
+    DT_level_i <- data.table::data.table()
 
     # Inner Loop - Locations ---------------------------------------------------
-    for (parent_i in parents_of_level){
+    for (parent_j in parents_of_level){
 
       # Inner loop: Find children, aggregate selected columns for all children
       # of one parent location, reset the location_id to the parent_id, then
       # bind back on the temp data.table.
 
       children <- children_of_parents(
-        parent_loc_ids   = parent_i
+        parent_loc_ids   = parent_j
         , hierarchy      = hierarchy[level %in% c(level_i, parent_level)]
         , output         = "loc_ids"
         , include_parent = FALSE
       )
 
-      if(verbose) message("- Parent: ", parent_i, "\n   - Children: ", toString(children))
+      if(verbose) message("- Parent: ", parent_j, "\n   - Children: ", toString(children))
 
       if (length(children) > 0) {
+
+        expected_children <- hierarchy[level == level_i & path_to_top_parent %like% paste0(",", parent_j, ",")]$location_id
+        missing_children  <- setdiff(expected_children, children)
+        if (require_all_children == TRUE) {
+          if(length(missing_children) > 0){
+            stop(sprintf("Parent %s is missing children: %s", parent_j, toString(missing_children)))
+          }
+        } else {
+          warning(sprintf("Parent %s is missing children: %s", parent_j, toString(missing_children)))
+        }
+
         dt_children <- DT[get(hierarchy_id) %in% children]
 
         # If children aren't square, aggregation will go wrong
@@ -267,12 +289,12 @@ It looks like you're aggregating proportions with regional scalars!
           , warning = function(assert_square_cnd){
             assert_square_cnd
             message("\nSquare check warning. Inspect parent and its children.")
-            message(sprintf("level = %s; parent = %s; children = %s \n", level_i, parent_i, toString(children)))
+            message(sprintf("level = %s; parent = %s; children = %s \n", level_i, parent_j, toString(children)))
           }
           , error = function(assert_square_cnd){
             assert_square_cnd
             message("\nSquare check failed. Inspect parent and its children.")
-            message(sprintf("level = %s; parent = %s; children = %s \n", level_i, parent_i, toString(children)))
+            message(sprintf("level = %s; parent = %s; children = %s \n", level_i, parent_j, toString(children)))
           }
         )
 
@@ -285,41 +307,40 @@ It looks like you're aggregating proportions with regional scalars!
         }
 
         # Aggregate ------------------------------------------------------------
-        dt_parent_agg <- dt_children[, lapply(.SD, function(x) sum(x)), by = varnames_to_aggregate_by, .SDcols = varnames_to_aggregate]
+        dt_children_agg_j <- dt_children[, lapply(.SD, function(x) sum(x)), by = varnames_to_aggregate_by, .SDcols = varnames_to_aggregate]
 
         if(agg_with_weights){
-          if(!nrow(dt_child_weights_agg) == nrow(dt_parent_agg)){
-            stop("Weights aggregation failed\n  -- " , paste("nrow child weights:",  nrow(dt_child_weights_agg), "\n  -- nrow parents aggregated:", toString(nrow(dt_parent_agg))))
+          if(nrow(dt_child_weights_agg) != nrow(dt_children_agg_j)){
+            stop("Weights aggregation failed\n  -- " , paste("nrow child weights:",  nrow(dt_child_weights_agg), "\n  -- nrow parents aggregated:", toString(nrow(dt_children_agg_j))))
           }
-          dt_parent_agg <- merge(dt_parent_agg, dt_child_weights_agg, by = varnames_to_aggregate_by, all.x = TRUE)
+          dt_children_agg_j <- merge(dt_children_agg_j, dt_child_weights_agg, by = varnames_to_aggregate_by, all.x = TRUE)
         }
 
-        # some parents/children may not have any rows - use set()
-        data.table::set(dt_parent_agg, j = hierarchy_id, value = parent_i)
-        data.table::setcolorder(dt_parent_agg, keep_vars)
+        # some parents/children may not have any rows - use data.table::set()
+        data.table::set(dt_children_agg_j, j = hierarchy_id, value = parent_j)
+        data.table::setcolorder(dt_children_agg_j, keep_vars)
 
         # all.equal() Check ----------------------------------------------------
         # If the parent was already in DT, signal if it's not all.equal() to our aggregation
-        if(parent_i %in% DT[[hierarchy_id]]){
+        if(parent_j %in% DT[[hierarchy_id]]){
           data.table::setkeyv(DT, varnames_to_aggregate_by)
-          data.table::setkeyv(dt_parent_agg, varnames_to_aggregate_by)
-          aa_args           <- list(target = DT[get(hierarchy_id) == parent_i], current = dt_parent_agg)
+          data.table::setkeyv(dt_children_agg_j, varnames_to_aggregate_by)
+          aa_args           <- list(target = DT[get(hierarchy_id) == parent_j], current = dt_children_agg_j)
           # allow user to fine-tune all.equal or use default (NULL)
           aa_args$tolerance <- tolerance_all_equal # NULL handles itself
           catch_aa          <- do.call(all.equal, aa_args)
           not_aa            <- !all(catch_aa == TRUE)
 
           if(not_aa & v_verbose) {
-            message("   - Parent: ", parent_i, " already exists and is not all.equal() to aggregated children", " - ", toString(catch_aa))
+            message("   - Parent: ", parent_j, " already exists and is not all.equal() to aggregated children", " - ", toString(catch_aa))
           }
           if(not_aa & aa_hard_stop) {
             stop(sprintf("Parent (%s) is not all.equal() to aggregated children (%s)\n - %s"
-                         , parent_i, toString(children), toString(catch_aa)))
+                         , parent_j, toString(children), toString(catch_aa)))
           }
         }
 
-        DT_level <- data.table::rbindlist(list(DT_level, dt_parent_agg), use.names = TRUE, fill = TRUE)
-        # DT <- rbind(DT[!location_id == parent_i], dt_parent_agg, fill = TRUE)
+        DT_level_i <- data.table::rbindlist(list(DT_level_i, dt_children_agg_j), use.names = TRUE, fill = TRUE)
 
       } # End If Children Exist
 
@@ -327,9 +348,9 @@ It looks like you're aggregating proportions with regional scalars!
 
     # Bind aggregated parents at this level back onto DT
     DT <- data.table::rbindlist(
-      list(DT[!location_id %in% parents_of_level], DT_level)
+      list(DT[!location_id %in% parents_of_level], DT_level_i)
       , use.names = TRUE
-      , fill = TRUE
+      , fill      = TRUE
     )
 
   } # End Outer Loop - Levels
