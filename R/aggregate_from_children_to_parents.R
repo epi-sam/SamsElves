@@ -363,7 +363,7 @@ It looks like you're aggregating proportions with regional scalars!
     , id_varnames   = unique(c(hierarchy_id, varnames_to_aggregate_by))
     , hard_stop     = require_square
     , stop_if_empty = require_rows
-    , verbose       = FALSE
+    , verbose       = verbose
   )
   data.table::setcolorder(DT, keep_vars)
   data.table::setorderv(DT, c(hierarchy_id, varnames_to_aggregate_by))
