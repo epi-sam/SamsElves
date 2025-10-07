@@ -118,9 +118,25 @@ test_that("PERD_regex works",
 
 test_that("order_draws works",
           {
+            # PE + draws
             expect_equal(
-              c(paste0("draw_", 0:10)),
-              grep("draw_", (names(DT)), value = TRUE)
+              order_draws(c(paste0("draw_", c(100, 2,10,1,11)), "point_estimate")),
+              c("point_estimate", "draw_1", "draw_2", "draw_10", "draw_11", "draw_100")
+            )
+            # draws only
+            expect_equal(
+              order_draws(c(paste0("draw_", c(100, 2,10,1,11)))),
+              c("draw_1", "draw_2", "draw_10", "draw_11", "draw_100")
+            )
+            # PE + other
+            expect_equal(
+              order_draws(c("some_column", "point_estimate")),
+              c("point_estimate", "some_column")
+            )
+            # no PE or draws
+            expect_equal(
+              order_draws(c("some_column", "another_column")),
+              c("some_column", "another_column")
             )
           })
 
@@ -145,6 +161,17 @@ test_that("find_draws_varnames fails well",
 
 test_that("find_id_varnames works",
           {
+            # default removals
+            expect_equal(
+              c("location_id", "year_id", "age_group_id", "sex_id", "metric_id", "source", "measure_id", "run_id", "covariate_id"),
+              find_id_varnames(DT, verbose = FALSE)
+            )
+            # no removals
+            expect_equal(
+              c("location_id", "year_id", "age_group_id", "sex_id", "metric_id", "source", "measure_id", "run_id", "covariate_id"),
+              find_id_varnames(DT, verbose = FALSE, removals = NULL)
+            )
+            # custom removals
             expect_equal(
               c("location_id", "year_id", "age_group_id", "sex_id", "metric_id", "run_id", "covariate_id"),
               find_id_varnames(DT, verbose = FALSE, removals = c("source", "measure_id"))

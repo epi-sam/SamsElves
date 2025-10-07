@@ -9,7 +9,7 @@ find_draws_varnames(DT, include_PE = TRUE, additions = NULL)
 \arguments{
 \item{DT}{[data.table]}
 
-\item{include_PE}{[lgl] include point_estimate in search? Passed to PERD_regex()}
+\item{include_PE}{[lgl: default TRUE] include point_estimate in search? Passed to PERD_regex()}
 
 \item{additions}{[chr: default NULL] additional regex to include. Passed to PERD_regex()}
 }
@@ -17,5 +17,5 @@ find_draws_varnames(DT, include_PE = TRUE, additions = NULL)
 [chr] vector of variable names
 }
 \description{
-Find draw variable names in a data.table
+Stops if no draw/PE columns found
 }

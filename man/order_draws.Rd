@@ -2,7 +2,7 @@
 % Please edit documentation in R/draw_transforms.R
 \name{order_draws}
 \alias{order_draws}
-\title{Order character draw names in order of their numeric indices.  PERD
+\title{Order vector of draw names in order of their numeric indices.  PERD
 compliant.}
 \usage{
 order_draws(draw_varnames, pe_varname = "point_estimate")
@@ -10,7 +10,7 @@ order_draws(draw_varnames, pe_varname = "point_estimate")
 \arguments{
 \item{draw_varnames}{[chr] vector of variable names}
 
-\item{pe_varname}{[chr] name of point estimate variable, if present}
+\item{pe_varname}{[chr: default {"point_estimate"}] name of point estimate variable, if present}
 }
 \value{
 [chr] ordered vector of variable names

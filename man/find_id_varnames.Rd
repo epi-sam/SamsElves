@@ -2,22 +2,25 @@
 % Please edit documentation in R/draw_transforms.R
 \name{find_id_varnames}
 \alias{find_id_varnames}
-\title{Util to find a potential set of id_varnames for a data.table full of draws}
+\title{Util to find a potential set of id_varnames for a data.table full of draws.}
 \usage{
-find_id_varnames(DT, additions = NULL, removals = "value", verbose = TRUE)
+find_id_varnames(DT, removals = c("value"), verbose = TRUE)
 }
 \arguments{
-\item{DT}{[data.frame]}
+\item{DT}{[data.table]}
 
-\item{additions}{[chr] additional regex to include}
+\item{removals}{[chr: default {"value"}] vector of variable names to exclude
+from the final search - passed to `setdiff()`}
 
-\item{removals}{[chr] variable names to exclude}
-
-\item{verbose}{[lgl] print debug messages?}
+\item{verbose}{[lgl: default TRUE] print found colnames to console?}
 }
 \value{
 [chr] vector of variable names
 }
 \description{
+Finds non-value variable names by excluding draw/point_estimate variable
+names
+}
+\details{
 Interactive helper
 }

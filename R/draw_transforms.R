@@ -13,63 +13,81 @@ PERD_regex <- function(include_PE = TRUE, additions = NULL) {
 }
 
 
-#' Order character draw names in order of their numeric indices.  PERD
+#' Order vector of draw names in order of their numeric indices.  PERD
 #' compliant.
 #'
 #' e.g. "draw_1", "draw_2", ..., "draw_10", "draw_11", ...
 #'
 #' @param draw_varnames [chr] vector of variable names
-#' @param pe_varname [chr] name of point estimate variable, if present
+#' @param pe_varname [chr: default {"point_estimate"}] name of point estimate variable, if present
 #'
 #' @returns [chr] ordered vector of variable names
 #' @export
 order_draws <- function(draw_varnames, pe_varname = "point_estimate"){
-
   checkmate::assert_character(draw_varnames, any.missing = FALSE, min.len = 1)
-  pe_mask <- draw_varnames == pe_varname
-  draws_only <- draw_varnames[!pe_mask]
-  if(length(draws_only) == 0) return(draw_varnames)
-  draws_ordered <- draws_only[order(as.integer(sub("^draw_", "", draws_only)))]
-  if(any(pe_mask)) draws_ordered <- c(pe_varname, draws_ordered)
-  return(draws_ordered)
+  pe_present      <- pe_varname %in% draw_varnames
+  vars_draws_only <- grep(PERD_regex(include_PE = FALSE, additions = NULL), draw_varnames, value = TRUE)
+  vars_other      <- setdiff(draw_varnames, c(vars_draws_only, pe_varname))
+  draws_present   <- length(vars_draws_only) > 0
+  ret_vars        <- vars_other
+  if (draws_present == TRUE) {
+    vars_draws_only <- vars_draws_only[order(as.integer(sub("^draw_", "", vars_draws_only)))]
+    ret_vars        <- c(ret_vars, vars_draws_only)
+  }
+  if(pe_present == TRUE){
+    ret_vars <- c(pe_varname, ret_vars)
+  }
+  return(ret_vars)
 
 }
 
 
 #' Find draw variable names in a data.table
 #'
+#' Stops if no draw/PE columns found
+#'
 #' @param DT [data.table]
-#' @param include_PE [lgl] include point_estimate in search? Passed to PERD_regex()
+#' @param include_PE [lgl: default TRUE] include point_estimate in search? Passed to PERD_regex()
 #' @param additions [chr: default NULL] additional regex to include. Passed to PERD_regex()
 #'
 #' @returns [chr] vector of variable names
 #' @export
 find_draws_varnames <- function(DT, include_PE = TRUE, additions = NULL) {
   checkmate::assert_data_table(DT)
-  draws_rgx <- PERD_regex(include_PE = include_PE, additions = additions)
+  draws_rgx     <- PERD_regex(include_PE = include_PE, additions = additions)
   perd_varnames <- grep(draws_rgx, colnames(DT), value = TRUE)
   if(!length(perd_varnames) >= 1) stop("No draw/PE columns found")
   # sort the PE up front for visibility
   return(order_draws(perd_varnames))
 }
 
-#' Util to find a potential set of id_varnames for a data.table full of draws
+#' Util to find a potential set of id_varnames for a data.table full of draws.
+#'
+#' Finds non-value variable names by excluding draw/point_estimate variable
+#' names
 #'
 #' Interactive helper
 #'
-#' @param DT [data.frame]
-#' @param additions [chr] additional regex to include
-#' @param removals [chr] variable names to exclude
-#' @param verbose [lgl] print debug messages?
+#' @param DT [data.table]
+#' @param removals [chr: default {"value"}] vector of variable names to exclude
+#'   from the final search - passed to `setdiff()`
+#' @param verbose [lgl: default TRUE] print found colnames to console?
 #'
 #' @returns [chr] vector of variable names
 #' @export
-find_id_varnames <- function(DT, additions = NULL, removals = "value", verbose = TRUE){
+find_id_varnames <- function(DT, removals = c("value"), verbose = TRUE){
   checkmate::assert_data_table(DT)
-  ret_vec <- grep(PERD_regex(additions = additions), colnames(DT), value = TRUE, invert = TRUE)
-  ret_vec <- setdiff(ret_vec, removals)
-  if(verbose == TRUE) dput(ret_vec) # print in a way that can be copy/pasted
-  return(ret_vec) # for programmatic use
+  # cannot take setdiff of `find_draws_varnames()`, since it errors if none are found
+  varnames_ids <- grep(
+    pattern  = PERD_regex(include_PE = TRUE, additions = NULL)
+    , x      = colnames(DT)
+    , value  = TRUE
+    , invert = TRUE
+  )
+  varnames_ids <- setdiff(varnames_ids, removals)
+  if(verbose == TRUE) dput(varnames_ids) # print in a way that can be copy/pasted
+  return(varnames_ids) # for programmatic use
+
 }
 
 
