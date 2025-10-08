@@ -71,15 +71,28 @@ find_draws_varnames <- function(DT, include_PE = TRUE, additions = NULL) {
 #' @param DT [data.table]
 #' @param removals [chr: default {"value"}] vector of variable names to exclude
 #'   from the final search - passed to `setdiff()`
+#' @param include_PE [lgl: default FALSE] include "point_estimate" among
+#'   id_varnames? Passed to `PERD_regex()`
+#' @param additions [chr: default NULL] additional regex to include. Passed to
+#'   `PERD_regex()`
 #' @param verbose [lgl: default TRUE] print found colnames to console?
 #'
 #' @returns [chr] vector of variable names
 #' @export
-find_id_varnames <- function(DT, removals = c("value"), verbose = TRUE){
+find_id_varnames <- function(
+    DT
+    , removals   = c("value")
+    , include_PE = FALSE
+    , additions  = NULL
+    , verbose    = TRUE
+){
   checkmate::assert_data_table(DT)
   # cannot take setdiff of `find_draws_varnames()`, since it errors if none are found
   varnames_ids <- grep(
-    pattern  = PERD_regex(include_PE = TRUE, additions = NULL)
+    pattern       = PERD_regex(
+      include_PE  = !include_PE # invert since grep logic is inverted
+      , additions = additions
+    )
     , x      = colnames(DT)
     , value  = TRUE
     , invert = TRUE

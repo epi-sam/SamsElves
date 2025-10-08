@@ -4,13 +4,25 @@
 \alias{find_id_varnames}
 \title{Util to find a potential set of id_varnames for a data.table full of draws.}
 \usage{
-find_id_varnames(DT, removals = c("value"), verbose = TRUE)
+find_id_varnames(
+  DT,
+  removals = c("value"),
+  include_PE = FALSE,
+  additions = NULL,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{DT}{[data.table]}
 
 \item{removals}{[chr: default {"value"}] vector of variable names to exclude
 from the final search - passed to `setdiff()`}
+
+\item{include_PE}{[lgl: default FALSE] include "point_estimate" among
+id_varnames? Passed to `PERD_regex()`}
+
+\item{additions}{[chr: default NULL] additional regex to include. Passed to
+`PERD_regex()`}
 
 \item{verbose}{[lgl: default TRUE] print found colnames to console?}
 }
