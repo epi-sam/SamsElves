@@ -1,3 +1,7 @@
+# SamsElves 0.9.11
+
+find_id_varnames - allowing greater user control of internal perd_regex call
+
 # SamsElves 0.9.10
 
 draw_transforms - improved implementation and consistency of varname finding and ordering utils
