@@ -1,3 +1,7 @@
+# SamsElves 0.9.12
+
+attach_x_id now removes existing columns before attaching instead of skipping the merge
+
 # SamsElves 0.9.11
 
 find_id_varnames - allowing greater user control of internal perd_regex call
