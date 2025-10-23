@@ -2,7 +2,7 @@
 % Please edit documentation in R/df_dt_column_mod.R
 \name{add_column}
 \alias{add_column}
-\title{Add a new column to a data.frame or data.table, preserving class and
+\title{Add/overwrite a column in a data.frame or data.table, preserving class and
 modifying in place if data.table.}
 \usage{
 add_column(x, varname, vec)
@@ -18,7 +18,7 @@ add_column(x, varname, vec)
 [data.frame or data.table] input `x` with new column added
 }
 \description{
-Add a new column to a data.frame or data.table, preserving class and
+Add/overwrite a column in a data.frame or data.table, preserving class and
 modifying in place if data.table.
 }
 \examples{

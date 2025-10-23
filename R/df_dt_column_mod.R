@@ -2,7 +2,7 @@
 # purpose: Suite of functions to handle columns from data.frames or
 # data.tables, preserving class and modifying in place if data.table.
 
-#' Add a new column to a data.frame or data.table, preserving class and
+#' Add/overwrite a column in a data.frame or data.table, preserving class and
 #' modifying in place if data.table.
 #'
 #' @param x [data.frame or data.table]

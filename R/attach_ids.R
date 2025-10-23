@@ -35,9 +35,10 @@ attach_location_id <- function(
   hierarchy <- subset(hierarchy, select = vars_req) # safe for data.frame or data.table
   names(hierarchy) <- vars_new
 
-  if(!loc_id_varname %in% names(df)) {
-    df <- merge(df, hierarchy, by = ihme_loc_varname, all.x = TRUE)
+  if(loc_id_varname %in% names(df)) {
+    df <- drop_column(df, loc_id_varname)
   }
+  df <- merge(df, hierarchy, by = ihme_loc_varname, all.x = TRUE)
   return(df[])
 }
 
@@ -77,9 +78,10 @@ attach_ihme_loc_id <- function(
   hierarchy <- subset(hierarchy, select = vars_req) # safe for data.frame or data.table
   names(hierarchy) <- vars_new
 
-  if (!ihme_loc_varname %in% names(df)) {
-    df <- merge(df, hierarchy, by = loc_id_varname, all.x = TRUE)
+  if(ihme_loc_varname %in% names(df)) {
+    df <- drop_column(df, ihme_loc_varname)
   }
+  df <- merge(df, hierarchy, by = loc_id_varname, all.x = TRUE)
   return(df[])
 }
 
@@ -116,16 +118,15 @@ attach_parent_location_id <- function(
   # assert no names overlap df column names
   checkmate::assert_disjunct(new_varname, names(df))
 
-  vec <- parents_of_children_vec(
-    child_loc_id_vec     = df$location_id
-    , hierarchy            = hierarchy
-    , parent_level_vec     = parent_level
-    , allow_self_as_parent = allow_self_as_parent
-  )
   df <- add_column(
     x         = df
     , varname = new_varname
-    , vec     = vec
+    , vec     = parents_of_children_vec(
+      child_loc_id_vec       = df$location_id
+      , hierarchy            = hierarchy
+      , parent_level_vec     = parent_level
+      , allow_self_as_parent = allow_self_as_parent
+    )
   )
   return(df[])
 }
