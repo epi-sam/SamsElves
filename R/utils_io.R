@@ -158,11 +158,11 @@ save_file <- function(object, f_path, csv_opt = "readr::write_excel_csv", overwr
     )
 
     # 2025 Oct 15 - kludge to deal with J: drive in-place overwrite issues
-    if(file.exists(f_path)){
-      if (verbose) message("Removing existing file before re-writing to avoid J: drive issues: ", f_path)
-      file.remove(f_path)
-      Sys.sleep(1)
-    }
+    # if(file.exists(f_path)){
+    #   if (verbose) message("Removing existing file before re-writing to avoid J: drive issues: ", f_path)
+    #   file.remove(f_path)
+    #   Sys.sleep(1)
+    # }
     switch(
       ext,
       "csv"  = {csv_writer(object, f_path, ...)},
