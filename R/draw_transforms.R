@@ -116,7 +116,8 @@ draws_wide_to_long <- function(DT, id_varnames = find_id_varnames(DT, verbose = 
   checkmate::assert_data_table(DT)
   checkmate::assert_character(id_varnames, any.missing = FALSE, min.len = 1)
   checkmate::assert_logical(verbose, len = 1)
-  checkmate::assert_subset(id_varnames, choices = colnames(DT))
+  # checkmate::assert_subset(id_varnames, choices = colnames(DT))
+  assert_x_in_y(id_varnames, choices = colnames(DT))
 
   assert_square(DT, id_varnames = id_varnames)
 
@@ -148,7 +149,8 @@ draws_wide_to_long <- function(DT, id_varnames = find_id_varnames(DT, verbose = 
 draws_long_to_wide <- function(DT, id_varnames = find_id_varnames(DT, removals = c("value"), verbose = FALSE), verbose = FALSE){
 
   checkmate::assert_data_table(DT)
-  checkmate::assert_subset(c("value", id_varnames), colnames(DT))
+  # checkmate::assert_subset(c("value", id_varnames), colnames(DT))
+  assert_x_in_y(c("value", id_varnames), colnames(DT))
   checkmate::assert_logical(verbose, len = 1)
 
   assert_square(DT, id_varnames = id_varnames)
@@ -156,7 +158,8 @@ draws_long_to_wide <- function(DT, id_varnames = find_id_varnames(DT, removals =
   names_prefix <- "draw_"
 
   ex_vars <- order_draws(unique(DT$draw_id))[1:5]
-  ex_vars <- c(ex_vars[1], paste0(names_prefix, ex_vars[2:5]))
+  ex_vars <- c(paste0(names_prefix, ex_vars))
+  ex_vars <- gsub("draw_point_estimate", "point_estimate", ex_vars) # handle potential PE
 
   if(verbose == TRUE) {
     message("id_varnames: ", toString(id_varnames))
@@ -167,7 +170,7 @@ draws_long_to_wide <- function(DT, id_varnames = find_id_varnames(DT, removals =
   DTW <- tidyr::pivot_wider(data = DT, names_from = "draw_id", values_from = "value", names_prefix = names_prefix)  %>%
     data.table::as.data.table()
 
-  data.table::setnames(DTW, "draw_point_estimate", "point_estimate")
+  data.table::setnames(DTW, "draw_point_estimate", "point_estimate", skip_absent = TRUE)
 
   data.table::setorderv(DTW, find_id_varnames(DTW, verbose = FALSE))
 
@@ -208,7 +211,8 @@ draws_to_mean_ci <- function(
   checkmate::assert_logical(remove_vars_draws, len = 1)
   checkmate::assert_logical(fix_mean_zero, len = 1)
   checkmate::assert_logical(verbose, len = 1)
-  checkmate::assert_subset(c(id_varnames, vars_draws_pe), colnames(DT))
+  # checkmate::assert_subset(c(id_varnames, vars_draws_pe), colnames(DT))
+  assert_x_in_y(c(id_varnames, vars_draws_pe), colnames(DT))
 
   vars_draws <- setdiff(vars_draws_pe, "point_estimate")
 
@@ -244,10 +248,12 @@ draws_to_mean_ci <- function(
 #' @export
 draws_years_to_wide <- function(DT, yr_vec = NULL){
   checkmate::assert_data_table(DT)
-  checkmate::assert_subset(c("year_id", "draw_id", "value"), colnames(DT))
+  # checkmate::assert_subset(c("year_id", "draw_id", "value"), colnames(DT))
+  assert_x_in_y(c("year_id", "draw_id", "value"), colnames(DT))
   checkmate::assert_integerish(unique(DT$year_id), min.len = 2)
   if(!is.null(yr_vec)) {
-    checkmate::assert_subset(yr_vec, unique(DT$year_id))
+    # checkmate::assert_subset(yr_vec, unique(DT$year_id))
+    assert_x_in_y(yr_vec, unique(DT$year_id))
   }
 
   DT %>%
@@ -272,9 +278,11 @@ draws_years_to_wide <- function(DT, yr_vec = NULL){
 #' @export
 draws_year_diff <- function(DT, yr_vec, id_varnames = find_id_varnames(DT, verbose = FALSE)){
   checkmate::assert_data_table(DT)
-  checkmate::assert_subset(c("year_id", id_varnames), colnames(DT))
+  # checkmate::assert_subset(c("year_id", id_varnames), colnames(DT))
+  assert_x_in_y(c("year_id", id_varnames), colnames(DT))
   checkmate::assert_integerish(unique(DT$year_id), min.len = 2)
-  checkmate::assert_subset(yr_vec, unique(DT$year_id))
+  # checkmate::assert_subset(yr_vec, unique(DT$year_id))
+  assert_x_in_y(yr_vec, unique(DT$year_id))
   checkmate::assert_set_equal(length(yr_vec), 2)
 
   yr_vec    <- sort(yr_vec)
@@ -285,7 +293,7 @@ draws_year_diff <- function(DT, yr_vec, id_varnames = find_id_varnames(DT, verbo
 
   DTW <- DTW[, ..keep_vars]
   DTW[, years := paste0(yr_vec[1], "_", yr_vec[2])]
-  DTW <- draws_long_to_wide(DTW)
-  return(draws_to_mean_ci(DTW))
+  DTW <- draws_long_to_wide(DTW, id_varnames = id_varnames)
+  return(draws_to_mean_ci(DTW, id_varnames = id_varnames))
 }
 
