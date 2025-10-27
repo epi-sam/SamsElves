@@ -117,7 +117,7 @@ draws_wide_to_long <- function(DT, id_varnames = find_id_varnames(DT, verbose = 
   checkmate::assert_character(id_varnames, any.missing = FALSE, min.len = 1)
   checkmate::assert_logical(verbose, len = 1)
   # checkmate::assert_subset(id_varnames, choices = colnames(DT))
-  assert_x_in_y(id_varnames, choices = colnames(DT))
+  assert_x_in_y(id_varnames, colnames(DT))
 
   assert_square(DT, id_varnames = id_varnames)
 
