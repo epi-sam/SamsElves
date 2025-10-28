@@ -293,7 +293,7 @@ draws_year_diff <- function(DT, yr_vec, id_varnames = find_id_varnames(DT, verbo
 
   DTW <- DTW[, ..keep_vars]
   DTW[, years := paste0(yr_vec[1], "_", yr_vec[2])]
-  DTW <- draws_long_to_wide(DTW, id_varnames = id_varnames)
-  return(draws_to_mean_ci(DTW, id_varnames = id_varnames))
+  DTW <- draws_long_to_wide(DTW)
+  return(draws_to_mean_ci(DTW))
 }
 
