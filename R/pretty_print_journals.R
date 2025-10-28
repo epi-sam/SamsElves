@@ -93,15 +93,15 @@ fround <- function(x, digits = 1L, nsmall = 1L, decimal.mark = mid_dot()){
 #' @return [chr] formatted string
 #'
 #' @examples
-#' fround_dtype(0.123456789) # "0·1%"
-#' fround_dtype(0.123456789, 'pp', 3, 4) # "0·1230 pp"
+#' fround_dtype(0.123456789) # "0.1%"
+#' fround_dtype(0.123456789, 'pp', 3, 4) # "0.1230 pp"
 #' fround_dtype(c(55.8346, 123.456789), 'count', 3, 4, ".") # "55.8350"  "123.4570"
 fround_dtype <- function(
     x
     , d_type       = "prop"
     , digits       = 1L
     , nsmall       = 1L
-    , decimal.mark = mid_dot()
+    , decimal.mark = "."
 ){
 
   checkmate::assert_numeric(x)
@@ -281,7 +281,7 @@ fmt_magnitude <- function(
 #'
 #' Defaults are for lancet labels.
 #'
-#' Current IHME & Lancet standards:
+#' Current IHME standards:
 #' - https://hub.ihme.washington.edu/spaces/SC/pages/123833253/Rounding+standards
 #' - Rates and Percentages - to one decimal place
 #' - Counts                - to 3 sig figs
@@ -292,10 +292,9 @@ fmt_magnitude <- function(
 #' @param mag_list [named list] output from `set_magnitude()` - must be based on
 #'   **central** value of a central/lower/upper set - central _and_ all UI values inherit the
 #'   same scale as the central tendency.
-#' @param decimal.mark [chr] e.g. (default mid_dot() Lancet standard)
-#' @param negative_sign [chr] negative sign (default "–" Lancet standard)
-#' @param big.mark_count [chr] big mark for counts - Lancet specifies narrow
-#'   space for counts between 9999 and 1 million
+#' @param decimal.mark [chr] decimal mark passed to `format()`
+#' @param negative_sign [chr] negative sign
+#' @param big.mark_count [chr] big mark for counts passed to `format()`
 #' @param digits_round_prop [int] passed to `round()` for proportions
 #' @param digits_sigfig_count [int] passed to `signif()` for counts
 #' @param nsmall [int] passed to `format()`
@@ -304,10 +303,10 @@ fmt_magnitude <- function(
 #' @export
 #'
 #' @examples
-#' fround_mag_clu(clu = c(central = 0.2, lower = 0.1, upper = 0.3), d_type = "prop") # "0·2" "0·1" "0·3"
-#' fround_mag_clu(clu = c(central = 0.2, lower = -0.1, upper = 0.3), d_type = "pp") # "0·2" "–0·1" "0·3"
-#' fround_mag_clu(clu = c(central = 95e6, lower = 89e6, upper = 101e6), d_type = "count") # "95·0"  "89·0"   "101"
-#' fround_mag_clu(clu = c(central = 95e6, lower = 96e6, upper = 97e6), d_type = "count") # "95·0"  "96·0"  "97·0"
+#' fround_mag_clu(clu = c(central = 0.2, lower = 0.1, upper = 0.3), d_type = "prop") # "0.2" "0.1" "0.3"
+#' fround_mag_clu(clu = c(central = 0.2, lower = -0.1, upper = 0.3), d_type = "pp") # "0.2" "–0.1" "0.3"
+#' fround_mag_clu(clu = c(central = 95e6, lower = 89e6, upper = 101e6), d_type = "count") # "95.0"  "89.0"   "101"
+#' fround_mag_clu(clu = c(central = 95e6, lower = 96e6, upper = 97e6), d_type = "count") # "95.0"  "96.0"  "97.0"
 fround_mag_clu <- function(
     clu
     , d_type
@@ -315,9 +314,10 @@ fround_mag_clu <- function(
     , digits_round_prop   = 1L
     , digits_sigfig_count = 3L
     , nsmall              = 1L
-    , decimal.mark        = mid_dot()    # lancet centered period
-    , negative_sign       = en_dash()    # lancet negative
-    , big.mark_count      = thin_space() # lancet narrow space
+    , decimal.mark        = "·"
+    , negative_sign       = "-"
+    , big.mark_count      = ","
+    , is_lancet           = FALSE
 ) {
 
   checkmate::assert_numeric(clu)
@@ -345,8 +345,10 @@ fround_mag_clu <- function(
 
       unlist(lapply(clu, function(x_i){
 
+        big.mark_count_og <- data.table::copy(big.mark_count)
+
         # lancet spec for counts under 10,000
-        if(abs(round(x_i, 0)) <= 9999) {
+        if(is_lancet && abs(round(x_i, 0)) <= 9999) {
           big.mark_count <- ""
           nsmall <- 0
         }
@@ -383,6 +385,17 @@ fround_mag_clu <- function(
             , nsmall       = nsmall
           )
         )
+        # catch cases where counts e.g. 9999 would round up to 10000 and we lose the big.mark
+        if(nchar(x_i_div) > digits_x_i_whole){
+          x_i_chr <- trimws(
+            format(
+              x              = x_i_div
+              , decimal.mark = decimal.mark
+              , big.mark     = big.mark_count_og
+              , nsmall       = nsmall
+            )
+          )
+        }
         checkmate::assert_character(x_i_chr, len = 1)
 
         # zero pad formatted string to correct sig figs if too short
@@ -395,24 +408,33 @@ fround_mag_clu <- function(
           zeros   <- rep.int("0", n_zeros)
           x_i_chr <- sprintf("%s%s", x_i_chr, zeros)
         }
+
         return(unname(x_i_chr)) # not sure how extra naming snuck in
       }))
     }
   )
 
-  # replace negative sign with Lancet standard
+  # replace negative sign (with Lancet standard if applicable)
   clu_fmt <- unlist(lapply(clu_fmt, function(x_i_chr){sub("^-", negative_sign, x_i_chr)}))
 
   return(clu_fmt)
 }
 
-#' Format central/lower/upper sets to Lancet format (vectorized)
+
+# Generic Formatting -----------------------------------------------------------
+
+#' Format central/lower/upper value triplets for journal presentation
 #'
-#' Takes three vectors as main arguments for data.table-friendly vectorization
+#' Defaults are generic.  This function allows special formtting marks to be
+#' applied by journal. Use `format_lancet_clu()` for Lancet-specific formatting.
+#' Use `format_nature_clu()` for Nature-specific formatting.
+#'
+#' Takes three vectors as main arguments for data.table-friendly vectorization.
 #'
 #' `central` could be mean/median/point_estimate
 #'
-#' Transform c(central = 0.994, lower = 0.984, upper = 0.998) to "99.4% (98.4–99.8)"
+#' Transform c(central = 0.994, lower = 0.984, upper = 0.998) to "99.4%
+#' (98.4–99.8)"
 #'
 #' Accounts for negative values, and UIs that cross zero.  Checks if
 #' central/lower/upper values are in the correct order.
@@ -421,38 +443,27 @@ fround_mag_clu <- function(
 #' @param central [num] central/point_estimate value vector
 #' @param lower [num] lower bound vector
 #' @param upper [num] upper bound vector
-#' @param d_type [chr {prop, pp, count}] data type - proportion,
-#' percentage point or count
+#' @param d_type [chr {prop, pp, count}] data type - proportion, percentage
+#'   point or count
 #' @param digits_round_prop [int] number of digits to round proportions/PP
 #' @param digits_sigfig_count [int] number of significant digits for counts
 #' @param nsmall [int] number of digits after the decimal point
-#' @param decimal.mark [chr] decimal mark - Lancet specifies mid-dot
+#' @param decimal.mark [chr] decimal mark
 #' @param negative_sign [chr] negative sign
-#' @param big.mark_count [chr] big mark for counts - Lancet specifies narrow
-#'   space for counts between 9999 and 1 million
-#' @param mean_neg_text [chr: default "a decrease of "] text to prepend if central is negative
-#' e.g. Lance prefers "a decrease of 99·4\% (98·4–99·8)"
+#' @param big.mark_count [chr] big mark for counts
+#' @param mean_neg_text [chr: default "a decrease of "] text to prepend if all
+#'   central/upper/lower triplet values are negative
 #' @param UI_only [lgl] return only the UI?
-#' @param assert_clu_relationships [lgl] enforce correct relationship between central/upper/lower
-#'   values? This should _ALWAYS_ be `TRUE` _UNLESS_ you only care about the
-#'   central difference.
+#' @param assert_clu_relationships [lgl] enforce correct relationship between
+#'   central/upper/lower values? This should _ALWAYS_ be `TRUE` _UNLESS_ you
+#'   only care about the central difference.
+#' @param is_lancet [lgl] apply Lancet-specific formatting for counts 9999 and smaller
 #'
 #' @return [chr] formatted string vector
 #' @export
 #'
 #' @examples
-#' format_lancet_clu(central = 0.994, lower = 0.984, upper = 0.998, d_type = "prop") # "99.4% (98.4–99.8)"
-#' format_lancet_clu(central = c(0.994, 0.994), lower = c(0.984, 0.984), upper = c(0.998, 0.998), d_type = "prop") # "99·4% (98·4–99·8)" "99·4% (98·4–99·8)"
-#' format_lancet_clu(central = c(0.994, 0.994), lower = c(-0.15, 0.984), upper = c(0.998, 0.998), d_type = "prop") # "1·0% (–0·1 to 1·0)" "1·0% (1·0–1·0)"
-#' format_lancet_clu(central = c(-0.05, 0.994), lower = c(-0.15, 0.984), upper = c(0.998, 0.998), d_type = "pp") # "1·0 pp (–0·1 to 1·0)" "1·0 pp (1·0–1·0)"
-#' format_lancet_clu(central = rep(2, 2), lower = rep(.5, 2), upper = rep(3, 2), d_type = "count")
-#' format_lancet_clu(central = rep(2e6, 2), lower = rep(.5e6, 2), upper = rep(3e6, 2), d_type = "count")
-#' format_lancet_clu(central = c(-0.994, -0.994), upper = c(-0.984, -0.984), lower = c(-0.998, -0.998), d_type = "prop",  digits_round_prop = 4)
-#' format_lancet_clu(central = c(-0.994, -0.994), upper = c(-0.984, -0.984), lower = c(-0.998, -0.998), d_type = "prop",  digits_round_prop = 4, UI_only = T)
-#' format_lancet_clu(central = c(0.994, 0.994), lower = c(0.984, 0.984), upper = c(0.998), d_type = "prop") # fail
-#' format_lancet_clu(central = c(0.994, 0.999), lower = c(0.984, 0.984), upper = c(0.998, 0.998), d_type = "prop") # fail
-#' format_lancet_clu(central = c(0.994, 0.994), lower = c(0.984, 0.984), upper = c(0.998, 0.998), d_type = "propeller") # fail
-format_lancet_clu <- function(
+format_journal_clu <- function(
     central
     , lower
     , upper
@@ -460,12 +471,13 @@ format_lancet_clu <- function(
     , digits_round_prop        = 1L
     , digits_sigfig_count      = 3L
     , nsmall                   = 1L
-    , decimal.mark             = mid_dot() # lancet centered period
-    , negative_sign            = en_dash() # lancet negative
-    , big.mark_count           = thin_space() # lancet narrow space
+    , decimal.mark             = "."
+    , negative_sign            = "-"
+    , big.mark_count           = ","
     , mean_neg_text            = "a decrease of "
     , UI_only                  = FALSE
     , assert_clu_relationships = TRUE
+    , is_lancet                = FALSE
 ) {
 
   checkmate::assert_numeric(central, min.len = 1)
@@ -494,13 +506,13 @@ format_lancet_clu <- function(
   checkmate::assert_integerish(digits_round_prop, len = 1, lower = 0)
   checkmate::assert_integerish(nsmall, len = 1, lower = 0)
   checkmate::assert_character(d_type, len = 1)
+  checkmate::assert_choice(d_type, choices = c("prop", "pp", "count"))
   checkmate::assert_logical(UI_only, len = 1)
   checkmate::assert_logical(assert_clu_relationships, len = 1)
   checkmate::assert_character(decimal.mark, len = 1)
   checkmate::assert_character(negative_sign, len = 1)
   checkmate::assert_character(big.mark_count, len = 1)
   checkmate::assert_integerish(digits_sigfig_count, len = 1, lower = 0)
-  checkmate::assert_choice(d_type, choices = c("prop", "pp", "count"))
 
   # vectorized assertions
   if(assert_clu_relationships == TRUE){
@@ -572,6 +584,8 @@ format_lancet_clu <- function(
       , nsmall              = nsmall
       , big.mark_count      = big.mark_count
       , digits_sigfig_count = digits_sigfig_count
+      , negative_sign       = negative_sign
+      , is_lancet           = is_lancet
     )
     names(triplet_fmt) <- c("central", "lower", "upper")
     triplet_fmt
@@ -607,6 +621,266 @@ format_lancet_clu <- function(
 #'
 #' Assumes a single data-type (d_type) for the whole table (e.g. 'prop', 'pp', 'count')
 #'
+#' @param dt
+#' @param d_type
+#' @param central_var
+#' @param lower_var
+#' @param upper_var
+#' @param remove_clu
+#' @param assert_clu_relationships
+#' @param digits_round_prop
+#' @param digits_sigfig_count
+#' @param nsmall
+#' @param decimal.mark
+#' @param negative_sign
+#' @param big.mark_count
+#' @param mean_neg_text
+#' @param UI_only
+#' @param is_lancet
+#'
+#' @returns
+#' @export
+#'
+#' @examples
+format_journal_dt <- function(
+    dt
+    , d_type
+    , central_var              = "mean"
+    , lower_var                = "lower"
+    , upper_var                = "upper"
+    , remove_clu               = TRUE
+    , assert_clu_relationships = TRUE
+    , digits_round_prop        = 1L
+    , digits_sigfig_count      = 3L
+    , nsmall                   = 1L
+    , decimal.mark             = "."
+    , negative_sign            = "-"
+    , big.mark_count           = ""
+    , mean_neg_text            = "a decrease of "
+    , UI_only                  = FALSE
+    , is_lancet                = FALSE
+){
+
+  checkmate::assert_data_table(dt)
+  checkmate::assert_character(d_type, len = 1)
+  checkmate::assert_character(central_var, len = 1)
+  checkmate::assert_character(lower_var, len = 1)
+  checkmate::assert_character(upper_var, len = 1)
+  vars_clu <- c(central_var, lower_var, upper_var)
+  assert_x_in_y(vars_clu, colnames(dt))
+  assert_x_not_in_y("clu_fmt", colnames(dt))
+  checkmate::assert_logical(remove_clu, len = 1)
+  checkmate::assert_logical(assert_clu_relationships, len = 1)
+
+  x <- data.table::copy(dt)
+
+  x[, clu_fmt := format_journal_clu(
+    central                    = .SD[[central_var]]
+    , lower                    = .SD[[lower_var]]
+    , upper                    = .SD[[upper_var]]
+    , d_type                   = d_type
+    , assert_clu_relationships = assert_clu_relationships
+    , digits_round_prop        = digits_round_prop
+    , digits_sigfig_count      = digits_sigfig_count
+    , nsmall                   = nsmall
+    , decimal.mark             = decimal.mark
+    , negative_sign            = negative_sign
+    , big.mark_count           = big.mark_count
+    , mean_neg_text            = mean_neg_text
+    , UI_only                  = UI_only
+    , is_lancet                = is_lancet
+  )]
+
+  if (remove_clu == TRUE) x[, (vars_clu) := NULL]
+  return(x[]) # trick to print if not assigned
+}
+
+
+# Lancet Family Formatting -----------------------------------------------------
+
+#' Format and round with data-type suffix
+#'
+#' @param x [num] numeric value
+#' @param d_type [chr c('prop', 'pp', or 'count')] data type - proportion, percentage point or count
+#' @param digits [integer] passed to `round()`
+#' @param nsmall [integer] passed to `format()`
+#' @param decimal.mark [chr (default mid_d)] decimal mark passed to `format()`
+#'
+#' @return [chr] formatted string
+#'
+#' @examples
+#' fround_dtype_lancet(0.123456789) # "0·1%"
+#' fround_dtype_lancet(0.123456789, 'pp', 3, 4) # "0·1230 pp"
+#' fround_dtype_lancet(c(55.8346, 123.456789), 'count', 3, 4, ".") # "55.8350"  "123.4570"
+fround_dtype_lancet <- function(
+    x
+    , d_type       = "prop"
+    , digits       = 1L
+    , nsmall       = 1L
+    , decimal.mark = mid_dot()
+){
+
+  fround_dtype(
+    x              = x
+    , d_type       = d_type
+    , digits       = digits
+    , nsmall       = nsmall
+    , decimal.mark = decimal.mark
+  )
+
+}
+
+#' Format and round central/lower/upper value sets by magnitude _without_ units
+#'
+#' `central` could be mean/median/point_estimate. d_type is required (count data
+#' requires nuanced logic), but labels are not returned.
+#'
+#' Format and round without unit labeling
+#' - Use `format_lancet_clu()` for unit labels
+#'
+#' Defaults are for lancet labels.
+#'
+#' Current IHME & Lancet standards:
+#' - https://hub.ihme.washington.edu/spaces/SC/pages/123833253/Rounding+standards
+#' - Rates and Percentages - to one decimal place
+#' - Counts                - to 3 sig figs
+#'
+#' @param clu [num] a numeric vector of central/lower/upper
+#' @param d_type [chr c('prop', 'pp', or 'count')] data type - proportion,
+#'   percentage point or count
+#' @param mag_list [named list] output from `set_magnitude()` - must be based on
+#'   **central** value of a central/lower/upper set - central _and_ all UI values inherit the
+#'   same scale as the central tendency.
+#' @param decimal.mark [chr] e.g. (default mid_dot() Lancet standard)
+#' @param negative_sign [chr] negative sign (default "–" Lancet standard)
+#' @param big.mark_count [chr] big mark for counts - Lancet specifies narrow
+#'   space for counts between 9999 and 1 million
+#' @param digits_round_prop [int] passed to `round()` for proportions
+#' @param digits_sigfig_count [int] passed to `signif()` for counts
+#' @param nsmall [int] passed to `format()`
+#'
+#' @return [chr] formatted string (vectorized)
+#' @export
+#'
+#' @examples
+#' fround_mag_clu(clu = c(central = 0.2, lower = 0.1, upper = 0.3), d_type = "prop") # "0·2" "0·1" "0·3"
+#' fround_mag_clu(clu = c(central = 0.2, lower = -0.1, upper = 0.3), d_type = "pp") # "0·2" "–0·1" "0·3"
+#' fround_mag_clu(clu = c(central = 95e6, lower = 89e6, upper = 101e6), d_type = "count") # "95·0"  "89·0"   "101"
+#' fround_mag_clu(clu = c(central = 95e6, lower = 96e6, upper = 97e6), d_type = "count") # "95·0"  "96·0"  "97·0"
+fround_mag_clu_lancet <- function(
+    clu
+    , d_type
+    , mag_list            = set_magnitude(clu[1]) # assuming central is in first position
+    , digits_round_prop   = 1L
+    , digits_sigfig_count = 3L
+    , nsmall              = 1L
+    , decimal.mark        = mid_dot()    # lancet centered period
+    , negative_sign       = en_dash()    # lancet negative
+    , big.mark_count      = thin_space() # lancet narrow space
+    , is_lancet           = TRUE
+) {
+
+  fround_mag_clu(
+    clu                   = clu
+    , d_type              = d_type
+    , mag_list            = mag_list
+    , digits_round_prop   = digits_round_prop
+    , digits_sigfig_count = digits_sigfig_count
+    , nsmall              = nsmall
+    , decimal.mark        = decimal.mark
+    , negative_sign       = negative_sign
+    , big.mark_count      = big.mark_count
+    , is_lancet           = is_lancet
+  )
+}
+
+
+#' Lancet Format central/lower/upper data triplets (vectorized)
+#'
+#' Takes three vectors as main arguments for data.table-friendly vectorization.
+#'
+#' `central` could be mean/median/point_estimate
+#'
+#' Transform c(central = 0.994, lower = 0.984, upper = 0.998) to "99.4% (98.4–99.8)"
+#'
+#' Accounts for negative values, and UIs that cross zero.  Checks if
+#' central/lower/upper values are in the correct order.
+#' - https://hub.ihme.washington.edu/spaces/SGT/pages/45675035/WRITING+STYLE+GUIDE#WRITINGSTYLEGUIDE-GBDStyleGuideGBDStyleGuide
+#'
+#' @param central [num] central/point_estimate value vector
+#' @param lower [num] lower bound vector
+#' @param upper [num] upper bound vector
+#' @param d_type [chr {prop, pp, count}] data type - proportion,
+#' percentage point or count
+#' @param digits_round_prop [int] number of digits to round proportions/PP
+#' @param digits_sigfig_count [int] number of significant digits for counts
+#' @param nsmall [int] number of digits after the decimal point
+#' @param decimal.mark [chr] decimal mark - Lancet specifies mid-dot
+#' @param negative_sign [chr] negative sign
+#' @param big.mark_count [chr] big mark for counts - Lancet specifies narrow
+#'   space for counts between 9999 and 1 million
+#' @param mean_neg_text [chr: default "a decrease of "] text to prepend if central is negative
+#' e.g. Lancet prefers "a decrease of 99·4\% (98·4–99·8)"
+#' @param UI_only [lgl] return only the UI?
+#' @param assert_clu_relationships [lgl] enforce correct relationship between central/upper/lower
+#'   values? This should _ALWAYS_ be `TRUE` _UNLESS_ you only care about the
+#'   central difference.
+#'
+#' @return [chr] formatted string vector
+#' @export
+#'
+#' @examples
+#' format_lancet_clu(central = 0.994, lower = 0.984, upper = 0.998, d_type = "prop") # "99.4% (98.4–99.8)"
+#' format_lancet_clu(central = c(0.994, 0.994), lower = c(0.984, 0.984), upper = c(0.998, 0.998), d_type = "prop") # "99·4% (98·4–99·8)" "99·4% (98·4–99·8)"
+#' format_lancet_clu(central = c(0.994, 0.994), lower = c(-0.15, 0.984), upper = c(0.998, 0.998), d_type = "prop") # "1·0% (–0·1 to 1·0)" "1·0% (1·0–1·0)"
+#' format_lancet_clu(central = c(-0.05, 0.994), lower = c(-0.15, 0.984), upper = c(0.998, 0.998), d_type = "pp") # "1·0 pp (–0·1 to 1·0)" "1·0 pp (1·0–1·0)"
+#' format_lancet_clu(central = rep(2, 2), lower = rep(.5, 2), upper = rep(3, 2), d_type = "count")
+#' format_lancet_clu(central = rep(2e6, 2), lower = rep(.5e6, 2), upper = rep(3e6, 2), d_type = "count")
+#' format_lancet_clu(central = c(-0.994, -0.994), upper = c(-0.984, -0.984), lower = c(-0.998, -0.998), d_type = "prop",  digits_round_prop = 4)
+#' format_lancet_clu(central = c(-0.994, -0.994), upper = c(-0.984, -0.984), lower = c(-0.998, -0.998), d_type = "prop",  digits_round_prop = 4, UI_only = T)
+#' format_lancet_clu(central = c(0.994, 0.994), lower = c(0.984, 0.984), upper = c(0.998), d_type = "prop") # fail
+#' format_lancet_clu(central = c(0.994, 0.999), lower = c(0.984, 0.984), upper = c(0.998, 0.998), d_type = "prop") # fail
+#' format_lancet_clu(central = c(0.994, 0.994), lower = c(0.984, 0.984), upper = c(0.998, 0.998), d_type = "propeller") # fail
+format_lancet_clu <- function(
+    central
+    , lower
+    , upper
+    , d_type
+    , digits_round_prop        = 1L
+    , digits_sigfig_count      = 3L
+    , nsmall                   = 1L
+    , decimal.mark             = mid_dot() # lancet centered period
+    , negative_sign            = en_dash() # lancet negative
+    , big.mark_count           = thin_space() # lancet narrow space
+    , mean_neg_text            = "a decrease of "
+    , UI_only                  = FALSE
+    , assert_clu_relationships = TRUE
+    , is_lancet                = TRUE
+) {
+
+  format_journal_clu(
+    central                    = central
+    , lower                    = lower
+    , upper                    = upper
+    , d_type                   = d_type
+    , digits_round_prop        = digits_round_prop
+    , digits_sigfig_count      = digits_sigfig_count
+    , nsmall                   = nsmall
+    , decimal.mark             = decimal.mark
+    , negative_sign            = negative_sign
+    , big.mark_count           = big.mark_count
+    , mean_neg_text            = mean_neg_text
+    , UI_only                  = UI_only
+    , assert_clu_relationships = assert_clu_relationships
+    , is_lancet                = is_lancet
+  )
+
+}
+
+#' Return a table with formatted central/lower/upper
+#'
+#' Assumes a single data-type (d_type) for the whole table (e.g. 'prop', 'pp', 'count')
+#'
 #' @param dt [data.table] with central/lower/upper columns
 #' @param d_type [chr {prop', 'pp', 'count'}] data type - proportion, percentage point or count
 #' @param central_var [chr: default 'mean'] name of central tendency e.g. 'point_estimate'
@@ -631,30 +905,131 @@ format_lancet_dt <- function(
     , upper_var                = "upper"
     , remove_clu               = TRUE
     , assert_clu_relationships = TRUE
+    , digits_round_prop        = 1L
+    , digits_sigfig_count      = 3L
+    , nsmall                   = 1L
+    , decimal.mark             = mid_dot() # lancet centered period
+    , negative_sign            = en_dash() # lancet negative
+    , big.mark_count           = thin_space() # lancet narrow space
+    , mean_neg_text            = "a decrease of "
+    , UI_only                  = FALSE
+    , is_lancet                = TRUE
 ){
 
-  checkmate::assert_data_table(dt)
-  checkmate::assert_character(d_type, len = 1)
-  checkmate::assert_character(central_var, len = 1)
-  checkmate::assert_character(lower_var, len = 1)
-  checkmate::assert_character(upper_var, len = 1)
-  vars_clu <- c(central_var, lower_var, upper_var)
-  checkmate::assert_names(names(dt), must.include = vars_clu)
-  checkmate::assert_logical(remove_clu, len = 1)
-  checkmate::assert_logical(assert_clu_relationships, len = 1)
-
-  x <- data.table::copy(dt)
-
-  x[, clu_fmt := format_lancet_clu(
-    central                    = .SD[[central_var]]
-    , lower                    = .SD[[lower_var]]
-    , upper                    = .SD[[upper_var]]
+  format_journal_dt(
+    dt                         = dt
     , d_type                   = d_type
+    , central_var              = central_var
+    , lower_var                = lower_var
+    , upper_var                = upper_var
+    , remove_clu               = remove_clu
     , assert_clu_relationships = assert_clu_relationships
-  )]
+    , digits_round_prop        = digits_round_prop
+    , digits_sigfig_count      = digits_sigfig_count
+    , nsmall                   = nsmall
+    , decimal.mark             = decimal.mark
+    , negative_sign            = negative_sign
+    , big.mark_count           = big.mark_count
+    , mean_neg_text            = mean_neg_text
+    , UI_only                  = UI_only
+    , is_lancet                = is_lancet
+  )
 
-  if (remove_clu == TRUE) x[, (vars_clu) := NULL]
-  return(x[]) # trick to print if not assigned
+}
+
+# Nature Family Formatting -----------------------------------------------------
+
+#' Format central/lower/upper sets to Nature CLU format (vectorized)
+#'
+#' @param central [num] central/point_estimate value vector
+#' @param lower [num] lower bound vector
+#' @param upper [num] upper bound vector
+#' @param d_type [chr {prop, pp, count}] data type - proportion, percentage
+#'   point or count
+#' @param digits_round_prop [int] number of digits to round proportions/PP
+#' @param digits_sigfig_count [int] number of significant digits for counts
+#' @param nsmall [int] number of digits after the decimal point
+#' @param decimal.mark [chr] decimal mark
+#' @param negative_sign [chr] negative sign
+#' @param big.mark_count [chr] big mark for counts
+#' @param mean_neg_text [chr: default "a decrease of "] text to prepend if all
+#'   central/upper/lower triplet values are negative
+#' @param UI_only [lgl] return only the UI?
+#' @param assert_clu_relationships [lgl] enforce correct relationship between
+#'   central/upper/lower values? This should _ALWAYS_ be `TRUE` _UNLESS_ you
+#'   only care about the central difference.
+#'
+#' @return [chr] formatted string vector
+#' @export
+#'
+#' @examples
+format_nature_clu <- function(
+  central
+  , lower
+  , upper
+  , d_type
+  , digits_round_prop        = 1L
+  , digits_sigfig_count      = 3L
+  , nsmall                   = 1L
+  , decimal.mark             = "."
+  , negative_sign            = "-"
+  , big.mark_count           = ","
+  , mean_neg_text            = "a decrease of "
+  , UI_only                  = FALSE
+  , assert_clu_relationships = TRUE
+){
+  format_journal_clu(
+    central                    = central
+    , lower                    = lower
+    , upper                    = upper
+    , d_type                   = d_type
+    , digits_round_prop        = digits_round_prop
+    , digits_sigfig_count      = digits_sigfig_count
+    , nsmall                   = nsmall
+    , decimal.mark             = decimal.mark
+    , negative_sign            = negative_sign
+    , big.mark_count           = big.mark_count
+    , mean_neg_text            = mean_neg_text
+    , UI_only                  = UI_only
+    , assert_clu_relationships = assert_clu_relationships
+  )
 }
 
 
+format_nature_dt <- function(
+  dt
+  , d_type
+  , central_var              = "mean"
+  , lower_var                = "lower"
+  , upper_var                = "upper"
+  , remove_clu               = TRUE
+  , assert_clu_relationships = TRUE
+  , digits_round_prop        = 1L
+  , digits_sigfig_count      = 3L
+  , nsmall                   = 1L
+  , decimal.mark             = "."
+  , negative_sign            = "-"
+  , big.mark_count           = ","
+  , mean_neg_text            = "a decrease of "
+  , UI_only                  = FALSE
+){
+
+  format_journal_dt(
+    dt                         = dt
+    , d_type                   = d_type
+    , central_var              = central_var
+    , lower_var                = lower_var
+    , upper_var                = upper_var
+    , remove_clu               = remove_clu
+    , assert_clu_relationships = assert_clu_relationships
+    , digits_round_prop        = digits_round_prop
+    , digits_sigfig_count      = digits_sigfig_count
+    , nsmall                   = nsmall
+    , decimal.mark             = decimal.mark
+    , negative_sign            = negative_sign
+    , big.mark_count           = big.mark_count
+    , mean_neg_text            = mean_neg_text
+    , UI_only                  = UI_only
+  )
+
+}

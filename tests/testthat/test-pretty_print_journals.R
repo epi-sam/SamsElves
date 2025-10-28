@@ -1,6 +1,3 @@
-
-# Unit tests ----
-
 test_that("mid_dot works",
           {
             expect_equal(mid_dot(), "·")
@@ -23,9 +20,9 @@ test_that("fround works",
 
 test_that("fround_dtype works",
           {
-            expect_equal(fround_dtype(0.123456789), "0·1%")
-            expect_equal(fround_dtype(0.123456789, d_type = "pp"), "0·1 pp")
-            expect_equal(fround_dtype(0.123456789, d_type = "count", digits = 3, nsmall = 4), "0·1230")
+            expect_equal(fround_dtype_lancet(0.123456789), "0·1%")
+            expect_equal(fround_dtype_lancet(0.123456789, d_type = "pp"), "0·1 pp")
+            expect_equal(fround_dtype_lancet(0.123456789, d_type = "count", digits = 3, nsmall = 4), "0·1230")
           })
 
 
@@ -53,13 +50,15 @@ test_that("fmt_magnitude works",
 
 test_that("fround_mag_clu works",
           {
-            expect_equal(fround_mag_clu(clu = c(central = 0.2, lower = 0.1, upper = 0.3), d_type = "prop"), c(central = "0·2", lower = "0·1", upper = "0·3"))
-            expect_equal(fround_mag_clu(clu = c(central = 0.2, lower = -0.1, upper = 0.3), d_type = "pp"), c(central = "0·2", lower = "–0·1", upper = "0·3"))
-            expect_equal(fround_mag_clu(clu = c(central = 9.5e6, lower = 8.9e6, upper = 101e6), d_type = "count"), c(central = "9·50", lower = "8·90", upper = "101"))
-            expect_equal(fround_mag_clu(clu = c(central = 95e6, lower = 96e6, upper = 97e6), d_type = "count"), c(central = "95·0", lower = "96·0", upper = "97·0"))
+            expect_equal(fround_mag_clu_lancet(clu = c(central = 0.2, lower = 0.1, upper = 0.3), d_type = "prop"), c(central = "0·2", lower = "0·1", upper = "0·3"))
+            expect_equal(fround_mag_clu_lancet(clu = c(central = 0.2, lower = -0.1, upper = 0.3), d_type = "pp"), c(central = "0·2", lower = "–0·1", upper = "0·3"))
+            expect_equal(fround_mag_clu_lancet(clu = c(central = 9.5e6, lower = 8.9e6, upper = 101e6), d_type = "count"), c(central = "9·50", lower = "8·90", upper = "101"))
+            expect_equal(fround_mag_clu_lancet(clu = c(central = 95e6, lower = 96e6, upper = 97e6), d_type = "count"), c(central = "95·0", lower = "96·0", upper = "97·0"))
             # trickier cases - need sig figs even for small numbers
-            expect_equal(fround_mag_clu(clu = c(central = 1, lower = 0.2, upper = 2), d_type = "count"), c(central = "1·00", lower = "0·200", upper = "2·00"))
-            expect_equal(fround_mag_clu(clu = c(central = 10.5, lower = 0.2, upper = 20.3), d_type = "count"), c(central = "10·5", lower = "0·200", upper = "20·3"))
+            expect_equal(fround_mag_clu_lancet(clu = c(central = 1, lower = 0.2, upper = 2), d_type = "count"), c(central = "1·00", lower = "0·200", upper = "2·00"))
+            expect_equal(fround_mag_clu_lancet(clu = c(central = 10.5, lower = 0.2, upper = 20.3), d_type = "count"), c(central = "10·5", lower = "0·200", upper = "20·3"))
+            # rounding edge case
+            expect_equal(fround_mag_clu_lancet(clu = c(central = 9995, lower = 9990, upper = 10100), d_type = 'count'), c(central = "10 000", lower = "9990", upper = "10 100"))
           })
 
 
@@ -79,10 +78,13 @@ test_that("format_lancet_clu works",
                          , c("a decrease of 99·4% (98·4–99·8)", "a decrease of 99·4% (98·4–99·8)"))
             expect_equal(format_lancet_clu(central = c(-0.994, -0.994), upper = c(-0.984, -0.984), lower = c(-0.998, -0.998), d_type = "prop",  digits_round_prop = 4, UI_only = TRUE)
                          , c("98·4–99·8", "98·4–99·8"))
+            # rounding edge case
+            expect_equal(format_lancet_clu(central = 9995, lower = 9990, upper = 10100, d_type = 'count')
+                         , c("10 000 (9990–10 100)"))
           })
 
 
-test_that("format_lanced_clu errors correctly", {
+test_that("format_lancet_clu errors correctly", {
   expect_error(
     format_lancet_clu(central = c(0.994, 0.994), lower = c(0.984, 0.984), upper = c(0.998), d_type = "prop")
     , "Assertion on 'length\\(clu_lengths\\) == 1' failed: Must be TRUE."
@@ -98,6 +100,9 @@ test_that("format_lanced_clu errors correctly", {
 
 })
 
+# 2025 Oct 28 - format_journal_clu was added as a generic function, and
+# format_lancet_clu is just a wrapper for it, so this test catches both, until
+# proven otherwise.
 test_that("format_lancet_dt works",
           {
             DT_count <- data.table::data.table(
