@@ -116,7 +116,8 @@ attach_parent_location_id <- function(
   checkmate::assert_integerish(parent_level, len = 1)
   checkmate::assert_choice("location_id", names(df))
   # assert no names overlap df column names
-  checkmate::assert_disjunct(new_varname, names(df))
+  # checkmate::assert_disjunct(new_varname, names(df))
+  assert_x_not_in_y(names(df), new_varname)
 
   df <- add_column(
     x         = df
@@ -195,7 +196,8 @@ attach_national_ihme_loc_id <- function(
     , keep_nat_loc_id      = FALSE
 ){
 
-  checkmate::assert_disjunct(new_varname, names(df))
+  # checkmate::assert_disjunct(new_varname, names(df))
+  assert_x_not_in_y(names(df), new_varname)
 
   df <- attach_national_location_id(
     df

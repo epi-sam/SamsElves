@@ -2,7 +2,7 @@ library(data.table)
 # If testing ever breaks, add data.table to imports for BOTH:
 # - DESCRIPTION file
 # - NAMESPACE file# Hierarchy with Washington, Arkansas, USA, Rajasthan, India, and Global
-test_hier = data.table::data.table(
+test_hier <- data.table::data.table(
   'location_id'        = c(570, 526, 102, 4868, 163, 1),
   'path_to_top_parent' = c('1,102,570',
                            '1,102,526',
@@ -175,8 +175,9 @@ test_that("attach_parent_location_id fails correctly",
                 , hierarchy = test_hier
                 , parent_level = 1
                 , allow_self_as_parent = TRUE
+                , new_varname = "parent_location_id"
               )
-              , regexp = "Assertion on 'new_varname' failed: Must be disjunct from \\{'location_id','some_data','parent_location_id'\\}"
+              , regexp = "forbidden in names\\(df\\) but present in new_varname: parent_location_id"
             )
           })
 
