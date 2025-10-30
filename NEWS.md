@@ -1,3 +1,7 @@
+# SamsElves 0.9.13
+
+added: means_year_compare, format_means_dt & tests; added missing docstrings
+
 # SamsElves 0.9.12
 
 attach_x_id now removes existing columns before attaching instead of skipping the merge
