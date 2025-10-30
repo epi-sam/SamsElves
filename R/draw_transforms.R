@@ -167,8 +167,15 @@ draws_long_to_wide <- function(DT, id_varnames = find_id_varnames(DT, removals =
   }
 
   # faster than dcast
-  DTW <- tidyr::pivot_wider(data = DT, names_from = "draw_id", values_from = "value", names_prefix = names_prefix)  %>%
-    data.table::as.data.table()
+  DTW <- data.table::as.data.table(
+    tidyr::pivot_wider(
+      data           = DT
+      , names_from   = "draw_id"
+      , values_from  = "value"
+      , names_prefix = names_prefix
+    )
+  )
+
 
   data.table::setnames(DTW, "draw_point_estimate", "point_estimate", skip_absent = TRUE)
 

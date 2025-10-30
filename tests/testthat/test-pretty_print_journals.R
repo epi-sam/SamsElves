@@ -46,6 +46,26 @@ test_that("fmt_magnitude works",
             expect_equal(fmt_magnitude(123456789), "123.5 million")
           })
 
+
+test_that("format_mean_dt works",
+          {
+            DT_test <- data.table::data.table(
+              location_id = c(1, 2, 3)
+              , mean_1990 = c(0.1234, 0.2345, 0.3456)
+              , mean_2000 = c(0.2234, 0.3345, 0.4456)
+             )
+
+            DT_result <- format_means_dt(DT_test, dtype = "prop")
+
+            DT_expected <- data.table::data.table(
+              location_id = c(1, 2, 3)
+              , mean_1990 = c("12.3%", "23.5%", "34.6%")
+              , mean_2000 = c("22.3%", "33.5%", "44.6%")
+            )
+
+            expect_equal(DT_result, DT_expected)
+          })
+
 # Integration tests -----
 
 test_that("fround_mag_clu works",

@@ -462,7 +462,6 @@ fround_mag_clu <- function(
 #' @return [chr] formatted string vector
 #' @export
 #'
-#' @examples
 format_journal_clu <- function(
     central
     , lower
@@ -619,29 +618,33 @@ format_journal_clu <- function(
 
 #' Return a table with formatted central/lower/upper
 #'
-#' Assumes a single data-type (d_type) for the whole table (e.g. 'prop', 'pp', 'count')
+#' Assumes a single data-type (d_type) for the whole table (e.g. 'prop', 'pp',
+#' 'count')
 #'
-#' @param dt
-#' @param d_type
-#' @param central_var
-#' @param lower_var
-#' @param upper_var
-#' @param remove_clu
-#' @param assert_clu_relationships
-#' @param digits_round_prop
-#' @param digits_sigfig_count
-#' @param nsmall
-#' @param decimal.mark
-#' @param negative_sign
-#' @param big.mark_count
-#' @param mean_neg_text
-#' @param UI_only
-#' @param is_lancet
+#' @param dt [data.table]
+#' @param d_type [chr {'prop', 'pp', or 'count'}] a single data type
+#' @param central_var [chr: default 'mean'] name of central tendency variable
+#' @param lower_var [chr: default 'lower'] name of lower bound variable
+#' @param upper_var [chr: default 'upper'] name of upper bound variable
+#' @param remove_clu [lgl] remove central/lower/upper variables after
+#'   formatting?
+#' @param assert_clu_relationships [lgl] enforce correct relationship between
+#'   central/upper/lower values? This should _ALWAYS_ be `TRUE` _UNLESS_ you
+#'   only care about the central difference.
+#' @param digits_round_prop [int] passed to `round()` for proportions
+#' @param digits_sigfig_count [int] passed to `signif()` for counts
+#' @param nsmall [int] passed to `format()`
+#' @param decimal.mark [chr] decimal mark passed to `format()`
+#' @param negative_sign [chr] negative sign
+#' @param big.mark_count [chr] big mark for counts passed to `format()`
+#' @param mean_neg_text [chr: default "a decrease of "] text to prepend if all
+#'   central/upper/lower triplet values are negative
+#' @param UI_only [lgl] return only the UI?
+#' @param is_lancet [lgl] apply Lancet-specific formatting for counts 9999 and
+#'   smaller
 #'
-#' @returns
+#' @returns [data.table] copy of input data.table with new 'clu_fmt' column
 #' @export
-#'
-#' @examples
 format_journal_dt <- function(
     dt
     , d_type
@@ -693,6 +696,86 @@ format_journal_dt <- function(
 
   if (remove_clu == TRUE) x[, (vars_clu) := NULL]
   return(x[]) # trick to print if not assigned
+}
+
+#' Format means in data.table by data type for presentation.
+#'
+#' TODO 2025-10-30 - not yet configured with set_magnitude
+#'
+#' Multiply one or more 'mean_' columns by a scalar and round to specified
+#' digits based on a data type.
+#'
+#' Pairs nicely with `means_year_compare()`
+#'
+#' Data types:
+#' - 'prop'  - proportion (e.g. 0.1234 -> 12.3%)
+#' - 'pp'    - percentage point (e.g. 0.1234 -> 12.3 pp)
+#' - 'count' - count (e.g. 1234.56 -> 1235)
+#'
+#' @param DT [data.table] input data.table with one or more 'mean_' columns
+#' @param dtype [chr {'prop', 'pp', or 'count'}] a single data type
+#' @param scalar [numeric: default 100] scalar to multiply mean values by
+#' @param digits [integer: default 1] number of digits to round to
+#' @param central_varname [chr: default 'mean'] prefix of mean variable names to
+#'   format.  Implemented as e.g. "^mean[_]*" to capture 'mean', 'mean_1990',
+#'   'mean_2000', etc.
+#'
+#' @returns [data.table] copy of input data.table with formatted mean column(s)
+#' @export
+#'
+#' @examples
+#' DT <- data.table::data.table(
+#'   location_id = c(1, 2, 3)
+#'   , mean_1990 = c(0.1234, 0.2345, 0.3456)
+#'   , mean_2000 = c(0.2234, 0.3345, 0.4456)
+#'  )
+#'
+#' format_means_dt(DT, dtype = "prop")
+format_means_dt <- function(
+    DT
+    , dtype
+    , central_varname = "mean"
+    , scalar          = 100
+    , digits          = 1
+    , decimal.mark    = "."
+    , big.mark        = ","
+){
+  checkmate::assert_data_table(DT)
+  checkmate::assert_character(dtype, len = 1)
+  checkmate::assert_number(scalar)
+  checkmate::assert_integerish(digits, len = 1)
+
+  label <- switch(
+    dtype
+    , prop  = "%"
+    , pp    = " pp"
+    , count = ""
+    , stop("dtype must be one of 'prop', 'pp' or 'count'")
+  )
+
+  mean_varnames <- grep(
+    pattern = sprintf("^%s[_]*", central_varname)
+    , x     = colnames(DT)
+    , value = TRUE
+  )
+
+  # hack for floating point rounding issues
+  epsilon <- 1e-9
+
+  for (varname in mean_varnames){
+    DT[, (varname) := paste0(
+      formatC(
+        x              = round(get(varname) * scalar + epsilon, digits)
+        , format       = "f"
+        , digits       = digits
+        , big.mark     = big.mark
+        , decimal.mark = decimal.mark
+      )
+      , label
+    )]
+  }
+
+  DT[]
 }
 
 
@@ -961,22 +1044,20 @@ format_lancet_dt <- function(
 #'
 #' @return [chr] formatted string vector
 #' @export
-#'
-#' @examples
 format_nature_clu <- function(
-  central
-  , lower
-  , upper
-  , d_type
-  , digits_round_prop        = 1L
-  , digits_sigfig_count      = 3L
-  , nsmall                   = 1L
-  , decimal.mark             = "."
-  , negative_sign            = "-"
-  , big.mark_count           = ","
-  , mean_neg_text            = "a decrease of "
-  , UI_only                  = FALSE
-  , assert_clu_relationships = TRUE
+    central
+    , lower
+    , upper
+    , d_type
+    , digits_round_prop        = 1L
+    , digits_sigfig_count      = 3L
+    , nsmall                   = 1L
+    , decimal.mark             = "."
+    , negative_sign            = "-"
+    , big.mark_count           = ","
+    , mean_neg_text            = "a decrease of "
+    , UI_only                  = FALSE
+    , assert_clu_relationships = TRUE
 ){
   format_journal_clu(
     central                    = central
@@ -997,21 +1078,21 @@ format_nature_clu <- function(
 
 
 format_nature_dt <- function(
-  dt
-  , d_type
-  , central_var              = "mean"
-  , lower_var                = "lower"
-  , upper_var                = "upper"
-  , remove_clu               = TRUE
-  , assert_clu_relationships = TRUE
-  , digits_round_prop        = 1L
-  , digits_sigfig_count      = 3L
-  , nsmall                   = 1L
-  , decimal.mark             = "."
-  , negative_sign            = "-"
-  , big.mark_count           = ","
-  , mean_neg_text            = "a decrease of "
-  , UI_only                  = FALSE
+    dt
+    , d_type
+    , central_var              = "mean"
+    , lower_var                = "lower"
+    , upper_var                = "upper"
+    , remove_clu               = TRUE
+    , assert_clu_relationships = TRUE
+    , digits_round_prop        = 1L
+    , digits_sigfig_count      = 3L
+    , nsmall                   = 1L
+    , decimal.mark             = "."
+    , negative_sign            = "-"
+    , big.mark_count           = ","
+    , mean_neg_text            = "a decrease of "
+    , UI_only                  = FALSE
 ){
 
   format_journal_dt(

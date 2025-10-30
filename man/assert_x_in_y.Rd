@@ -17,3 +17,6 @@ assert_x_in_y(x, y)
 \description{
 Assert all elements of x are in y
 }
+\examples{
+assert_x_in_y(c("a", "b"), c("a", "b", "c"))
+}
