@@ -1,5 +1,7 @@
 # SamsElves 0.9.14
 
+big documentation update
+
 # SamsElves 0.9.13
 
 added: means_year_compare, format_means_dt & tests; added missing docstrings
