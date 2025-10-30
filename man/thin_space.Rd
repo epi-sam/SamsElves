@@ -10,7 +10,8 @@ thin_space()
 [chr] thin space character (" ")
 }
 \description{
-Lancet thin space standard (" ") for thousands separator (instead of commaa ",")
+Lancet thin space standard (" ") for thousands separator (instead of commaa
+",")
 }
 \examples{
 thin_space()

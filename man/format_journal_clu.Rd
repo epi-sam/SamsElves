@@ -17,6 +17,7 @@ format_journal_clu(
   big.mark_count = ",",
   mean_neg_text = "a decrease of ",
   UI_only = FALSE,
+  UI_text = "",
   assert_clu_relationships = TRUE,
   is_lancet = FALSE
 )
@@ -31,28 +32,32 @@ format_journal_clu(
 \item{d_type}{[chr {prop, pp, count}] data type - proportion, percentage
 point or count}
 
-\item{digits_round_prop}{[int] number of digits to round proportions/PP}
+\item{digits_round_prop}{[int: default 1L] number of digits to round proportions/PP}
 
-\item{digits_sigfig_count}{[int] number of significant digits for counts}
+\item{digits_sigfig_count}{[int: default 3L] number of significant digits for counts}
 
-\item{nsmall}{[int] number of digits after the decimal point}
+\item{nsmall}{[int: default 1L] number of digits after the decimal point}
 
-\item{decimal.mark}{[chr] decimal mark}
+\item{decimal.mark}{[chr: default "."] decimal mark}
 
-\item{negative_sign}{[chr] negative sign}
+\item{negative_sign}{[chr: default "-"] negative sign}
 
-\item{big.mark_count}{[chr] big mark for counts}
+\item{big.mark_count}{[chr: default ","] big mark for counts}
 
-\item{mean_neg_text}{[chr: default "a decrease of "] text to prepend if all
-central/upper/lower triplet values are negative}
+\item{mean_neg_text}{[chr: default "a decrease of "] text to prepend if
+central value is negative}
 
-\item{UI_only}{[lgl] return only the UI?}
+\item{UI_only}{[lgl: default FALSE] return only the UI?}
 
-\item{assert_clu_relationships}{[lgl] enforce correct relationship between
+\item{UI_text}{[chr: default ""] text to appear before values inside UI
+parentheses}
+
+\item{assert_clu_relationships}{[lgl: default TRUE] enforce correct relationship between
 central/upper/lower values? This should _ALWAYS_ be `TRUE` _UNLESS_ you
 only care about the central difference.}
 
-\item{is_lancet}{[lgl] apply Lancet-specific formatting for counts 9999 and smaller}
+\item{is_lancet}{[lgl: default FALSE] apply Lancet-specific formatting for counts 9999 and
+smaller}
 }
 \value{
 [chr] formatted string vector

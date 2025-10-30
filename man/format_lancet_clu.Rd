@@ -17,6 +17,7 @@ format_lancet_clu(
   big.mark_count = thin_space(),
   mean_neg_text = "a decrease of ",
   UI_only = FALSE,
+  UI_text = "",
   assert_clu_relationships = TRUE,
   is_lancet = TRUE
 )
@@ -28,30 +29,33 @@ format_lancet_clu(
 
 \item{upper}{[num] upper bound vector}
 
-\item{d_type}{[chr {prop, pp, count}] data type - proportion,
-percentage point or count}
+\item{d_type}{[chr {prop, pp, count}] data type - proportion, percentage
+point or count}
 
-\item{digits_round_prop}{[int] number of digits to round proportions/PP}
+\item{digits_round_prop}{[int: default 1L] number of digits to round proportions/PP}
 
-\item{digits_sigfig_count}{[int] number of significant digits for counts}
+\item{digits_sigfig_count}{[int: default 3L] number of significant digits for counts}
 
-\item{nsmall}{[int] number of digits after the decimal point}
+\item{nsmall}{[int: default 1L] number of digits after the decimal point}
 
-\item{decimal.mark}{[chr] decimal mark - Lancet specifies mid-dot}
+\item{decimal.mark}{[chr: default mid_dot()] decimal mark - Lancet specifies mid-dot}
 
-\item{negative_sign}{[chr] negative sign}
+\item{negative_sign}{[chr: default en_dash()] negative sign}
 
-\item{big.mark_count}{[chr] big mark for counts - Lancet specifies narrow
+\item{big.mark_count}{[chr: default thin_spac] big mark for counts - Lancet specifies narrow
 space for counts between 9999 and 1 million}
 
-\item{mean_neg_text}{[chr: default "a decrease of "] text to prepend if central is negative
-e.g. Lancet prefers "a decrease of 99·4\% (98·4–99·8)"}
+\item{mean_neg_text}{[chr: default "a decrease of "] text to prepend if
+central is negative e.g. Lancet prefers "a decrease of 99·4\% (98·4–99·8)"}
 
-\item{UI_only}{[lgl] return only the UI?}
+\item{UI_only}{[lgl: default FALSE] return only the UI?}
 
-\item{assert_clu_relationships}{[lgl] enforce correct relationship between central/upper/lower
-values? This should _ALWAYS_ be `TRUE` _UNLESS_ you only care about the
-central difference.}
+\item{UI_text}{[chr: default ""] text to appear before values inside UI
+parentheses}
+
+\item{assert_clu_relationships}{[lgl: default TRUE] enforce correct relationship between
+central/upper/lower values? This should _ALWAYS_ be `TRUE` _UNLESS_ you
+only care about the central difference.}
 }
 \value{
 [chr] formatted string vector
@@ -62,7 +66,8 @@ Takes three vectors as main arguments for data.table-friendly vectorization.
 \details{
 `central` could be mean/median/point_estimate
 
-Transform c(central = 0.994, lower = 0.984, upper = 0.998) to "99.4% (98.4–99.8)"
+Transform c(central = 0.994, lower = 0.984, upper = 0.998) to "99.4%
+(98.4–99.8)"
 
 Accounts for negative values, and UIs that cross zero.  Checks if
 central/lower/upper values are in the correct order.

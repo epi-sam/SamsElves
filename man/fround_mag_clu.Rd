@@ -11,7 +11,7 @@ fround_mag_clu(
   digits_round_prop = 1L,
   digits_sigfig_count = 3L,
   nsmall = 1L,
-  decimal.mark = "·",
+  decimal.mark = ".",
   negative_sign = "-",
   big.mark_count = ",",
   is_lancet = FALSE
@@ -20,24 +20,26 @@ fround_mag_clu(
 \arguments{
 \item{clu}{[num] a numeric vector of central/lower/upper}
 
-\item{d_type}{[chr c('prop', 'pp', or 'count')] data type - proportion,
+\item{d_type}{[chr {'prop', 'pp', or 'count'}] data type - proportion,
 percentage point or count}
 
 \item{mag_list}{[named list] output from `set_magnitude()` - must be based on
-**central** value of a central/lower/upper set - central _and_ all UI values inherit the
-same scale as the central tendency.}
+**central** value of a central/lower/upper set - central _and_ all UI
+values inherit the same scale as the central tendency.}
 
-\item{digits_round_prop}{[int] passed to `round()` for proportions}
+\item{digits_round_prop}{[int: default 1L] passed to `round()` for
+proportions}
 
-\item{digits_sigfig_count}{[int] passed to `signif()` for counts}
+\item{digits_sigfig_count}{[int: default 3L] passed to `signif()` for counts}
 
-\item{nsmall}{[int] passed to `format()`}
+\item{nsmall}{[int: default 1L] passed to `format()`}
 
-\item{decimal.mark}{[chr] decimal mark passed to `format()`}
+\item{decimal.mark}{[chr: default "."] decimal mark passed to `format()`}
 
-\item{negative_sign}{[chr] negative sign}
+\item{negative_sign}{[chr: default "-"] negative sign}
 
-\item{big.mark_count}{[chr] big mark for counts passed to `format()`}
+\item{big.mark_count}{[chr: default ","] big mark for counts passed to
+`format()`}
 }
 \value{
 [chr] formatted string (vectorized)

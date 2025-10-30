@@ -20,15 +20,18 @@ format_lancet_dt(
   big.mark_count = thin_space(),
   mean_neg_text = "a decrease of ",
   UI_only = FALSE,
+  UI_text = "",
   is_lancet = TRUE
 )
 }
 \arguments{
 \item{dt}{[data.table] with central/lower/upper columns}
 
-\item{d_type}{[chr {prop', 'pp', 'count'}] data type - proportion, percentage point or count}
+\item{d_type}{[chr {prop', 'pp', 'count'}] data type - proportion, percentage
+point or count}
 
-\item{central_var}{[chr: default 'mean'] name of central tendency e.g. 'point_estimate'}
+\item{central_var}{[chr: default 'mean'] name of central tendency e.g.
+'point_estimate'}
 
 \item{lower_var}{[chr: default 'lower']}
 
@@ -36,17 +39,53 @@ format_lancet_dt(
 
 \item{remove_clu}{[lgl: default TRUE] remove central/lower/upper columns?}
 
-\item{assert_clu_relationships}{[lgl: default TRUE] enforce correct relationship between central/upper/lower?}
+\item{assert_clu_relationships}{[lgl: default TRUE] enforce correct
+relationship between central/upper/lower?}
+
+\item{digits_round_prop}{[int: default 1L] number of digits to round
+proportions/PP}
+
+\item{digits_sigfig_count}{[int: default 3L] number of significant digits for
+counts}
+
+\item{nsmall}{[int: default 1L] number of digits after the decimal point}
+
+\item{decimal.mark}{[chr: default mid_dot()] decimal mark - Lancet specifies
+mid-dot}
+
+\item{negative_sign}{[chr: default en_dash()] negative sign}
+
+\item{big.mark_count}{[chr: default thin_space()] big mark for counts -
+Lancet specifies narrow space for counts between 9999 and 1 million}
+
+\item{mean_neg_text}{[chr: default "a decrease of "] text to prepend if
+central is negative}
+
+\item{UI_only}{[lgl: default FALSE] return only the UI?}
+
+\item{UI_text}{[chr: default ""] text to appear before vaues inside UI
+parentheses}
+
+\item{is_lancet}{[lgl: default TRUE] apply Lancet-specific formatting for
+counts 9999 and smaller}
 }
 \value{
-[data.table] with mean_95_UI_formatted column, and central/lower/upper columns removed (if specified)
+[data.table] with mean_95_UI_formatted column, and
+  central/lower/upper columns removed (if specified)
 }
 \description{
-Assumes a single data-type (d_type) for the whole table (e.g. 'prop', 'pp', 'count')
+Assumes a single data-type (d_type) for the whole table (e.g. 'prop', 'pp',
+'count')
 }
 \examples{
-DT <- data.table::data.table(location_did = 1, location_name = "Global", me_name = "vacc_dpt1",
-                 mean = 55.8e6, lower = 50.7e6, upper = 60.7e6)
+DT <- data.table::data.table(
+location_did = 1
+, location_name = "Global"
+, me_name = "vacc_dpt1"
+, mean = 55.8e6
+, lower = 50.7e6
+, upper = 60.7e6
+)
 format_lancet_dt(dt = DT, d_type = "count", central_var = 'mean')
 # location_did location_name   me_name     mean_95_UI_formatted
 # <num>        <char>    <char>                   <char>

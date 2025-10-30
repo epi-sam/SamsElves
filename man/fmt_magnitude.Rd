@@ -9,11 +9,11 @@ fmt_magnitude(x, digits = 1, nsmall = 1, mag = "m", allow_thousands = FALSE)
 \arguments{
 \item{x}{[num] numeric vector}
 
-\item{digits}{[int] passed to `round()`}
+\item{digits}{[int: default 1L] passed to `round()`}
 
-\item{nsmall}{[int] passed to `format()`}
+\item{nsmall}{[int: default 1L] passed to `format()`}
 
-\item{mag}{[chr c("b", "m", "t")] magnitude (billion, million, thousand)}
+\item{mag}{[chr {"b", "m", "t"}] magnitude (billion, million, thousand)}
 }
 \value{
 [chr] formatted string

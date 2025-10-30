@@ -20,24 +20,24 @@ fround_mag_clu_lancet(
 \arguments{
 \item{clu}{[num] a numeric vector of central/lower/upper}
 
-\item{d_type}{[chr c('prop', 'pp', or 'count')] data type - proportion,
+\item{d_type}{[chr c{'prop', 'pp', or 'count'}] data type - proportion,
 percentage point or count}
 
 \item{mag_list}{[named list] output from `set_magnitude()` - must be based on
 **central** value of a central/lower/upper set - central _and_ all UI values inherit the
 same scale as the central tendency.}
 
-\item{digits_round_prop}{[int] passed to `round()` for proportions}
+\item{digits_round_prop}{[int: default 1L] passed to `round()` for proportions}
 
-\item{digits_sigfig_count}{[int] passed to `signif()` for counts}
+\item{digits_sigfig_count}{[int: default 3L] passed to `signif()` for counts}
 
-\item{nsmall}{[int] passed to `format()`}
+\item{nsmall}{[int: default 1L] passed to `format()`}
 
-\item{decimal.mark}{[chr] e.g. (default mid_dot() Lancet standard)}
+\item{decimal.mark}{[chr: default mid_dot()] e.g. Lancet standard}
 
-\item{negative_sign}{[chr] negative sign (default "–" Lancet standard)}
+\item{negative_sign}{[chr: default en_dash()] negative sign Lancet standard}
 
-\item{big.mark_count}{[chr] big mark for counts - Lancet specifies narrow
+\item{big.mark_count}{[chr: default thin_space()] big mark for counts - Lancet specifies narrow
 space for counts between 9999 and 1 million}
 }
 \value{

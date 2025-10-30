@@ -17,6 +17,7 @@ format_nature_clu(
   big.mark_count = ",",
   mean_neg_text = "a decrease of ",
   UI_only = FALSE,
+  UI_text = "95\% uncertainty interval, ",
   assert_clu_relationships = TRUE
 )
 }
@@ -45,7 +46,10 @@ point or count}
 \item{mean_neg_text}{[chr: default "a decrease of "] text to prepend if all
 central/upper/lower triplet values are negative}
 
-\item{UI_only}{[lgl] return only the UI?}
+\item{UI_only}{[lgl: default FALSE] return only the UI?}
+
+\item{UI_text}{[chr: default "95% uncertainty interval, "] text to appear
+before values inside UI parentheses}
 
 \item{assert_clu_relationships}{[lgl] enforce correct relationship between
 central/upper/lower values? This should _ALWAYS_ be `TRUE` _UNLESS_ you

@@ -17,11 +17,11 @@ fround_dtype_lancet(
 
 \item{d_type}{[chr c('prop', 'pp', or 'count')] data type - proportion, percentage point or count}
 
-\item{digits}{[integer] passed to `round()`}
+\item{digits}{[integer: default 1L] passed to `round()`}
 
-\item{nsmall}{[integer] passed to `format()`}
+\item{nsmall}{[integer: default 1L] passed to `format()`}
 
-\item{decimal.mark}{[chr (default mid_d)] decimal mark passed to `format()`}
+\item{decimal.mark}{[chr: default mid_d] decimal mark passed to `format()`}
 }
 \value{
 [chr] formatted string

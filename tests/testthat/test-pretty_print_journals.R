@@ -84,8 +84,10 @@ test_that("fround_mag_clu works",
 
 test_that("format_lancet_clu works",
           {
-            expect_equal(format_lancet_clu(central = 0.994, lower = 0.984, upper = 0.998, d_type = "prop")
-                         , "99·4% (98·4–99·8)")
+            expect_equal(
+              format_lancet_clu(central = 0.994, lower = 0.984, upper = 0.998, d_type = "prop")
+              , "99·4% (98·4–99·8)"
+            )
             expect_equal(format_lancet_clu(central = c(0.994, 0.994), lower = c(0.984, 0.984), upper = c(0.998, 0.998), d_type = "prop")
                          , c("99·4% (98·4–99·8)", "99·4% (98·4–99·8)"))
             expect_equal(format_lancet_clu(central = c(0.994, 0.994), lower = c(-0.15, 0.984), upper = c(0.998, 0.998), d_type = "prop")
@@ -101,6 +103,18 @@ test_that("format_lancet_clu works",
             # rounding edge case
             expect_equal(format_lancet_clu(central = 9995, lower = 9990, upper = 10100, d_type = 'count')
                          , c("10 000 (9990–10 100)"))
+          })
+
+test_that("format_nature_clu works",
+          {
+            expect_equal(
+              format_nature_clu(central = 0.994, lower = 0.984, upper = 0.998, d_type = "prop")
+              , "99.4% (95% uncertainty interval, 98.4–99.8)"
+            )
+            expect_equal(
+              format_nature_clu(central = 0.994, lower = -0.984, upper = 0.998, d_type = "prop")
+              , "99.4% (95% uncertainty interval, -98.4 to 99.8)"
+            )
           })
 
 
@@ -123,7 +137,7 @@ test_that("format_lancet_clu errors correctly", {
 # 2025 Oct 28 - format_journal_clu was added as a generic function, and
 # format_lancet_clu is just a wrapper for it, so this test catches both, until
 # proven otherwise.
-test_that("format_lancet_dt works",
+test_that("format_lancet_dt and format_nature_dt work",
           {
             DT_count <- data.table::data.table(
               location_did    = rep(1, 2)
@@ -144,6 +158,27 @@ test_that("format_lancet_dt works",
                   location_did = c(1, 1),
                   location_name = c("Global", "Global"),
                   clu_fmt = c("55·8 million (50·7–60·7)", "54·7 billion (48·6–59·6)")
+                ),
+                row.names = c(NA, -2L),
+                class = c("data.table", "data.frame")
+              )
+            )
+
+
+            expect_equal(
+              format_nature_dt(
+                dt            = DT_count
+                , d_type      = "count"
+                , central_var = 'mean'
+              )
+              , structure(
+                list(
+                  location_did = c(1, 1),
+                  location_name = c("Global", "Global"),
+                  clu_fmt = c(
+                    "55.8 million (95% uncertainty interval, 50.7–60.7)",
+                    "54.7 billion (95% uncertainty interval, 48.6–59.6)"
+                  )
                 ),
                 row.names = c(NA, -2L),
                 class = c("data.table", "data.frame")

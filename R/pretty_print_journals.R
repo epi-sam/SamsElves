@@ -51,7 +51,8 @@ en_dash <- function() {
 
 #' Thin space
 #'
-#' Lancet thin space standard (" ") for thousands separator (instead of commaa ",")
+#' Lancet thin space standard (" ") for thousands separator (instead of commaa
+#' ",")
 #'
 #' @returns [chr] thin space character (" ")
 #' @export
@@ -85,10 +86,11 @@ fround <- function(x, digits = 1L, nsmall = 1L, decimal.mark = mid_dot()){
 #' Format and round with data-type suffix
 #'
 #' @param x [num] numeric value
-#' @param d_type [chr c('prop', 'pp', or 'count')] data type - proportion, percentage point or count
-#' @param digits [integer] passed to `round()`
-#' @param nsmall [integer] passed to `format()`
-#' @param decimal.mark [chr (default mid_d)] decimal mark passed to `format()`
+#' @param d_type [chr {'prop', 'pp', or 'count'}] data type - proportion,
+#'   percentage point or count
+#' @param digits [integer: default 1L] passed to `round()`
+#' @param nsmall [integer: default 1L] passed to `format()`
+#' @param decimal.mark [chr: default "."] decimal mark passed to `format()`
 #'
 #' @return [chr] formatted string
 #'
@@ -217,9 +219,9 @@ set_magnitude <- function(
 #' Caution - thousands magnitude is not Lancet compliant
 #'
 #' @param x [num] numeric vector
-#' @param digits [int] passed to `round()`
-#' @param nsmall [int] passed to `format()`
-#' @param mag [chr c("b", "m", "t")] magnitude (billion, million, thousand)
+#' @param digits [int: default 1L] passed to `round()`
+#' @param nsmall [int: default 1L] passed to `format()`
+#' @param mag [chr {"b", "m", "t"}] magnitude (billion, million, thousand)
 #'
 #' @return [chr] formatted string
 #' @export
@@ -287,17 +289,19 @@ fmt_magnitude <- function(
 #' - Counts                - to 3 sig figs
 #'
 #' @param clu [num] a numeric vector of central/lower/upper
-#' @param d_type [chr c('prop', 'pp', or 'count')] data type - proportion,
+#' @param d_type [chr {'prop', 'pp', or 'count'}] data type - proportion,
 #'   percentage point or count
 #' @param mag_list [named list] output from `set_magnitude()` - must be based on
-#'   **central** value of a central/lower/upper set - central _and_ all UI values inherit the
-#'   same scale as the central tendency.
-#' @param decimal.mark [chr] decimal mark passed to `format()`
-#' @param negative_sign [chr] negative sign
-#' @param big.mark_count [chr] big mark for counts passed to `format()`
-#' @param digits_round_prop [int] passed to `round()` for proportions
-#' @param digits_sigfig_count [int] passed to `signif()` for counts
-#' @param nsmall [int] passed to `format()`
+#'   **central** value of a central/lower/upper set - central _and_ all UI
+#'   values inherit the same scale as the central tendency.
+#' @param decimal.mark [chr: default "."] decimal mark passed to `format()`
+#' @param negative_sign [chr: default "-"] negative sign
+#' @param big.mark_count [chr: default ","] big mark for counts passed to
+#'   `format()`
+#' @param digits_round_prop [int: default 1L] passed to `round()` for
+#'   proportions
+#' @param digits_sigfig_count [int: default 3L] passed to `signif()` for counts
+#' @param nsmall [int: default 1L] passed to `format()`
 #'
 #' @return [chr] formatted string (vectorized)
 #' @export
@@ -314,7 +318,7 @@ fround_mag_clu <- function(
     , digits_round_prop   = 1L
     , digits_sigfig_count = 3L
     , nsmall              = 1L
-    , decimal.mark        = "·"
+    , decimal.mark        = "."
     , negative_sign       = "-"
     , big.mark_count      = ","
     , is_lancet           = FALSE
@@ -445,19 +449,22 @@ fround_mag_clu <- function(
 #' @param upper [num] upper bound vector
 #' @param d_type [chr {prop, pp, count}] data type - proportion, percentage
 #'   point or count
-#' @param digits_round_prop [int] number of digits to round proportions/PP
-#' @param digits_sigfig_count [int] number of significant digits for counts
-#' @param nsmall [int] number of digits after the decimal point
-#' @param decimal.mark [chr] decimal mark
-#' @param negative_sign [chr] negative sign
-#' @param big.mark_count [chr] big mark for counts
-#' @param mean_neg_text [chr: default "a decrease of "] text to prepend if all
-#'   central/upper/lower triplet values are negative
-#' @param UI_only [lgl] return only the UI?
-#' @param assert_clu_relationships [lgl] enforce correct relationship between
+#' @param digits_round_prop [int: default 1L] number of digits to round proportions/PP
+#' @param digits_sigfig_count [int: default 3L] number of significant digits for counts
+#' @param nsmall [int: default 1L] number of digits after the decimal point
+#' @param decimal.mark [chr: default "."] decimal mark
+#' @param negative_sign [chr: default "-"] negative sign
+#' @param big.mark_count [chr: default ","] big mark for counts
+#' @param mean_neg_text [chr: default "a decrease of "] text to prepend if
+#'   central value is negative
+#' @param UI_only [lgl: default FALSE] return only the UI?
+#' @param UI_text [chr: default ""] text to appear before values inside UI
+#'   parentheses
+#' @param assert_clu_relationships [lgl: default TRUE] enforce correct relationship between
 #'   central/upper/lower values? This should _ALWAYS_ be `TRUE` _UNLESS_ you
 #'   only care about the central difference.
-#' @param is_lancet [lgl] apply Lancet-specific formatting for counts 9999 and smaller
+#' @param is_lancet [lgl: default FALSE] apply Lancet-specific formatting for counts 9999 and
+#'   smaller
 #'
 #' @return [chr] formatted string vector
 #' @export
@@ -475,6 +482,7 @@ format_journal_clu <- function(
     , big.mark_count           = ","
     , mean_neg_text            = "a decrease of "
     , UI_only                  = FALSE
+    , UI_text                  = ""
     , assert_clu_relationships = TRUE
     , is_lancet                = FALSE
 ) {
@@ -603,10 +611,10 @@ format_journal_clu <- function(
     .cen <- triplets_fmt[[i]]['central']
     .upp <- triplets_fmt[[i]]['upper']
     .low <- triplets_fmt[[i]]['lower']
-    str <- glue::glue("{decrease_stub[i]}{.cen}{d_type_label[i]} {mag_label[i]}({.low}{sep_vec[i]}{.upp})")
+    str <- glue::glue("{decrease_stub[i]}{.cen}{d_type_label[i]} {mag_label[i]}({UI_text}{.low}{sep_vec[i]}{.upp})")
 
     if (UI_only) {
-      str <- glue::glue("{.low}{sep_vec[i]}{.upp}{mag_label[i]}")
+      str <- glue::glue("{UI_text}{.low}{sep_vec[i]}{.upp}{mag_label[i]}")
     }
 
     return(str)
@@ -628,18 +636,22 @@ format_journal_clu <- function(
 #' @param upper_var [chr: default 'upper'] name of upper bound variable
 #' @param remove_clu [lgl] remove central/lower/upper variables after
 #'   formatting?
-#' @param assert_clu_relationships [lgl] enforce correct relationship between
-#'   central/upper/lower values? This should _ALWAYS_ be `TRUE` _UNLESS_ you
-#'   only care about the central difference.
-#' @param digits_round_prop [int] passed to `round()` for proportions
-#' @param digits_sigfig_count [int] passed to `signif()` for counts
-#' @param nsmall [int] passed to `format()`
-#' @param decimal.mark [chr] decimal mark passed to `format()`
-#' @param negative_sign [chr] negative sign
-#' @param big.mark_count [chr] big mark for counts passed to `format()`
-#' @param mean_neg_text [chr: default "a decrease of "] text to prepend if all
-#'   central/upper/lower triplet values are negative
-#' @param UI_only [lgl] return only the UI?
+#' @param assert_clu_relationships [lgl: default TRUE] enforce correct
+#'   relationship between central/upper/lower values? This should _ALWAYS_ be
+#'   `TRUE` _UNLESS_ you only care about the central difference.
+#' @param digits_round_prop [int: default 1L] passed to `round()` for
+#'   proportions
+#' @param digits_sigfig_count [int: default 3L] passed to `signif()` for counts
+#' @param nsmall [int: default 1L] passed to `format()`
+#' @param decimal.mark [chr: default "."] decimal mark passed to `format()`
+#' @param negative_sign [chr: default "-"] negative sign
+#' @param big.mark_count [chr: default "."] big mark for counts passed to
+#'   `format()`
+#' @param mean_neg_text [chr: default "a decrease of "] text to prepend if
+#'   central value is negative
+#' @param UI_only [lgl: default FALSE] return only the UI?
+#' @param UI_text [chr: default ""] text to appear before values inside UI
+#'   parentheses
 #' @param is_lancet [lgl] apply Lancet-specific formatting for counts 9999 and
 #'   smaller
 #'
@@ -661,6 +673,7 @@ format_journal_dt <- function(
     , big.mark_count           = ""
     , mean_neg_text            = "a decrease of "
     , UI_only                  = FALSE
+    , UI_text                  = ""
     , is_lancet                = FALSE
 ){
 
@@ -691,6 +704,7 @@ format_journal_dt <- function(
     , big.mark_count           = big.mark_count
     , mean_neg_text            = mean_neg_text
     , UI_only                  = UI_only
+    , UI_text                  = UI_text
     , is_lancet                = is_lancet
   )]
 
@@ -785,9 +799,9 @@ format_means_dt <- function(
 #'
 #' @param x [num] numeric value
 #' @param d_type [chr c('prop', 'pp', or 'count')] data type - proportion, percentage point or count
-#' @param digits [integer] passed to `round()`
-#' @param nsmall [integer] passed to `format()`
-#' @param decimal.mark [chr (default mid_d)] decimal mark passed to `format()`
+#' @param digits [integer: default 1L] passed to `round()`
+#' @param nsmall [integer: default 1L] passed to `format()`
+#' @param decimal.mark [chr: default mid_d] decimal mark passed to `format()`
 #'
 #' @return [chr] formatted string
 #'
@@ -829,18 +843,18 @@ fround_dtype_lancet <- function(
 #' - Counts                - to 3 sig figs
 #'
 #' @param clu [num] a numeric vector of central/lower/upper
-#' @param d_type [chr c('prop', 'pp', or 'count')] data type - proportion,
+#' @param d_type [chr c{'prop', 'pp', or 'count'}] data type - proportion,
 #'   percentage point or count
 #' @param mag_list [named list] output from `set_magnitude()` - must be based on
 #'   **central** value of a central/lower/upper set - central _and_ all UI values inherit the
 #'   same scale as the central tendency.
-#' @param decimal.mark [chr] e.g. (default mid_dot() Lancet standard)
-#' @param negative_sign [chr] negative sign (default "–" Lancet standard)
-#' @param big.mark_count [chr] big mark for counts - Lancet specifies narrow
+#' @param decimal.mark [chr: default mid_dot()] e.g. Lancet standard
+#' @param negative_sign [chr: default en_dash()] negative sign Lancet standard
+#' @param big.mark_count [chr: default thin_space()] big mark for counts - Lancet specifies narrow
 #'   space for counts between 9999 and 1 million
-#' @param digits_round_prop [int] passed to `round()` for proportions
-#' @param digits_sigfig_count [int] passed to `signif()` for counts
-#' @param nsmall [int] passed to `format()`
+#' @param digits_round_prop [int: default 1L] passed to `round()` for proportions
+#' @param digits_sigfig_count [int: default 3L] passed to `signif()` for counts
+#' @param nsmall [int: default 1L] passed to `format()`
 #'
 #' @return [chr] formatted string (vectorized)
 #' @export
@@ -884,7 +898,8 @@ fround_mag_clu_lancet <- function(
 #'
 #' `central` could be mean/median/point_estimate
 #'
-#' Transform c(central = 0.994, lower = 0.984, upper = 0.998) to "99.4% (98.4–99.8)"
+#' Transform c(central = 0.994, lower = 0.984, upper = 0.998) to "99.4%
+#' (98.4–99.8)"
 #'
 #' Accounts for negative values, and UIs that cross zero.  Checks if
 #' central/lower/upper values are in the correct order.
@@ -893,21 +908,23 @@ fround_mag_clu_lancet <- function(
 #' @param central [num] central/point_estimate value vector
 #' @param lower [num] lower bound vector
 #' @param upper [num] upper bound vector
-#' @param d_type [chr {prop, pp, count}] data type - proportion,
-#' percentage point or count
-#' @param digits_round_prop [int] number of digits to round proportions/PP
-#' @param digits_sigfig_count [int] number of significant digits for counts
-#' @param nsmall [int] number of digits after the decimal point
-#' @param decimal.mark [chr] decimal mark - Lancet specifies mid-dot
-#' @param negative_sign [chr] negative sign
-#' @param big.mark_count [chr] big mark for counts - Lancet specifies narrow
+#' @param d_type [chr {prop, pp, count}] data type - proportion, percentage
+#'   point or count
+#' @param digits_round_prop [int: default 1L] number of digits to round proportions/PP
+#' @param digits_sigfig_count [int: default 3L] number of significant digits for counts
+#' @param nsmall [int: default 1L] number of digits after the decimal point
+#' @param decimal.mark [chr: default mid_dot()] decimal mark - Lancet specifies mid-dot
+#' @param negative_sign [chr: default en_dash()] negative sign
+#' @param big.mark_count [chr: default thin_spac] big mark for counts - Lancet specifies narrow
 #'   space for counts between 9999 and 1 million
-#' @param mean_neg_text [chr: default "a decrease of "] text to prepend if central is negative
-#' e.g. Lancet prefers "a decrease of 99·4\% (98·4–99·8)"
-#' @param UI_only [lgl] return only the UI?
-#' @param assert_clu_relationships [lgl] enforce correct relationship between central/upper/lower
-#'   values? This should _ALWAYS_ be `TRUE` _UNLESS_ you only care about the
-#'   central difference.
+#' @param mean_neg_text [chr: default "a decrease of "] text to prepend if
+#'   central is negative e.g. Lancet prefers "a decrease of 99·4\% (98·4–99·8)"
+#' @param UI_only [lgl: default FALSE] return only the UI?
+#' @param UI_text [chr: default ""] text to appear before values inside UI
+#'   parentheses
+#' @param assert_clu_relationships [lgl: default TRUE] enforce correct relationship between
+#'   central/upper/lower values? This should _ALWAYS_ be `TRUE` _UNLESS_ you
+#'   only care about the central difference.
 #'
 #' @return [chr] formatted string vector
 #' @export
@@ -937,6 +954,7 @@ format_lancet_clu <- function(
     , big.mark_count           = thin_space() # lancet narrow space
     , mean_neg_text            = "a decrease of "
     , UI_only                  = FALSE
+    , UI_text                  = ""
     , assert_clu_relationships = TRUE
     , is_lancet                = TRUE
 ) {
@@ -954,6 +972,7 @@ format_lancet_clu <- function(
     , big.mark_count           = big.mark_count
     , mean_neg_text            = mean_neg_text
     , UI_only                  = UI_only
+    , UI_text                  = UI_text
     , assert_clu_relationships = assert_clu_relationships
     , is_lancet                = is_lancet
   )
@@ -962,20 +981,48 @@ format_lancet_clu <- function(
 
 #' Return a table with formatted central/lower/upper
 #'
-#' Assumes a single data-type (d_type) for the whole table (e.g. 'prop', 'pp', 'count')
+#' Assumes a single data-type (d_type) for the whole table (e.g. 'prop', 'pp',
+#' 'count')
 #'
 #' @param dt [data.table] with central/lower/upper columns
-#' @param d_type [chr {prop', 'pp', 'count'}] data type - proportion, percentage point or count
-#' @param central_var [chr: default 'mean'] name of central tendency e.g. 'point_estimate'
+#' @param d_type [chr {prop', 'pp', 'count'}] data type - proportion, percentage
+#'   point or count
+#' @param central_var [chr: default 'mean'] name of central tendency e.g.
+#'   'point_estimate'
 #' @param lower_var [chr: default 'lower']
 #' @param upper_var [chr: default 'upper']
 #' @param remove_clu [lgl: default TRUE] remove central/lower/upper columns?
-#' @param assert_clu_relationships [lgl: default TRUE] enforce correct relationship between central/upper/lower?
+#' @param assert_clu_relationships [lgl: default TRUE] enforce correct
+#'   relationship between central/upper/lower?
+#' @param digits_round_prop [int: default 1L] number of digits to round
+#'   proportions/PP
+#' @param digits_sigfig_count [int: default 3L] number of significant digits for
+#'   counts
+#' @param nsmall [int: default 1L] number of digits after the decimal point
+#' @param decimal.mark [chr: default mid_dot()] decimal mark - Lancet specifies
+#'   mid-dot
+#' @param negative_sign [chr: default en_dash()] negative sign
+#' @param big.mark_count [chr: default thin_space()] big mark for counts -
+#'   Lancet specifies narrow space for counts between 9999 and 1 million
+#' @param mean_neg_text [chr: default "a decrease of "] text to prepend if
+#'   central is negative
+#' @param UI_only [lgl: default FALSE] return only the UI?
+#' @param UI_text [chr: default ""] text to appear before vaues inside UI
+#'   parentheses
+#' @param is_lancet [lgl: default TRUE] apply Lancet-specific formatting for
+#'   counts 9999 and smaller
 #'
-#' @return [data.table] with mean_95_UI_formatted column, and central/lower/upper columns removed (if specified)
+#' @return [data.table] with mean_95_UI_formatted column, and
+#'   central/lower/upper columns removed (if specified)
 #' @examples
-#' DT <- data.table::data.table(location_did = 1, location_name = "Global", me_name = "vacc_dpt1",
-#'                  mean = 55.8e6, lower = 50.7e6, upper = 60.7e6)
+#' DT <- data.table::data.table(
+#' location_did = 1
+#' , location_name = "Global"
+#' , me_name = "vacc_dpt1"
+#' , mean = 55.8e6
+#' , lower = 50.7e6
+#' , upper = 60.7e6
+#' )
 #' format_lancet_dt(dt = DT, d_type = "count", central_var = 'mean')
 #' # location_did location_name   me_name     mean_95_UI_formatted
 #' # <num>        <char>    <char>                   <char>
@@ -996,6 +1043,7 @@ format_lancet_dt <- function(
     , big.mark_count           = thin_space() # lancet narrow space
     , mean_neg_text            = "a decrease of "
     , UI_only                  = FALSE
+    , UI_text                  = ""
     , is_lancet                = TRUE
 ){
 
@@ -1015,6 +1063,7 @@ format_lancet_dt <- function(
     , big.mark_count           = big.mark_count
     , mean_neg_text            = mean_neg_text
     , UI_only                  = UI_only
+    , UI_text                  = UI_text
     , is_lancet                = is_lancet
   )
 
@@ -1037,7 +1086,9 @@ format_lancet_dt <- function(
 #' @param big.mark_count [chr] big mark for counts
 #' @param mean_neg_text [chr: default "a decrease of "] text to prepend if all
 #'   central/upper/lower triplet values are negative
-#' @param UI_only [lgl] return only the UI?
+#' @param UI_only [lgl: default FALSE] return only the UI?
+#' @param UI_text [chr: default "95% uncertainty interval, "] text to appear
+#'   before values inside UI parentheses
 #' @param assert_clu_relationships [lgl] enforce correct relationship between
 #'   central/upper/lower values? This should _ALWAYS_ be `TRUE` _UNLESS_ you
 #'   only care about the central difference.
@@ -1057,6 +1108,7 @@ format_nature_clu <- function(
     , big.mark_count           = ","
     , mean_neg_text            = "a decrease of "
     , UI_only                  = FALSE
+    , UI_text                  = "95% uncertainty interval, "
     , assert_clu_relationships = TRUE
 ){
   format_journal_clu(
@@ -1072,11 +1124,40 @@ format_nature_clu <- function(
     , big.mark_count           = big.mark_count
     , mean_neg_text            = mean_neg_text
     , UI_only                  = UI_only
+    , UI_text                  = UI_text
     , assert_clu_relationships = assert_clu_relationships
   )
 }
 
 
+#' Title
+#'
+#' @param dt [data.table]
+#' @param d_type [chr {'prop', 'pp', or 'count'}] a single data type
+#' @param central_var [chr: default 'mean'] name of central tendency variable
+#' @param lower_var [chr: default 'lower'] name of lower bound variable
+#' @param upper_var [chr: default 'upper'] name of upper bound variable
+#' @param remove_clu [lgl: default TRUE] remove central/lower/upper variables
+#'   after
+#' @param assert_clu_relationships [lgl: default TRUE] enforce correct
+#'   relationship between
+#' @param digits_round_prop [int: default 1L] passed to `round()` for
+#'   proportions
+#' @param digits_sigfig_count [int: default 3L] passed to `signif()` for counts
+#' @param nsmall [int: default 1L] passed to `format()`
+#' @param decimal.mark [chr: default "."] decimal mark passed to `format()`
+#' @param negative_sign [chr: default "-"] negative sign
+#' @param big.mark_count [chr: default ","] big mark for counts passed to
+#'   `format()`
+#' @param mean_neg_text [chr: default "a decrease of "] text to prepend if
+#' @param UI_only [lgl: default FALSE] return only the UI?
+#' @param UI_text [chr: default "95% uncertainty interval, "] text to appear
+#'   before values inside UI parentheses
+#' @param is_lancet [lgl: default FALSE] apply Lancet-specific formatting for
+#'   counts 9999 and smaller
+#'
+#' @returns [data.table] copy of input data.table with new 'clu_fmt' column
+#' @export
 format_nature_dt <- function(
     dt
     , d_type
@@ -1093,6 +1174,8 @@ format_nature_dt <- function(
     , big.mark_count           = ","
     , mean_neg_text            = "a decrease of "
     , UI_only                  = FALSE
+    , UI_text                  = "95% uncertainty interval, "
+    , is_lancet                = FALSE
 ){
 
   format_journal_dt(
@@ -1111,6 +1194,7 @@ format_nature_dt <- function(
     , big.mark_count           = big.mark_count
     , mean_neg_text            = mean_neg_text
     , UI_only                  = UI_only
+    , UI_text                  = UI_text
   )
 
 }
