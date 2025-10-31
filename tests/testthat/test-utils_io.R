@@ -130,7 +130,7 @@ test_that("save_file prevents saving files with unsupported extension",
                         , f_path = fpath_unsupported_ftype
                         , forbid_overwrite = TRUE
                         , verbose = FALSE)
-              , regexp = "This function only supports .* file extensions \\(case-insensitive\\)"
+              , regexp = "Unsupported file extension: .*Valid extensions \\(case-insensitive\\):"
 
             )
             expect_false(file.exists(fpath_unsupported_ftype))
@@ -190,7 +190,7 @@ test_that("read_file errors correctly",
               read_file(
                 path_to_file = fpath_unsupported_ftype
                 , verbose = FALSE)
-              , regexp = paste("This function only supports .* file extensions")
+              , regexp = paste("Unsupported file extension:.* Valid extensions:.*")
             )
           })
 

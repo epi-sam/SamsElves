@@ -153,7 +153,7 @@ save_file <- function(object, f_path, csv_opt = "readr::write_excel_csv", overwr
     ext <- tolower(find_file_extension(f_path))
 
     valid_file_extensions <- paste(
-      c("csv", "yaml", "rds"),
+      c("csv", "yaml", "rds", "fst"),
       collapse = ", "
     )
 
@@ -163,16 +163,37 @@ save_file <- function(object, f_path, csv_opt = "readr::write_excel_csv", overwr
     #   file.remove(f_path)
     #   Sys.sleep(1)
     # }
+    # switch(
+    #   ext,
+    #   "fst"  = {fst::write_fst(object, f_path, compress = 80, ...)},
+    #   "csv"  = {csv_writer(object, f_path, ...)},
+    #   "yaml" = {yaml::write_yaml(object, f_path, ...)},
+    #   "rds"  = {base::saveRDS(object, f_path, ...)},
+    #   {
+    #     stop(glue::glue("This function only supports {valid_file_extensions} file extensions (case-insensitive)."),
+    #          glue::glue(" Update if more options are needed. Submitted extension: {ext}"))
+    #   }
+    # )
+
     switch(
       ext,
-      "csv"  = {csv_writer(object, f_path, ...)},
-      "yaml" = {yaml::write_yaml(object, f_path, ...)},
-      "rds"  = {saveRDS(object, f_path, ...)},
+      "fst"  = function(data, path, compress = 80, ...) {
+        fst::write_fst(data, path, compress = compress, ...)
+      },
+      "csv"  = function(data, path, ...) {
+        csv_writer(data, path, ...)
+      },
+      "yaml" = yaml::write_yaml,
+      "rds"  = base::saveRDS,
       {
-        stop(glue::glue("This function only supports {valid_file_extensions} file extensions (case-insensitive)."),
-             glue::glue(" Update if more options are needed. Submitted extension: {ext}"))
+        stop(
+          glue::glue(
+            "Unsupported file extension: '{ext}'. Valid extensions (case-insensitive): {valid_file_extensions}. ",
+            "Update if more options are needed."
+          )
+        )
       }
-    )
+    )(object, f_path, ...)
 
     if(verbose) msg_prt(user_msg)
 
@@ -198,20 +219,30 @@ read_file <- function(path_to_file, verbose = FALSE, csv_opt = "data.table::frea
   if(is.numeric(numeric_chk) & !is.na(numeric_chk)) stop("File extension is numeric, must be character: ", ext)
   ext <- tolower(ext)
   if(!grepl("::", csv_opt)) stop("csv_opt must be a namespaced function call e.g. data.table::fread - instead got ", csv_opt)
-  valid_file_extensions <- toString(c("csv", "yaml", "rds", "json"))
+  valid_file_extensions <- toString(c("csv", "yaml", "rds", "json", "fst"))
 
   read_fun <- switch(
     ext,
-    "csv"  = getFromNamespace(
-      x  = strsplit(csv_opt, "::")[[1]][2],
-      ns = strsplit(csv_opt, "::")[[1]][1]
-    ),
+    "csv"  = function(path, ...) {
+      reader <- getFromNamespace(
+        x  = strsplit(csv_opt, "::")[[1]][2],
+        ns = strsplit(csv_opt, "::")[[1]][1]
+      )
+      reader(path, ...)
+    },
+    "fst"  = function(path, as.data.table = TRUE, ...) {
+      fst::read_fst(path, as.data.table = as.data.table, ...)
+    },
     "yaml" = yaml::read_yaml,
-    "rds"  = readRDS,
+    "rds"  = base::readRDS,
     "json" = jsonlite::fromJSON,
     {
-      stop(paste0("This function only supports ", valid_file_extensions, " file extensions (case-insensitive)."),
-           " Update if more options are needed: ", ext)
+      stop(
+        sprintf(
+          "Unsupported file extension: '%s'. Valid extensions: %s",
+          ext, toString(valid_file_extensions)
+        )
+      )
     }
   )
 
