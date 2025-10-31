@@ -1,5 +1,7 @@
 # SamsElves 0.9.15
 
+read/write_file - added fst
+
 # SamsElves 0.9.14
 
 big documentation update
