@@ -255,15 +255,14 @@ draws_to_mean_ci <- function(
 #' @export
 draws_years_to_wide <- function(DT, yr_vec = NULL){
   checkmate::assert_data_table(DT)
-  # checkmate::assert_subset(c("year_id", "draw_id", "value"), colnames(DT))
   assert_x_in_y(c("year_id", "draw_id", "value"), colnames(DT))
   checkmate::assert_integerish(unique(DT$year_id), min.len = 2)
   if(!is.null(yr_vec)) {
-    # checkmate::assert_subset(yr_vec, unique(DT$year_id))
     assert_x_in_y(yr_vec, unique(DT$year_id))
   }
 
   DT %>%
+    # allow all years to pivot
     { if(!is.null(yr_vec)) dplyr::filter(., year_id %in% yr_vec) else . } %>%
     tidyr::pivot_wider(., names_from = "year_id", values_from = "value", names_prefix = "value_") %>%
     data.table::as.data.table()
@@ -304,3 +303,53 @@ draws_year_diff <- function(DT, yr_vec, id_varnames = find_id_varnames(DT, verbo
   return(draws_to_mean_ci(DTW))
 }
 
+
+
+# Probabilities ------
+
+#' Calculate probability that draws in year 2 are greater than (or less than)
+#' draws in year 1.
+#'
+#' Comparison is ALWAYS year 2 vs year 1 (e.g. year 2 < year 1)
+#'
+#' @param DT [data.table] a table of (long) draws
+#' @param yr_vec [int] 2 years to compare (function sorts them internally)
+#' @param operator [chr: {"lt", "lte", "gt", "gte"}] operator for comparison -
+#'   translates to <, <=, >, >= internally
+#' @param by_vars [chr] variable names to group by when calculating probability
+#'   - e.g. location_id
+#'
+#' @returns [data.table] a table of probabilities by `by_vars`
+#' @export
+draws_year_prob <- function(DT, yr_vec, operator, by_vars){
+
+  checkmate::assert_data_table(DT)
+  yr_vec <- sort(unique(yr_vec))
+  checkmate::assert_integerish(yr_vec, len = 2)
+  checkmate::assert_choice(operator, choices = c("lt", "lte", "gt", "gte"))
+  assert_x_in_y(by_vars, names(DT))
+
+  operator_fn <- switch(
+    operator
+    , "lt"  = `<`
+    , "lte" = `<=`
+    , "gt"  = `>`
+    , "gte" = `>=`
+  )
+
+  op_var   <- sprintf("%s_%s_%s", yr_vec[2], operator, yr_vec[1])
+  prob_var <- sprintf("prob_%s", op_var)
+
+  DTW <- draws_years_to_wide(DT, yr_vec)
+  yr_names <- sort(grep("_\\d{4}$", names(DTW), value = TRUE))
+
+  # new binary column based on operator
+  DTW[, (op_var) := as.integer(operator_fn(get(yr_names[2]), get(yr_names[1])))]
+  by_vars <- setdiff(by_vars, "draw_id")
+
+  # probability calc
+  DTP <- DTW[, .(prob = mean(get(op_var), na.rm = TRUE) ), by = by_vars ]
+  setnames(DTP, "prob", prob_var)
+
+  return(DTP)
+}
