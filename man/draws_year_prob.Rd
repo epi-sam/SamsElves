@@ -5,7 +5,15 @@
 \title{Calculate probability that draws in year 1 are <, <=, >, or >=
 draws in year 2.}
 \usage{
-draws_year_prob(DT, yr_vec, operator, by_vars)
+draws_year_prob(
+  DT,
+  yr_vec,
+  operator,
+  by_vars,
+  comparison_type = "pairwise",
+  return_type = "probs",
+  verbose = TRUE
+)
 }
 \arguments{
 \item{DT}{[data.table] a table of (long) draws}
@@ -23,4 +31,31 @@ translates to <, <=, >, >= internally}
 }
 \description{
 Convenience wrapper for draws_inequal_prob()
+}
+\examples{
+ DT_demo <- data.table::as.data.table(
+tibble::tribble(
+   ~adm2_code, ~year_id, ~draw_id, ~me_name, ~value,
+   "ADM2_1",     2020,       1,    "dpt1",    0.80,
+   "ADM2_1",     2020,       1,    "bcg1",    0.70,
+   "ADM2_1",     2020,       1,    "mcv1",    0.90,
+   "ADM2_1",     2020,       2,    "dpt1",    0.60,
+   "ADM2_1",     2020,       2,    "bcg1",    0.65,
+   "ADM2_1",     2020,       2,    "mcv1",    0.20,
+   "ADM2_1",     2024,       1,    "dpt1",    0.50,
+   "ADM2_1",     2024,       1,    "bcg1",    0.55,
+   "ADM2_1",     2024,       1,    "mcv1",    0.55,
+   "ADM2_1",     2024,       2,    "dpt1",    0.40,
+   "ADM2_1",     2024,       2,    "bcg1",    0.35,
+   "ADM2_1",     2024,       2,    "mcv1",    0.20,
+   )
+)
+
+# Probability (0-1) at the draw level that 2024 > 2020, by adm2_code
+draws_year_prob(
+  DT_demo
+  , yr_vec        = c(2020, 2024)
+  , operator      = "gt"
+  , by_vars       = c("adm2_code", "me_name") # me_name is necessary, or will aggregate across me_name
+)
 }

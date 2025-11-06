@@ -2,27 +2,99 @@
 % Please edit documentation in R/draw_transforms.R
 \name{draws_inequal_prob}
 \alias{draws_inequal_prob}
-\title{Calculate probability that draws of comp_var for comp_vec[1] are <, <=, >, or >=
-draws of comp_var for comp_vec[2].}
+\title{Calculate probability that compare draws of `comp_var` for `comp_vec[1]` are <,
+<=, >, or >= draws of comp_var for `comp_vec[2]`.}
 \usage{
-draws_inequal_prob(DT, comp_var, comp_vec, operator, by_vars)
+draws_inequal_prob(
+  DT,
+  comp_var,
+  comp_vec,
+  operator,
+  by_vars,
+  comparison_type = "pairwise",
+  return_type = "probs",
+  verbose = TRUE
+)
 }
 \arguments{
-\item{DT}{[data.table] a table of (long) draws}
+\item{DT}{[data.table] a table of (long) draws with columns: `draw_id`,
+`comp_var`, `value`, plus any `by_vars`}
 
 \item{comp_var}{[chr] variable name to compare - e.g. "year_id"}
 
-\item{comp_vec}{[chr] vector of 2 variable levels to compare - e.g. c("1990", "2020")}
+\item{comp_vec}{[chr] vector of 2 variable levels to compare - e.g. c("1990",
+"2020")}
 
 \item{operator}{[chr: {"lt", "lte", "gt", "gte"}] operator for comparison -
 translates to <, <=, >, >= internally}
 
 \item{by_vars}{[chr] variable names to group by when calculating probability
 - e.g. location_id}
+
+\item{comparison_type}{[chr: {"pairwise", "joint"}] type of comparison to
+perform: "pairwise": compare comp_vec[1] against comp_vec[2] only if
+length(comp_vec) == 2 (original behavior); if length(comp_vec) > 2, compare
+comp_vec[1] against each of comp_vec[2:n] separately (new behavior).
+"joint": compare comp_vec[1] against ALL other values in comp_vec (new
+behavior).}
+
+\item{return_type}{[chr: {"probs", "binary"}] type of return object: "probs" (original
+behavior) returns a table of probabilities by `by_vars`; "binary" returns
+a table with binary indicators {1,0} at the draw level by `by_vars`.}
 }
 \value{
 [data.table] a table of probabilities by `by_vars`
 }
 \description{
 The comparison is done at the draw level after pivoting wide by comp_var.
+}
+\details{
+The user's order for `comp_vec` matters: the first element is compared
+against the second (or all others, depending on `comparison_type`), using
+the specified `operator`.
+}
+\examples{
+DT_demo <- data.table::as.data.table(
+tibble::tribble(
+   ~adm2_code, ~year_id, ~draw_id, ~me_name, ~value,
+   "ADM2_1",     2024,       1,    "dpt1",    0.80,
+   "ADM2_1",     2024,       1,    "bcg1",    0.70,
+   "ADM2_1",     2024,       1,    "mcv1",    0.90,
+   "ADM2_1",     2024,       2,    "dpt1",    0.60,
+   "ADM2_1",     2024,       2,    "bcg1",    0.65,
+   "ADM2_1",     2024,       2,    "mcv1",    0.20,
+   "ADM2_2",     2024,       1,    "dpt1",    0.50,
+   "ADM2_2",     2024,       1,    "bcg1",    0.55,
+   "ADM2_2",     2024,       1,    "mcv1",    0.55,
+   "ADM2_2",     2024,       2,    "dpt1",    0.40,
+   "ADM2_2",     2024,       2,    "bcg1",    0.35,
+   "ADM2_2",     2024,       2,    "mcv1",    0.20,
+   )
+)
+
+# Probability (0-1) at the draw level that mcv1 > dpt1 & bcg1 jointly, by
+# adm2_code.  Typically the output of interest for publication.
+draws_inequal_prob(
+DT_demo
+, comp_var        = "me_name"
+, comp_vec        = c("mcv1", "dpt1", "bcg1")
+, operator        = "gt"
+, by_vars         = c("adm2_code")
+, return_type     = "probs"
+, comparison_type = 'joint'
+, verbose         = TRUE
+)
+
+# Binary indicators {0,1} at the draw level that mcv1 > dpt1 & mcv1 > bcg1,
+# separately, by adm2_code - useful to interrogate the `probs` results above
+draws_inequal_prob(
+DT_demo
+, comp_var        = "me_name"
+, comp_vec        = c("mcv1", "dpt1", "bcg1")
+, operator        = "gt"
+, by_vars         = c("adm2_code")
+, return_type     = "binary"
+, comparison_type = "pairwise"
+, verbose         = TRUE
+)
 }

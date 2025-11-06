@@ -23,9 +23,9 @@ assert_square <- function(
     dt
     , id_varnames
     , no_na_varnames = NULL
-    , verbose = FALSE
-    , hard_stop = TRUE
-    , stop_if_empty = TRUE
+    , verbose        = FALSE
+    , hard_stop      = TRUE
+    , stop_if_empty  = TRUE
 ){
 
   # assert inputs
@@ -83,10 +83,16 @@ assert_square <- function(
 
   if(any(unlist(lapply(non_square_list, nrow))) > 0 ){
 
-    cnd_msg <- sprintf("%s is not square.\n   - see returned list (invisible, must assign to an object) for duplicated / missing rows.", dt_name)
+    cnd_msg <- sprintf("%s is not square:", dt_name)
     if(hard_stop == TRUE) {
+      message("Example missing/duplicated rows")
+      message("Missing:")
+      msg_multiline(head(missing_rows, 1))
+      message("Duplicated:")
+      msg_multiline(head(duplicated_rows, 1))
       stop(cnd_msg)
     } else {
+      cnd_msg <- sprintf("%s\n   - see returned list (invisible, must assign to an object) for duplicated / missing rows: %s", cnd_msg, dt_name)
       if (verbose == TRUE) warning(cnd_msg)
     }
 

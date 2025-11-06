@@ -332,36 +332,100 @@ draws_year_diff <- function(DT, yr_vec, id_varnames = find_id_varnames(DT, verbo
 
 # ---- Probabilities -----------------------------------------------------------------
 
-#' Calculate probability that draws of comp_var for comp_vec[1] are <, <=, >, or >=
-#' draws of comp_var for comp_vec[2].
+#' Calculate probability that compare draws of `comp_var` for `comp_vec[1]` are <,
+#' <=, >, or >= draws of comp_var for `comp_vec[2]`.
 #'
 #' The comparison is done at the draw level after pivoting wide by comp_var.
 #'
-#' @param DT [data.table] a table of (long) draws
+#' The user's order for `comp_vec` matters: the first element is compared
+#' against the second (or all others, depending on `comparison_type`), using
+#' the specified `operator`.
+#'
+#' @param DT [data.table] a table of (long) draws with columns: `draw_id`,
+#'  `comp_var`, `value`, plus any `by_vars`
 #' @param comp_var [chr] variable name to compare - e.g. "year_id"
-#' @param comp_vec [chr] vector of 2 variable levels to compare - e.g. c("1990", "2020")
+#' @param comp_vec [chr] vector of 2 variable levels to compare - e.g. c("1990",
+#'   "2020")
 #' @param operator [chr: {"lt", "lte", "gt", "gte"}] operator for comparison -
-#'  translates to <, <=, >, >= internally
+#'   translates to <, <=, >, >= internally
 #' @param by_vars [chr] variable names to group by when calculating probability
 #' - e.g. location_id
+#' @param comparison_type [chr: {"pairwise", "joint"}] type of comparison to
+#'   perform: "pairwise": compare comp_vec[1] against comp_vec[2] only if
+#'   length(comp_vec) == 2 (original behavior); if length(comp_vec) > 2, compare
+#'   comp_vec[1] against each of comp_vec[2:n] separately (new behavior).
+#'   "joint": compare comp_vec[1] against ALL other values in comp_vec (new
+#'   behavior).
+#' @param return_type [chr: {"probs", "binary"}] type of return object: "probs" (original
+#'  behavior) returns a table of probabilities by `by_vars`; "binary" returns
+#'  a table with binary indicators {1,0} at the draw level by `by_vars`.
 #'
 #' @returns [data.table] a table of probabilities by `by_vars`
 #' @export
+#'
+#' @examples
+#' DT_demo <- data.table::as.data.table(
+#' tibble::tribble(
+#'    ~adm2_code, ~year_id, ~draw_id, ~me_name, ~value,
+#'    "ADM2_1",     2024,       1,    "dpt1",    0.80,
+#'    "ADM2_1",     2024,       1,    "bcg1",    0.70,
+#'    "ADM2_1",     2024,       1,    "mcv1",    0.90,
+#'    "ADM2_1",     2024,       2,    "dpt1",    0.60,
+#'    "ADM2_1",     2024,       2,    "bcg1",    0.65,
+#'    "ADM2_1",     2024,       2,    "mcv1",    0.20,
+#'    "ADM2_2",     2024,       1,    "dpt1",    0.50,
+#'    "ADM2_2",     2024,       1,    "bcg1",    0.55,
+#'    "ADM2_2",     2024,       1,    "mcv1",    0.55,
+#'    "ADM2_2",     2024,       2,    "dpt1",    0.40,
+#'    "ADM2_2",     2024,       2,    "bcg1",    0.35,
+#'    "ADM2_2",     2024,       2,    "mcv1",    0.20,
+#'    )
+#' )
+#'
+#' # Probability (0-1) at the draw level that mcv1 > dpt1 & bcg1 jointly, by
+#' # adm2_code.  Typically the output of interest for publication.
+#' draws_inequal_prob(
+#' DT_demo
+#' , comp_var        = "me_name"
+#' , comp_vec        = c("mcv1", "dpt1", "bcg1")
+#' , operator        = "gt"
+#' , by_vars         = c("adm2_code")
+#' , return_type     = "probs"
+#' , comparison_type = 'joint'
+#' , verbose         = TRUE
+#' )
+#'
+#' # Binary indicators {0,1} at the draw level that mcv1 > dpt1 & mcv1 > bcg1,
+#' # separately, by adm2_code - useful to interrogate the `probs` results above
+#' draws_inequal_prob(
+#' DT_demo
+#' , comp_var        = "me_name"
+#' , comp_vec        = c("mcv1", "dpt1", "bcg1")
+#' , operator        = "gt"
+#' , by_vars         = c("adm2_code")
+#' , return_type     = "binary"
+#' , comparison_type = "pairwise"
+#' , verbose         = TRUE
+#' )
 draws_inequal_prob <- function(
     DT
     , comp_var
     , comp_vec
     , operator
     , by_vars
+    , comparison_type = "pairwise"
+    , return_type     = "probs"
+    , verbose         = TRUE
 ){
-
   checkmate::assert_data_table(DT)
   checkmate::assert_choice(operator, choices = c("lt", "lte", "gt", "gte"))
-  checkmate::assert_vector(comp_vec, len = 2)
+  checkmate::assert_vector(comp_vec, min.len = 2)
+  checkmate::assert_choice(comparison_type, choices = c("pairwise", "joint"))
+  checkmate::assert_choice(return_type, choices = c("probs", "binary"))
   assert_x_in_y(c("draw_id", comp_var, by_vars), names(DT))
   assert_x_in_y(comp_vec, DT[[comp_var]])
-  se$assert_x_not_in_y("draw_id", by_vars)
-  se$assert_x_not_in_y("prop", names(DT))
+  assert_x_not_in_y("draw_id", by_vars)
+  assert_x_not_in_y("prop", names(DT))
 
   operator_fn <- switch(
     operator
@@ -371,22 +435,93 @@ draws_inequal_prob <- function(
     , "gte" = `>=`
   )
 
-  op_var    <- sprintf("%s_%s_%s", comp_vec[1], operator, comp_vec[2])
-  prob_var  <- sprintf("prob_%s", op_var)
-  var_names <- sprintf("value_%s", comp_vec)
-
+  # Convert to wide format
   DTW <- draws_var_to_wide(DT, varname = comp_var, var_vec = comp_vec)
 
-  # new binary column based on operator
-  DTW[, (op_var) := as.integer(operator_fn(get(var_names[1]), get(var_names[2])))]
-  by_vars <- setdiff(by_vars, "draw_id")
 
-  # probability calc
-  DTP <- DTW[, .(prob = mean(get(op_var), na.rm = TRUE) ), by = by_vars ]
-  setnames(DTP, "prob", prob_var)
+  # Safety net
+  first_dupe <- anyDuplicated(DTW, by = c(by_vars, "draw_id"))
+  if(first_dupe > 0){
+    if(verbose){
+      message("Wide draws rows 1-5:")
+      msg_multiline(DTW[1:5, ])
+    }
+    stop(sprintf(
+      "After pivoting wide by %s, found duplicate rows for the same %s & draw_id combination.
+      First duplicated row: %s.
+      Please ensure that input DT has unique rows for each combination of %s + draw_id + %s.",
+      comp_var, toString(by_vars)
+      , first_dupe
+      , toString(by_vars), comp_var
+    ))
+  }
 
-  return(DTP)
+  var_names <- sprintf("value_%s", comp_vec)
+  by_vars_no_draw <- setdiff(by_vars, "draw_id")
+
+  if (comparison_type == "pairwise" && length(comp_vec) == 2) {
+
+
+    # Original behavior: compare first vs second
+    op_var    <- sprintf("%s_%s_%s", comp_vec[1], operator, comp_vec[2])
+    prob_var  <- sprintf("prob_%s", op_var)
+
+    DTW[, (op_var) := as.integer(operator_fn(get(var_names[1]), get(var_names[2])))]
+    DTP <- DTW[, .(prob = mean(get(op_var), na.rm = TRUE)), by = by_vars_no_draw]
+    data.table::setnames(DTP, "prob", prob_var)
+
+  } else if (comparison_type == "joint") {
+    # New behavior: compare first against ALL others
+    # Probability that comp_vec[1] satisfies operator vs ALL other values
+    op_var   <- sprintf("%s_%s_all_%s", comp_vec[1], operator, paste(comp_vec[-1], collapse = "_"))
+    prob_var <- sprintf("prob_%s", op_var)
+
+    # For each draw, check if first value satisfies operator against all others
+    comparison_cols <- var_names[-1]
+
+    DTW[, (op_var) := {
+      first_val <- get(var_names[1])
+      # Check if condition holds for ALL comparisons
+      all_conditions <- do.call(cbind, lapply(comparison_cols, function(col) {
+        operator_fn(first_val, get(col))
+      }))
+      as.integer(apply(all_conditions, 1, all, na.rm = TRUE))
+    }]
+
+    DTP <- DTW[, .(prob = mean(get(op_var), na.rm = TRUE)), by = by_vars_no_draw]
+    data.table::setnames(DTP, "prob", prob_var)
+
+  } else {
+    # Pairwise comparisons for multiple values
+    # Compare comp_vec[1] against each of comp_vec[2:n]
+    result_list <- list()
+
+    for (i in 2:length(comp_vec)) {
+      op_var   <- sprintf("%s_%s_%s", comp_vec[1], operator, comp_vec[i])
+      prob_var <- sprintf("prob_%s", op_var)
+
+      DTW[, (op_var) := as.integer(operator_fn(get(var_names[1]), get(var_names[i])))]
+
+      DTP_temp <- DTW[, .(prob = mean(get(op_var), na.rm = TRUE)), by = by_vars_no_draw]
+      data.table::setnames(DTP_temp, "prob", prob_var)
+
+      result_list[[i-1]] <- DTP_temp
+    }
+
+    # Merge all results
+    DTP <- Reduce(function(x, y) merge(x, y, by = by_vars_no_draw, all = TRUE), result_list)
+  }
+
+  ret_obj <- if(return_type == "probs"){
+    DTP
+  } else if (return_type == "binary"){
+    DTW
+  }
+
+  return(ret_obj)
+
 }
+
 
 #' Calculate probability that draws in year 1 are <, <=, >, or >=
 #' draws in year 2.
@@ -402,48 +537,102 @@ draws_inequal_prob <- function(
 #'
 #' @returns [data.table] a table of probabilities by `by_vars`
 #' @export
-draws_year_prob <- function(DT, yr_vec, operator, by_vars){
+#'
+#' @examples
+#'  DT_demo <- data.table::as.data.table(
+#' tibble::tribble(
+#'    ~adm2_code, ~year_id, ~draw_id, ~me_name, ~value,
+#'    "ADM2_1",     2020,       1,    "dpt1",    0.80,
+#'    "ADM2_1",     2020,       1,    "bcg1",    0.70,
+#'    "ADM2_1",     2020,       1,    "mcv1",    0.90,
+#'    "ADM2_1",     2020,       2,    "dpt1",    0.60,
+#'    "ADM2_1",     2020,       2,    "bcg1",    0.65,
+#'    "ADM2_1",     2020,       2,    "mcv1",    0.20,
+#'    "ADM2_1",     2024,       1,    "dpt1",    0.50,
+#'    "ADM2_1",     2024,       1,    "bcg1",    0.55,
+#'    "ADM2_1",     2024,       1,    "mcv1",    0.55,
+#'    "ADM2_1",     2024,       2,    "dpt1",    0.40,
+#'    "ADM2_1",     2024,       2,    "bcg1",    0.35,
+#'    "ADM2_1",     2024,       2,    "mcv1",    0.20,
+#'    )
+#' )
+#'
+#' # Probability (0-1) at the draw level that 2024 > 2020, by adm2_code
+#' draws_year_prob(
+#'   DT_demo
+#'   , yr_vec        = c(2020, 2024)
+#'   , operator      = "gt"
+#'   , by_vars       = c("adm2_code", "me_name") # me_name is necessary, or will aggregate across me_name
+#' )
+draws_year_prob <- function(
+    DT
+    , yr_vec
+    , operator
+    , by_vars
+    , comparison_type = "pairwise"
+    , return_type     = "probs"
+    , verbose         = TRUE
+){
 
-  # checkmate::assert_data_table(DT)
-  # checkmate::assert_integerish(yr_vec, len = 2)
-  # checkmate::assert_choice(operator, choices = c("lt", "lte", "gt", "gte"))
-  # assert_x_in_y(by_vars, names(DT))
-  # assert_x_not_in_y("draw_id", by_vars)
-  # assert_x_not_in_y("prop", names(DT))
-  #
-  # operator_fn <- switch(
-  #   operator
-  #   , "lt"  = `<`
-  #   , "lte" = `<=`
-  #   , "gt"  = `>`
-  #   , "gte" = `>=`
-  # )
-  #
-  # op_var   <- sprintf("%s_%s_%s", yr_vec[1], operator, yr_vec[2])
-  # prob_var <- sprintf("prob_%s", op_var)
-  #
-  # DTW <- draws_years_to_wide(DT, yr_vec)
-  # yr_names <- sort(grep("_\\d{4}$", names(DTW), value = TRUE))
-  #
-  # # new binary column based on operator
-  # DTW[, (op_var) := as.integer(operator_fn(get(yr_names[1]), get(yr_names[2])))]
-  # by_vars <- setdiff(by_vars, "draw_id")
-  #
-  # # probability calc
-  # DTP <- DTW[, .(prob = mean(get(op_var), na.rm = TRUE) ), by = by_vars ]
-  # setnames(DTP, "prob", prob_var)
-  #
-  # return(DTP)
+  checkmate::assert_integerish(yr_vec, len = 2)
 
-  # make this a special case of draws_inequal_prob
+  # special case of draws_inequal_prob
   return(
     draws_inequal_prob(
-      DT        = DT
-      , comp_var = "year_id"
-      , comp_vec = yr_vec
-      , operator = operator
-      , by_vars  = by_vars
+      DT                = DT
+      , comp_var        = "year_id"
+      , comp_vec        = yr_vec
+      , operator        = operator
+      , by_vars         = by_vars
+      , comparison_type = comparison_type
+      , return_type     = return_type
+      , verbose         = verbose
     )
   )
 }
 
+
+
+# ---- Graveyard -----------------------------------------------------------------
+
+# v1
+# draws_inequal_prob <- function(
+    #     DT
+#     , comp_var
+#     , comp_vec
+#     , operator
+#     , by_vars
+# ){
+#
+#   checkmate::assert_data_table(DT)
+#   checkmate::assert_choice(operator, choices = c("lt", "lte", "gt", "gte"))
+#   checkmate::assert_vector(comp_vec, len = 2)
+#   assert_x_in_y(c("draw_id", comp_var, by_vars), names(DT))
+#   assert_x_in_y(comp_vec, DT[[comp_var]])
+#   assert_x_not_in_y("draw_id", by_vars)
+#   assert_x_not_in_y("prop", names(DT))
+#
+#   operator_fn <- switch(
+#     operator
+#     , "lt"  = `<`
+#     , "lte" = `<=`
+#     , "gt"  = `>`
+#     , "gte" = `>=`
+#   )
+#
+#   op_var    <- sprintf("%s_%s_%s", comp_vec[1], operator, comp_vec[2])
+#   prob_var  <- sprintf("prob_%s", op_var)
+#   var_names <- sprintf("value_%s", comp_vec)
+#
+#   DTW <- draws_var_to_wide(DT, varname = comp_var, var_vec = comp_vec)
+#
+#   # new binary column based on operator
+#   DTW[, (op_var) := as.integer(operator_fn(get(var_names[1]), get(var_names[2])))]
+#   by_vars <- setdiff(by_vars, "draw_id")
+#
+#   # probability calc
+#   DTP <- DTW[, .(prob = mean(get(op_var), na.rm = TRUE) ), by = by_vars ]
+#   data.table::setnames(DTP, "prob", prob_var)
+#
+#   return(DTP)
+# }
