@@ -1,3 +1,7 @@
+# SamsElves 0.9.16
+
+draws_inequal_prob - new function to calculate draw-level posterior probabilities
+
 # SamsElves 0.9.15
 
 read/write_file - added fst
