@@ -11,10 +11,10 @@
 assert_x_in_y <- function(x, y){
   checkmate::assert_vector(x)
   checkmate::assert_vector(y)
-  x_name <- deparse(substitute(x))
-  y_name <- deparse(substitute(y))
   absent <- setdiff(x, y)
   if (length(absent) > 0) {
+    x_name <- deparse(substitute(x))
+    y_name <- deparse(substitute(y))
     stop(sprintf("required in %s but absent in %s: %s", x_name, y_name, toString(absent)))
   }
 }

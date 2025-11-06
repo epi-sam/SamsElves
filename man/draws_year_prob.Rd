@@ -2,15 +2,15 @@
 % Please edit documentation in R/draw_transforms.R
 \name{draws_year_prob}
 \alias{draws_year_prob}
-\title{Calculate probability that draws in year 2 are greater than (or less than)
-draws in year 1.}
+\title{Calculate probability that draws in year 1 are <, <=, >, or >=
+draws in year 2.}
 \usage{
 draws_year_prob(DT, yr_vec, operator, by_vars)
 }
 \arguments{
 \item{DT}{[data.table] a table of (long) draws}
 
-\item{yr_vec}{[int] 2 years to compare (function sorts them internally)}
+\item{yr_vec}{[int] 2 years to compare}
 
 \item{operator}{[chr: {"lt", "lte", "gt", "gte"}] operator for comparison -
 translates to <, <=, >, >= internally}
@@ -22,5 +22,5 @@ translates to <, <=, >, >= internally}
 [data.table] a table of probabilities by `by_vars`
 }
 \description{
-Comparison is ALWAYS year 2 vs year 1 (e.g. year 2 < year 1)
+Convenience wrapper for draws_inequal_prob()
 }

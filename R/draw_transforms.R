@@ -245,8 +245,30 @@ draws_to_mean_ci <- function(
   return(DT[])
 }
 
+#' Pivot long draws wide by some variable
+#'
+#' @param DT [data.table] input draws
+#' @param var_vec [chr] vector of variable levels to pivot wide
+#'
+#' @returns [data.table] draws in wide format
+#' @export
+draws_var_to_wide <- function(DT, varname, var_vec = NULL){
+  checkmate::assert_data_table(DT)
+  assert_x_in_y(c("draw_id", "value", varname), colnames(DT))
+  if(!is.null(var_vec)) {
+    assert_x_in_y(var_vec, unique(DT[[varname]]))
+  }
+  DT %>%
+    # allow all levels of the variable to pivot
+    { if(!is.null(var_vec)) dplyr::filter(., get(varname) %in% var_vec) else . } %>%
+    tidyr::pivot_wider(., names_from = varname, values_from = "value", names_prefix = paste0("value_")) %>%
+    data.table::as.data.table()
+}
+
 
 #' Pivot long draws wide by years
+#'
+#' Convenience wrapper for draws_var_to_wide()
 #'
 #' @param DT [data.table] input draws
 #' @param yr_vec [int] vector of years to pivot wide
@@ -254,19 +276,23 @@ draws_to_mean_ci <- function(
 #' @returns [data.table] draws in wide format
 #' @export
 draws_years_to_wide <- function(DT, yr_vec = NULL){
-  checkmate::assert_data_table(DT)
-  assert_x_in_y(c("year_id", "draw_id", "value"), colnames(DT))
-  checkmate::assert_integerish(unique(DT$year_id), min.len = 2)
-  if(!is.null(yr_vec)) {
-    assert_x_in_y(yr_vec, unique(DT$year_id))
-  }
-
-  DT %>%
-    # allow all years to pivot
-    { if(!is.null(yr_vec)) dplyr::filter(., year_id %in% yr_vec) else . } %>%
-    tidyr::pivot_wider(., names_from = "year_id", values_from = "value", names_prefix = "value_") %>%
-    data.table::as.data.table()
+  return(draws_var_to_wide(DT, varname = "year_id", var_vec = yr_vec))
 }
+
+# draws_years_to_wide <- function(DT, yr_vec = NULL){
+#   checkmate::assert_data_table(DT)
+#   assert_x_in_y(c("year_id", "draw_id", "value"), colnames(DT))
+#   checkmate::assert_integerish(unique(DT$year_id), min.len = 2)
+#   if(!is.null(yr_vec)) {
+#     assert_x_in_y(yr_vec, unique(DT$year_id))
+#   }
+#
+#   DT %>%
+#     # allow all years to pivot
+#     { if(!is.null(yr_vec)) dplyr::filter(., year_id %in% yr_vec) else . } %>%
+#     tidyr::pivot_wider(., names_from = "year_id", values_from = "value", names_prefix = "value_") %>%
+#     data.table::as.data.table()
+# }
 
 
 
@@ -304,30 +330,38 @@ draws_year_diff <- function(DT, yr_vec, id_varnames = find_id_varnames(DT, verbo
 }
 
 
+# ---- Probabilities -----------------------------------------------------------------
 
-# Probabilities ------
-
-#' Calculate probability that draws in year 2 are greater than (or less than)
-#' draws in year 1.
+#' Calculate probability that draws of comp_var for comp_vec[1] are <, <=, >, or >=
+#' draws of comp_var for comp_vec[2].
 #'
-#' Comparison is ALWAYS year 2 vs year 1 (e.g. year 2 < year 1)
+#' The comparison is done at the draw level after pivoting wide by comp_var.
 #'
 #' @param DT [data.table] a table of (long) draws
-#' @param yr_vec [int] 2 years to compare (function sorts them internally)
+#' @param comp_var [chr] variable name to compare - e.g. "year_id"
+#' @param comp_vec [chr] vector of 2 variable levels to compare - e.g. c("1990", "2020")
 #' @param operator [chr: {"lt", "lte", "gt", "gte"}] operator for comparison -
-#'   translates to <, <=, >, >= internally
+#'  translates to <, <=, >, >= internally
 #' @param by_vars [chr] variable names to group by when calculating probability
-#'   - e.g. location_id
+#' - e.g. location_id
 #'
 #' @returns [data.table] a table of probabilities by `by_vars`
 #' @export
-draws_year_prob <- function(DT, yr_vec, operator, by_vars){
+draws_inequal_prob <- function(
+    DT
+    , comp_var
+    , comp_vec
+    , operator
+    , by_vars
+){
 
   checkmate::assert_data_table(DT)
-  yr_vec <- sort(unique(yr_vec))
-  checkmate::assert_integerish(yr_vec, len = 2)
   checkmate::assert_choice(operator, choices = c("lt", "lte", "gt", "gte"))
-  assert_x_in_y(by_vars, names(DT))
+  checkmate::assert_vector(comp_vec, len = 2)
+  assert_x_in_y(c("draw_id", comp_vars, by_vars), names(DT))
+  assert_x_in_y(comp_vec, DT[[comp_var]])
+  se$assert_x_not_in_y("draw_id", by_vars)
+  se$assert_x_not_in_y("prop", names(DT))
 
   operator_fn <- switch(
     operator
@@ -337,14 +371,14 @@ draws_year_prob <- function(DT, yr_vec, operator, by_vars){
     , "gte" = `>=`
   )
 
-  op_var   <- sprintf("%s_%s_%s", yr_vec[2], operator, yr_vec[1])
-  prob_var <- sprintf("prob_%s", op_var)
+  op_var    <- sprintf("%s_%s_%s", comp_vec[1], operator, comp_vec[2])
+  prob_var  <- sprintf("prob_%s", op_var)
+  var_names <- sprintf("value_%s", comp_vec)
 
-  DTW <- draws_years_to_wide(DT, yr_vec)
-  yr_names <- sort(grep("_\\d{4}$", names(DTW), value = TRUE))
+  DTW <- draws_var_to_wide(DT, varname = comp_var, var_vec = comp_vec)
 
   # new binary column based on operator
-  DTW[, (op_var) := as.integer(operator_fn(get(yr_names[2]), get(yr_names[1])))]
+  DTW[, (op_var) := as.integer(operator_fn(get(var_names[1]), get(var_names[2])))]
   by_vars <- setdiff(by_vars, "draw_id")
 
   # probability calc
@@ -353,3 +387,63 @@ draws_year_prob <- function(DT, yr_vec, operator, by_vars){
 
   return(DTP)
 }
+
+#' Calculate probability that draws in year 1 are <, <=, >, or >=
+#' draws in year 2.
+#'
+#' Convenience wrapper for draws_inequal_prob()
+#'
+#' @param DT [data.table] a table of (long) draws
+#' @param yr_vec [int] 2 years to compare
+#' @param operator [chr: {"lt", "lte", "gt", "gte"}] operator for comparison -
+#'   translates to <, <=, >, >= internally
+#' @param by_vars [chr] variable names to group by when calculating probability
+#'   - e.g. location_id
+#'
+#' @returns [data.table] a table of probabilities by `by_vars`
+#' @export
+draws_year_prob <- function(DT, yr_vec, operator, by_vars){
+
+  # checkmate::assert_data_table(DT)
+  # checkmate::assert_integerish(yr_vec, len = 2)
+  # checkmate::assert_choice(operator, choices = c("lt", "lte", "gt", "gte"))
+  # assert_x_in_y(by_vars, names(DT))
+  # assert_x_not_in_y("draw_id", by_vars)
+  # assert_x_not_in_y("prop", names(DT))
+  #
+  # operator_fn <- switch(
+  #   operator
+  #   , "lt"  = `<`
+  #   , "lte" = `<=`
+  #   , "gt"  = `>`
+  #   , "gte" = `>=`
+  # )
+  #
+  # op_var   <- sprintf("%s_%s_%s", yr_vec[1], operator, yr_vec[2])
+  # prob_var <- sprintf("prob_%s", op_var)
+  #
+  # DTW <- draws_years_to_wide(DT, yr_vec)
+  # yr_names <- sort(grep("_\\d{4}$", names(DTW), value = TRUE))
+  #
+  # # new binary column based on operator
+  # DTW[, (op_var) := as.integer(operator_fn(get(yr_names[1]), get(yr_names[2])))]
+  # by_vars <- setdiff(by_vars, "draw_id")
+  #
+  # # probability calc
+  # DTP <- DTW[, .(prob = mean(get(op_var), na.rm = TRUE) ), by = by_vars ]
+  # setnames(DTP, "prob", prob_var)
+  #
+  # return(DTP)
+
+  # make this a special case of draws_inequal_prob
+  return(
+    draws_inequal_prob(
+      DT        = DT
+      , comp_var = "year_id"
+      , comp_vec = yr_vec
+      , operator = operator
+      , by_vars  = by_vars
+    )
+  )
+}
+

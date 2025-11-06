@@ -15,5 +15,5 @@ draws_years_to_wide(DT, yr_vec = NULL)
 [data.table] draws in wide format
 }
 \description{
-Pivot long draws wide by years
+Convenience wrapper for draws_var_to_wide()
 }
