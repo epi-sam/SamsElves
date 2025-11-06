@@ -358,7 +358,7 @@ draws_inequal_prob <- function(
   checkmate::assert_data_table(DT)
   checkmate::assert_choice(operator, choices = c("lt", "lte", "gt", "gte"))
   checkmate::assert_vector(comp_vec, len = 2)
-  assert_x_in_y(c("draw_id", comp_vars, by_vars), names(DT))
+  assert_x_in_y(c("draw_id", comp_var, by_vars), names(DT))
   assert_x_in_y(comp_vec, DT[[comp_var]])
   se$assert_x_not_in_y("draw_id", by_vars)
   se$assert_x_not_in_y("prop", names(DT))
