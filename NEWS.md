@@ -1,8 +1,9 @@
 # SamsElves 0.9.17
 
-bugfix 
+Fixes
 
 - nature style UI - removed unncessary text prefix
+- draws long to wide - allow user-supplied value varname
 
 # SamsElves 0.9.16
 
