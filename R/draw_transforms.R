@@ -146,11 +146,15 @@ draws_wide_to_long <- function(DT, id_varnames = find_id_varnames(DT, verbose = 
 #'
 #' @returns [data.frame] draws in wide format
 #' @export
-draws_long_to_wide <- function(DT, id_varnames = find_id_varnames(DT, removals = c("value"), verbose = FALSE), verbose = FALSE){
+draws_long_to_wide <- function(
+    DT
+    , value_varname = "value"
+    , id_varnames = find_id_varnames(DT, removals = c(value_varname), verbose = FALSE)
+    , verbose = FALSE
+){
 
   checkmate::assert_data_table(DT)
-  # checkmate::assert_subset(c("value", id_varnames), colnames(DT))
-  assert_x_in_y(c("value", id_varnames), colnames(DT))
+  assert_x_in_y(c(value_varname, id_varnames), colnames(DT))
   checkmate::assert_logical(verbose, len = 1)
 
   assert_square(DT, id_varnames = id_varnames)
@@ -171,7 +175,7 @@ draws_long_to_wide <- function(DT, id_varnames = find_id_varnames(DT, removals =
     tidyr::pivot_wider(
       data           = DT
       , names_from   = "draw_id"
-      , values_from  = "value"
+      , values_from  = value_varname
       , names_prefix = names_prefix
     )
   )
