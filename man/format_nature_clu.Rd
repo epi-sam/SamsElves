@@ -17,7 +17,7 @@ format_nature_clu(
   big.mark_count = ",",
   mean_neg_text = "a decrease of ",
   UI_only = FALSE,
-  UI_text = "95\% uncertainty interval, ",
+  UI_text = "",
   assert_clu_relationships = TRUE
 )
 }

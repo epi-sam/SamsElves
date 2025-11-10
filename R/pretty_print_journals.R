@@ -1108,7 +1108,7 @@ format_nature_clu <- function(
     , big.mark_count           = ","
     , mean_neg_text            = "a decrease of "
     , UI_only                  = FALSE
-    , UI_text                  = "95% uncertainty interval, "
+    , UI_text                  = ""
     , assert_clu_relationships = TRUE
 ){
   format_journal_clu(
@@ -1174,7 +1174,7 @@ format_nature_dt <- function(
     , big.mark_count           = ","
     , mean_neg_text            = "a decrease of "
     , UI_only                  = FALSE
-    , UI_text                  = "95% uncertainty interval, "
+    , UI_text                  = ""
     , is_lancet                = FALSE
 ){
 

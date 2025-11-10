@@ -109,11 +109,11 @@ test_that("format_nature_clu works",
           {
             expect_equal(
               format_nature_clu(central = 0.994, lower = 0.984, upper = 0.998, d_type = "prop")
-              , "99.4% (95% uncertainty interval, 98.4–99.8)"
+              , "99.4% (98.4–99.8)"
             )
             expect_equal(
               format_nature_clu(central = 0.994, lower = -0.984, upper = 0.998, d_type = "prop")
-              , "99.4% (95% uncertainty interval, -98.4 to 99.8)"
+              , "99.4% (-98.4 to 99.8)"
             )
           })
 
@@ -176,8 +176,8 @@ test_that("format_lancet_dt and format_nature_dt work",
                   location_did = c(1, 1),
                   location_name = c("Global", "Global"),
                   clu_fmt = c(
-                    "55.8 million (95% uncertainty interval, 50.7–60.7)",
-                    "54.7 billion (95% uncertainty interval, 48.6–59.6)"
+                    "55.8 million (50.7–60.7)",
+                    "54.7 billion (48.6–59.6)"
                   )
                 ),
                 row.names = c(NA, -2L),
