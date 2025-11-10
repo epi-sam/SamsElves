@@ -1,3 +1,9 @@
+# SamsElves 0.9.17
+
+bugfix 
+
+- nature style UI - removed unncessary text prefix
+
 # SamsElves 0.9.16
 
 draws_inequal_prob - new function to calculate draw-level posterior probabilities
