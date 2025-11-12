@@ -236,8 +236,9 @@ read_file <- function(path_to_file, verbose = FALSE, csv_opt = "data.table::frea
     "fst"  = function(path, as.data.table = TRUE, ...) {
       # fst are often large, timer is nice to have
       msg_tic()
-      fst::read_fst(path, as.data.table = as.data.table, ...)
+      .file <- fst::read_fst(path, as.data.table = as.data.table, ...)
       msg_toc(prefix = " -- fst read time: ")
+      return(.file)
     },
     "yaml" = yaml::read_yaml,
     "rds"  = base::readRDS,
