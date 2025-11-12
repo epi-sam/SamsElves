@@ -16,6 +16,7 @@ Imports:
     readr,
     rhdf5,
     styler,
+    tictoc,
     tidyr,
     tibble,
     yaml

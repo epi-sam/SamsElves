@@ -28,3 +28,36 @@ prt_multiline <- function(x){
 msg_multiline <- function(x){
   message(prt_multiline(x))
 }
+
+#' Start tictoc timer
+#'
+#' Just a wrapper of tictoc::tic() for fun name consistency
+#'
+#' @returns [none]
+#' @export
+#'
+#' @family timers
+#'
+#' @examples
+#' msg_tic()
+#' msg_toc()
+msg_tic <- function(){
+  tictoc::tic()
+}
+
+#' Message tictoc toc time with prefix
+#'
+#' @param prefix [chr: default " -- "] prefix to the message
+#'
+#' @family timers
+#'
+#' @returns [none]
+#' @export
+#'
+#' @examples
+#' msg_tic()
+#' msg_toc()
+msg_toc <- function(prefix = " -- "){
+  checkmate::assert_character(prefix, len = 1)
+  message(prefix, tictoc::toc(quiet = TRUE)$callback_msg[1])
+}

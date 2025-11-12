@@ -178,7 +178,9 @@ save_file <- function(object, f_path, csv_opt = "readr::write_excel_csv", overwr
     switch(
       ext,
       "fst"  = function(data, path, compress = 80, ...) {
+        msg_tic()
         fst::write_fst(data, path, compress = compress, ...)
+        msg_toc(prefix = " -- fst write time: ")
       },
       "csv"  = function(data, path, ...) {
         csv_writer(data, path, ...)
@@ -231,7 +233,9 @@ read_file <- function(path_to_file, verbose = FALSE, csv_opt = "data.table::frea
       reader(path, ...)
     },
     "fst"  = function(path, as.data.table = TRUE, ...) {
+      msg_tic()
       fst::read_fst(path, as.data.table = as.data.table, ...)
+      msg_toc(prefix = " -- fst read time: ")
     },
     "yaml" = yaml::read_yaml,
     "rds"  = base::readRDS,
