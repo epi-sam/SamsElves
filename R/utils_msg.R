@@ -59,5 +59,12 @@ msg_tic <- function(){
 #' msg_toc()
 msg_toc <- function(prefix = " -- "){
   checkmate::assert_character(prefix, len = 1)
-  message(prefix, tictoc::toc(quiet = TRUE)$callback_msg[1])
+  message(
+    prefix
+    , sub(
+      " elapsed$"
+      , ""
+      , tictoc::toc(quiet = TRUE)$callback_msg[1]
+    )
+  )
 }
