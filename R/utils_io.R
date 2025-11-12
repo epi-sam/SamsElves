@@ -182,7 +182,7 @@ save_file <- function(object, f_path, csv_opt = "readr::write_excel_csv", overwr
         msg_tic()
         fname <- basename(path)
         fst::write_fst(data, path, compress = compress, ...)
-        msg_toc(prefix = sprintf(" -- fst write %s: ", fname))
+        msg_toc(prefix = sprintf(" -- fst write (%s): ", fname))
       },
       "csv"  = function(data, path, ...) {
         csv_writer(data, path, ...)
@@ -239,7 +239,7 @@ read_file <- function(path_to_file, verbose = FALSE, csv_opt = "data.table::frea
       fname <- basename(path)
       msg_tic()
       .file <- fst::read_fst(path, as.data.table = as.data.table, ...)
-      msg_toc(prefix = sprintf(" -- fst read %s: ", fname))
+      msg_toc(prefix = sprintf(" -- fst read (%s): ", fname))
       return(.file)
     },
     "yaml" = yaml::read_yaml,
