@@ -112,7 +112,11 @@ find_id_varnames <- function(
 #'
 #' @returns [data.frame] draws in long format
 #' @export
-draws_wide_to_long <- function(DT, id_varnames = find_id_varnames(DT, verbose = FALSE), verbose = FALSE){
+draws_wide_to_long <- function(
+    DT
+    , id_varnames = find_id_varnames(DT, verbose = FALSE)
+    , verbose     = FALSE
+){
   checkmate::assert_data_table(DT)
   checkmate::assert_character(id_varnames, any.missing = FALSE, min.len = 1)
   checkmate::assert_logical(verbose, len = 1)
@@ -123,7 +127,10 @@ draws_wide_to_long <- function(DT, id_varnames = find_id_varnames(DT, verbose = 
 
   vars_draws = find_draws_varnames(DT)
 
-  if(verbose == TRUE) message("wide to long - draw_id columns, e.g. : ", toString(vars_draws[1:5]))
+  if(verbose == TRUE) {
+    message("wide to long - draw_id columns, e.g. : ", toString(vars_draws[1:5]))
+    msg_tic()
+  }
 
   # faster than melt()
   DT <- tidyr::pivot_longer(data = DT, cols = all_of(vars_draws), names_to = "draw_id", values_to = "value") %>%
@@ -132,6 +139,8 @@ draws_wide_to_long <- function(DT, id_varnames = find_id_varnames(DT, verbose = 
     data.table::as.data.table()
 
   data.table::setorderv(DT, id_varnames)
+
+  if(verbose) msg_toc()
 
   return(DT)
 }
@@ -149,8 +158,8 @@ draws_wide_to_long <- function(DT, id_varnames = find_id_varnames(DT, verbose = 
 draws_long_to_wide <- function(
     DT
     , value_varname = "value"
-    , id_varnames = find_id_varnames(DT, removals = c(value_varname), verbose = FALSE)
-    , verbose = FALSE
+    , id_varnames   = find_id_varnames(DT, removals = c(value_varname), verbose = FALSE)
+    , verbose       = FALSE
 ){
 
   checkmate::assert_data_table(DT)
@@ -168,6 +177,7 @@ draws_long_to_wide <- function(
   if(verbose == TRUE) {
     message("id_varnames: ", toString(id_varnames))
     message("long to wide - draw_id columns to e.g. : ", toString(ex_vars))
+    msg_tic()
   }
 
   # faster than dcast
@@ -184,6 +194,8 @@ draws_long_to_wide <- function(
   data.table::setnames(DTW, "draw_point_estimate", "point_estimate", skip_absent = TRUE)
 
   data.table::setorderv(DTW, find_id_varnames(DTW, verbose = FALSE))
+
+  if(verbose) msg_toc()
 
   return(DTW)
 }
@@ -463,6 +475,9 @@ draws_inequal_prob <- function(
   var_names <- sprintf("value_%s", comp_vec)
   by_vars_no_draw <- setdiff(by_vars, "draw_id")
 
+  # big tables are slow - nice to have a timer
+  if(verbose) msg_tic()
+
   if (comparison_type == "pairwise" && length(comp_vec) == 2) {
 
 
@@ -515,6 +530,8 @@ draws_inequal_prob <- function(
     # Merge all results
     DTP <- Reduce(function(x, y) merge(x, y, by = by_vars_no_draw, all = TRUE), result_list)
   }
+
+  if(verbose) msg_toc()
 
   ret_obj <- if(return_type == "probs"){
     DTP

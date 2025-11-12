@@ -4,6 +4,7 @@ Fixes
 
 - nature style UI - removed unncessary text prefix
 - draws long to wide - allow user-supplied value varname
+- msg_toc - added and included for fst reader/writer
 
 # SamsElves 0.9.16
 
