@@ -178,6 +178,7 @@ save_file <- function(object, f_path, csv_opt = "readr::write_excel_csv", overwr
     switch(
       ext,
       "fst"  = function(data, path, compress = 80, ...) {
+        # fst are often large, timer is nice to have
         msg_tic()
         fst::write_fst(data, path, compress = compress, ...)
         msg_toc(prefix = " -- fst write time: ")
@@ -233,6 +234,7 @@ read_file <- function(path_to_file, verbose = FALSE, csv_opt = "data.table::frea
       reader(path, ...)
     },
     "fst"  = function(path, as.data.table = TRUE, ...) {
+      # fst are often large, timer is nice to have
       msg_tic()
       fst::read_fst(path, as.data.table = as.data.table, ...)
       msg_toc(prefix = " -- fst read time: ")
