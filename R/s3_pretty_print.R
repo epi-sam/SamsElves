@@ -1,3 +1,44 @@
+# 2025 Nov 13 -
+#> instead of new classes, think about a 'formatter'
+#> - a data class holding a static collection of data (dict where you know all the keys, and they're stable)
+#> - as long as you're careful, you have a consistent set of keys
+#> - a (nested?) object with attributes that I was passing individually
+#> - have a validator for the dict
+#>
+#> How do you indicate what formatter user needs to use?
+#> - Facade pattern
+#> - Internal function that takes a formatter
+#> - for each formatter, you have a lightweight one-line wrapper
+#>
+#> Could also have one function per journal
+#> - within the function, grab the journal-specific formatter
+#> - in python this would be a gloabal dict-of-dicts
+#>
+#> probably don't need OOP here
+
+format_lancet <- function(df, metric){
+  format_journal(style = "lancet")
+}
+
+format_journal <- function(style){
+  format <- .format_list[[style]]
+  #> how to leave breadcrumbs to .format_list?
+  #> - have a global value in the script
+  #> - have a function that returns this
+  #>   - the list/env lives in the function
+  #>   - this function would need to be able to add new styles
+  #>
+  format <- format_list(sytle)
+}
+
+format_list_add <- function(my_style){
+  #> this can have a validator
+  #> this may still need to update some global object
+  #> probably want to hide this implementation details
+  #> - this name `format_list_add` may not age well
+  #> - instead 'add_style' is a more generic name
+}
+
 # constructor
 new_j_data <- function(dtype = character(), mean = numeric(), lower = NULL, upper = NULL){
   # validate we at least have a mean numeric type
