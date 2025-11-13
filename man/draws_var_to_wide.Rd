@@ -2,18 +2,22 @@
 % Please edit documentation in R/draw_transforms.R
 \name{draws_var_to_wide}
 \alias{draws_var_to_wide}
-\title{Pivot long draws wide by some variable}
+\title{Pivot long draws wide by any arbitrary variable name}
 \usage{
-draws_var_to_wide(DT, varname, var_vec = NULL)
+draws_var_to_wide(DT, varname, var_vec = NULL, value_varname = "value")
 }
 \arguments{
 \item{DT}{[data.table] input draws}
 
+\item{varname}{[chr] variable name to pivot wide}
+
 \item{var_vec}{[chr] vector of variable levels to pivot wide}
+
+\item{value_varname}{[chr] name of value variable in DT}
 }
 \value{
 [data.table] draws in wide format
 }
 \description{
-Pivot long draws wide by some variable
+Pivot long draws wide by any arbitrary variable name
 }

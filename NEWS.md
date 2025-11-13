@@ -6,6 +6,7 @@ Fixes
 - draws long to wide - allow user-supplied value varname
 - msg_toc - added and included for fst reader/writer
 - merge_df_list - new function to merge list of data.frames/tables by common columns
+- draw transforms - long to wide transformers allow user to select value column name
 
 # SamsElves 0.9.16
 

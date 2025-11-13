@@ -4,16 +4,18 @@
 \alias{draws_years_to_wide}
 \title{Pivot long draws wide by years}
 \usage{
-draws_years_to_wide(DT, yr_vec = NULL)
+draws_years_to_wide(DT, yr_vec = NULL, value_varname = "value")
 }
 \arguments{
 \item{DT}{[data.table] input draws}
 
 \item{yr_vec}{[int] vector of years to pivot wide}
+
+\item{value_varname}{[chr] name of value variable in DT}
 }
 \value{
 [data.table] draws in wide format
 }
 \description{
-Convenience wrapper for draws_var_to_wide()
+Convenience wrapper for `draws_var_to_wide()`
 }

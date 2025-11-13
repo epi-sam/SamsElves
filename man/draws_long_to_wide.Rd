@@ -2,7 +2,7 @@
 % Please edit documentation in R/draw_transforms.R
 \name{draws_long_to_wide}
 \alias{draws_long_to_wide}
-\title{Transform draws from long to wide format}
+\title{Transform draws from long to wide format by "draw_id"}
 \usage{
 draws_long_to_wide(
   DT,
@@ -12,7 +12,9 @@ draws_long_to_wide(
 )
 }
 \arguments{
-\item{DT}{[data.table] input draws}
+\item{DT}{[data.table] input draws with columns `draw_id` and value_varname}
+
+\item{value_varname}{[chr: default "value"] name of value variable in DT}
 
 \item{id_varnames}{[character] columns to keep as is}
 

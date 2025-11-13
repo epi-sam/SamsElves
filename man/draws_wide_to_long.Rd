@@ -2,7 +2,7 @@
 % Please edit documentation in R/draw_transforms.R
 \name{draws_wide_to_long}
 \alias{draws_wide_to_long}
-\title{Transform draws from wide to long format}
+\title{Transform draws from wide to long format creating a `draw_id` column}
 \usage{
 draws_wide_to_long(
   DT,
@@ -21,5 +21,5 @@ draws_wide_to_long(
 [data.frame] draws in long format
 }
 \description{
-Transform draws from wide to long format
+Transform draws from wide to long format creating a `draw_id` column
 }

@@ -104,7 +104,7 @@ find_id_varnames <- function(
 }
 
 
-#' Transform draws from wide to long format
+#' Transform draws from wide to long format creating a `draw_id` column
 #'
 #' @param DT [data.table] input draws
 #' @param id_varnames [character] columns to keep as is
@@ -145,13 +145,14 @@ draws_wide_to_long <- function(
   return(DT)
 }
 
-#' Transform draws from long to wide format
+#' Transform draws from long to wide format by "draw_id"
 #'
 #' Draw columns will be ordered as c("point_estimate", "draw_0", "draw_1", "draw_2", ..., "draw_n")
 #'
-#' @param DT [data.table] input draws
+#' @param DT [data.table] input draws with columns `draw_id` and value_varname
 #' @param id_varnames [character] columns to keep as is
 #' @param verbose [lgl] print debug messages?
+#' @param value_varname [chr: default "value"] name of value variable in DT
 #'
 #' @returns [data.frame] draws in wide format
 #' @export
@@ -199,6 +200,35 @@ draws_long_to_wide <- function(
 
   return(DTW)
 }
+
+
+#' Pivot long draws wide by any arbitrary variable name
+#'
+#' @param DT [data.table] input draws
+#' @param var_vec [chr] vector of variable levels to pivot wide
+#' @param value_varname [chr] name of value variable in DT
+#' @param varname [chr] variable name to pivot wide
+#'
+#' @returns [data.table] draws in wide format
+#' @export
+draws_var_to_wide <- function(
+    DT
+    , varname
+    , var_vec       = NULL
+    , value_varname = "value"
+){
+  checkmate::assert_data_table(DT)
+  assert_x_in_y(c("draw_id", value_varname, varname), colnames(DT))
+  if(!is.null(var_vec)) {
+    assert_x_in_y(var_vec, unique(DT[[varname]]))
+  }
+  DT %>%
+    # allow all levels of the variable to pivot
+    { if(!is.null(var_vec)) dplyr::filter(., get(varname) %in% var_vec) else . } %>%
+    tidyr::pivot_wider(., names_from = varname, values_from = value_varname, names_prefix = sprintf("%s_", value_varname)) %>%
+    data.table::as.data.table()
+}
+
 
 #' Transform wide draws to mean and 95 percent CI
 #'
@@ -261,38 +291,19 @@ draws_to_mean_ci <- function(
   return(DT[])
 }
 
-#' Pivot long draws wide by some variable
-#'
-#' @param DT [data.table] input draws
-#' @param var_vec [chr] vector of variable levels to pivot wide
-#'
-#' @returns [data.table] draws in wide format
-#' @export
-draws_var_to_wide <- function(DT, varname, var_vec = NULL){
-  checkmate::assert_data_table(DT)
-  assert_x_in_y(c("draw_id", "value", varname), colnames(DT))
-  if(!is.null(var_vec)) {
-    assert_x_in_y(var_vec, unique(DT[[varname]]))
-  }
-  DT %>%
-    # allow all levels of the variable to pivot
-    { if(!is.null(var_vec)) dplyr::filter(., get(varname) %in% var_vec) else . } %>%
-    tidyr::pivot_wider(., names_from = varname, values_from = "value", names_prefix = paste0("value_")) %>%
-    data.table::as.data.table()
-}
-
 
 #' Pivot long draws wide by years
 #'
-#' Convenience wrapper for draws_var_to_wide()
+#' Convenience wrapper for `draws_var_to_wide()`
 #'
 #' @param DT [data.table] input draws
 #' @param yr_vec [int] vector of years to pivot wide
+#' @param value_varname [chr] name of value variable in DT
 #'
 #' @returns [data.table] draws in wide format
 #' @export
-draws_years_to_wide <- function(DT, yr_vec = NULL){
-  return(draws_var_to_wide(DT, varname = "year_id", var_vec = yr_vec))
+draws_years_to_wide <- function(DT, yr_vec = NULL, value_varname = "value"){
+  return(draws_var_to_wide(DT, varname = "year_id", var_vec = yr_vec, value_varname = value_varname))
 }
 
 # draws_years_to_wide <- function(DT, yr_vec = NULL){
@@ -375,28 +386,30 @@ draws_year_diff <- function(DT, yr_vec, id_varnames = find_id_varnames(DT, verbo
 #' @param return_type [chr: {"probs", "binary"}] type of return object: "probs" (original
 #'  behavior) returns a table of probabilities by `by_vars`; "binary" returns
 #'  a table with binary indicators {1,0} at the draw level by `by_vars`.
+#' @param value_varname [chr: default "value"] name of value variable in DT
+#' @param verbose [lgl: default TRUE] print debug messages?
 #'
 #' @returns [data.table] a table of probabilities by `by_vars`
 #' @export
 #'
 #' @examples
-# DT_demo <- data.table::as.data.table(
-# tibble::tribble(
-#    ~adm2_code, ~year_id, ~draw_id, ~me_name, ~value,
-#    "ADM2_1",     2024,       1,    "dpt1",    0.80,
-#    "ADM2_1",     2024,       1,    "bcg1",    0.70,
-#    "ADM2_1",     2024,       1,    "mcv1",    0.90,
-#    "ADM2_1",     2024,       2,    "dpt1",    0.60,
-#    "ADM2_1",     2024,       2,    "bcg1",    0.65,
-#    "ADM2_1",     2024,       2,    "mcv1",    0.20,
-#    "ADM2_2",     2024,       1,    "dpt1",    0.50,
-#    "ADM2_2",     2024,       1,    "bcg1",    0.55,
-#    "ADM2_2",     2024,       1,    "mcv1",    0.55,
-#    "ADM2_2",     2024,       2,    "dpt1",    0.40,
-#    "ADM2_2",     2024,       2,    "bcg1",    0.35,
-#    "ADM2_2",     2024,       2,    "mcv1",    0.20,
-#    )
-# )
+#' DT_demo <- data.table::as.data.table(
+#' tibble::tribble(
+#'    ~adm2_code, ~year_id, ~draw_id, ~me_name, ~value,
+#'    "ADM2_1",     2024,       1,    "dpt1",    0.80,
+#'    "ADM2_1",     2024,       1,    "bcg1",    0.70,
+#'    "ADM2_1",     2024,       1,    "mcv1",    0.90,
+#'    "ADM2_1",     2024,       2,    "dpt1",    0.60,
+#'    "ADM2_1",     2024,       2,    "bcg1",    0.65,
+#'    "ADM2_1",     2024,       2,    "mcv1",    0.20,
+#'    "ADM2_2",     2024,       1,    "dpt1",    0.50,
+#'    "ADM2_2",     2024,       1,    "bcg1",    0.55,
+#'    "ADM2_2",     2024,       1,    "mcv1",    0.55,
+#'    "ADM2_2",     2024,       2,    "dpt1",    0.40,
+#'    "ADM2_2",     2024,       2,    "bcg1",    0.35,
+#'    "ADM2_2",     2024,       2,    "mcv1",    0.20,
+#'    )
+#' )
 #'
 #' # Probability (0-1) at the draw level that mcv1 > dpt1 & bcg1 jointly, by
 #' # adm2_code.  Typically the output of interest for publication.
@@ -413,22 +426,23 @@ draws_year_diff <- function(DT, yr_vec, id_varnames = find_id_varnames(DT, verbo
 #'
 #' # Binary indicators {0,1} at the draw level that mcv1 > dpt1 & mcv1 > bcg1,
 #' # separately, by adm2_code - useful to interrogate the `probs` results above
-# draws_inequal_prob(
-# DT_demo
-# , comp_var        = "me_name"
-# , comp_vec        = c("mcv1", "dpt1", "bcg1")
-# , operator        = "gt"
-# , by_vars         = c("adm2_code")
-# , return_type     = "binary"
-# , comparison_type = "pairwise"
-# , verbose         = TRUE
-# )
+#' draws_inequal_prob(
+#' DT_demo
+#' , comp_var        = "me_name"
+#' , comp_vec        = c("mcv1", "dpt1", "bcg1")
+#' , operator        = "gt"
+#' , by_vars         = c("adm2_code")
+#' , return_type     = "binary"
+#' , comparison_type = "pairwise"
+#' , verbose         = TRUE
+#' )
 draws_inequal_prob <- function(
     DT
     , comp_var
     , comp_vec
     , operator
     , by_vars
+    , value_varname   = "value"
     , comparison_type = "pairwise"
     , return_type     = "probs"
     , verbose         = TRUE
@@ -452,7 +466,7 @@ draws_inequal_prob <- function(
   )
 
   # Convert to wide format
-  DTW <- draws_var_to_wide(DT, varname = comp_var, var_vec = comp_vec)
+  DTW <- draws_var_to_wide(DT, varname = comp_var, var_vec = comp_vec, value_varname = value_varname)
 
 
   # Safety net
@@ -472,7 +486,7 @@ draws_inequal_prob <- function(
     ))
   }
 
-  var_names <- sprintf("value_%s", comp_vec)
+  value_var_names <- sprintf("%s_%s", value_varname, comp_vec)
   by_vars_no_draw <- setdiff(by_vars, "draw_id")
 
   # big tables are slow - nice to have a timer
@@ -485,7 +499,7 @@ draws_inequal_prob <- function(
     op_var    <- sprintf("%s_%s_%s", comp_vec[1], operator, comp_vec[2])
     prob_var  <- sprintf("prob_%s", op_var)
 
-    DTW[, (op_var) := as.integer(operator_fn(get(var_names[1]), get(var_names[2])))]
+    DTW[, (op_var) := as.integer(operator_fn(get(value_var_names[1]), get(value_var_names[2])))]
     DTP <- DTW[, .(prob = mean(get(op_var), na.rm = TRUE)), by = by_vars_no_draw]
     data.table::setnames(DTP, "prob", prob_var)
 
@@ -496,10 +510,10 @@ draws_inequal_prob <- function(
     prob_var <- sprintf("prob_%s", op_var)
 
     # For each draw, check if first value satisfies operator against all others
-    comparison_cols <- var_names[-1]
+    comparison_cols <- value_var_names[-1]
 
     DTW[, (op_var) := {
-      first_val <- get(var_names[1])
+      first_val <- get(value_var_names[1])
       # Check if condition holds for ALL comparisons
       all_conditions <- do.call(cbind, lapply(comparison_cols, function(col) {
         operator_fn(first_val, get(col))
@@ -519,7 +533,7 @@ draws_inequal_prob <- function(
       op_var   <- sprintf("%s_%s_%s", comp_vec[1], operator, comp_vec[i])
       prob_var <- sprintf("prob_%s", op_var)
 
-      DTW[, (op_var) := as.integer(operator_fn(get(var_names[1]), get(var_names[i])))]
+      DTW[, (op_var) := as.integer(operator_fn(get(value_var_names[1]), get(value_var_names[i])))]
 
       DTP_temp <- DTW[, .(prob = mean(get(op_var), na.rm = TRUE)), by = by_vars_no_draw]
       data.table::setnames(DTP_temp, "prob", prob_var)

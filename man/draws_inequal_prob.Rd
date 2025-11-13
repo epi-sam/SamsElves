@@ -11,6 +11,7 @@ draws_inequal_prob(
   comp_vec,
   operator,
   by_vars,
+  value_varname = "value",
   comparison_type = "pairwise",
   return_type = "probs",
   verbose = TRUE
@@ -31,6 +32,8 @@ translates to <, <=, >, >= internally}
 \item{by_vars}{[chr] variable names to group by when calculating probability
 - e.g. location_id}
 
+\item{value_varname}{[chr: default "value"] name of value variable in DT}
+
 \item{comparison_type}{[chr: {"pairwise", "joint"}] type of comparison to
 perform: "pairwise": compare comp_vec[1] against comp_vec[2] only if
 length(comp_vec) == 2 (original behavior); if length(comp_vec) > 2, compare
@@ -41,6 +44,8 @@ behavior).}
 \item{return_type}{[chr: {"probs", "binary"}] type of return object: "probs" (original
 behavior) returns a table of probabilities by `by_vars`; "binary" returns
 a table with binary indicators {1,0} at the draw level by `by_vars`.}
+
+\item{verbose}{[lgl: default TRUE] print debug messages?}
 }
 \value{
 [data.table] a table of probabilities by `by_vars`
@@ -54,6 +59,23 @@ against the second (or all others, depending on `comparison_type`), using
 the specified `operator`.
 }
 \examples{
+DT_demo <- data.table::as.data.table(
+tibble::tribble(
+   ~adm2_code, ~year_id, ~draw_id, ~me_name, ~value,
+   "ADM2_1",     2024,       1,    "dpt1",    0.80,
+   "ADM2_1",     2024,       1,    "bcg1",    0.70,
+   "ADM2_1",     2024,       1,    "mcv1",    0.90,
+   "ADM2_1",     2024,       2,    "dpt1",    0.60,
+   "ADM2_1",     2024,       2,    "bcg1",    0.65,
+   "ADM2_1",     2024,       2,    "mcv1",    0.20,
+   "ADM2_2",     2024,       1,    "dpt1",    0.50,
+   "ADM2_2",     2024,       1,    "bcg1",    0.55,
+   "ADM2_2",     2024,       1,    "mcv1",    0.55,
+   "ADM2_2",     2024,       2,    "dpt1",    0.40,
+   "ADM2_2",     2024,       2,    "bcg1",    0.35,
+   "ADM2_2",     2024,       2,    "mcv1",    0.20,
+   )
+)
 
 # Probability (0-1) at the draw level that mcv1 > dpt1 & bcg1 jointly, by
 # adm2_code.  Typically the output of interest for publication.
@@ -70,4 +92,14 @@ DT_demo
 
 # Binary indicators {0,1} at the draw level that mcv1 > dpt1 & mcv1 > bcg1,
 # separately, by adm2_code - useful to interrogate the `probs` results above
+draws_inequal_prob(
+DT_demo
+, comp_var        = "me_name"
+, comp_vec        = c("mcv1", "dpt1", "bcg1")
+, operator        = "gt"
+, by_vars         = c("adm2_code")
+, return_type     = "binary"
+, comparison_type = "pairwise"
+, verbose         = TRUE
+)
 }
