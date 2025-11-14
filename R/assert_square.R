@@ -101,7 +101,7 @@ assert_square <- function(
 
   if(any(unlist(lapply(non_square_list, nrow))) > 0 ){
 
-    cnd_msg <- sprintf("%s is not square:", dt_name)
+    cnd_msg <- sprintf("%s is not square.", dt_name)
     if(hard_stop == TRUE) {
       message("Example missing/duplicated rows")
       message("Missing:")
