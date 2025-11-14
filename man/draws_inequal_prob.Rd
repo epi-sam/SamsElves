@@ -2,7 +2,7 @@
 % Please edit documentation in R/draw_transforms.R
 \name{draws_inequal_prob}
 \alias{draws_inequal_prob}
-\title{Calculate probability that compare draws of `comp_var` for `comp_vec[1]` are <,
+\title{Calculate probability that draws of `comp_var` for `comp_vec[1]` are <,
 <=, >, or >= draws of comp_var for `comp_vec[2]`.}
 \usage{
 draws_inequal_prob(

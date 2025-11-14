@@ -54,19 +54,37 @@ assert_square <- function(
     }
   }
 
-  # Build a square of id_vars
-  id_vars               <- lapply(id_varnames, function(x) unique(dt[[x]]))
-  id_vars_square        <- do.call(data.table::CJ, id_vars)
-  names(id_vars_square) <- id_varnames
+  # Check duplicates FIRST (fast operation)
+  duplicated_rows <- dt[duplicated(dt, by = id_varnames), ]
 
-  # Identify missing rows
-  missing_rows <- data.table::fsetdiff(id_vars_square, dt[, ..id_varnames], all = FALSE)
+  # Only build square if no duplicates (duplicates mean it can't be square anyway)
+  if(nrow(duplicated_rows) == 0) {
+    # Count expected rows: product of unique values per ID variable
+    expected_nrow <- prod(sapply(id_varnames, function(x) data.table::uniqueN(dt[[x]])))
+
+    # If row counts match, it's square (no missing rows)
+    if(nrow(dt) == expected_nrow) {
+      missing_rows <- dt[0, ..id_varnames]  # Empty data.table with correct structure
+    } else {
+      # Only build full square if counts don't match
+      id_vars               <- lapply(id_varnames, function(x) unique(dt[[x]]))
+      id_vars_square        <- do.call(data.table::CJ, id_vars)
+      names(id_vars_square) <- id_varnames
+
+      # Use keyed anti-join instead of fsetdiff for speed
+      data.table::setkeyv(id_vars_square, id_varnames)
+      data.table::setkeyv(dt, id_varnames)
+      missing_rows <- id_vars_square[!dt]
+    }
+  } else {
+    # Has duplicates, skip expensive square building
+    missing_rows <- dt[0, ..id_varnames]  # Empty placeholder
+  }
+
   if(nrow(missing_rows) > 0 & verbose == TRUE) {
     message(paste0("Missing rows in the data.table, example: ", toString(paste(names(missing_rows), missing_rows[1, ], sep = ":") )))
   }
 
-  # Identify duplicated rows
-  duplicated_rows <- dt[duplicated(dt, by = id_varnames), ]
   if(nrow(duplicated_rows) > 0 & verbose == TRUE) {
     message(paste0("Duplicated rows in the data.table, example: ", toString(paste(names(duplicated_rows), duplicated_rows[1, ], sep = ":") )))
   }
@@ -101,3 +119,88 @@ assert_square <- function(
   if (verbose == TRUE) message(dt_name, " is square by: ", toString(id_varnames))
 
 }
+
+# 2025 Nov 13 - Original - preserved for posterity
+# - new version above optimized for v.large tables
+# assert_square <- function(
+#     dt
+#     , id_varnames
+#     , no_na_varnames = NULL
+#     , verbose        = FALSE
+#     , hard_stop      = TRUE
+#     , stop_if_empty  = TRUE
+# ){
+#
+#   # assert inputs
+#   # assert no duplicated column names
+#   vars_dt <- colnames(dt)
+#   vars_dt_uniq <- unique(vars_dt)
+#   if(length(vars_dt) > length(vars_dt_uniq)) stop("dt has duplicated column names: ", toString(vars_dt[duplicated(vars_dt)]))
+#   checkmate::assert_data_table(dt)
+#   checkmate::assert_character(id_varnames, any.missing = FALSE, min.len = 1)
+#   checkmate::assert_logical(verbose, len = 1)
+#   checkmate::assert_subset(id_varnames, choices = colnames(dt))
+#
+#   # Check for NA values
+#   if(!is.null(no_na_varnames)){
+#     assert_no_na(dt, no_na_varnames, verbose = verbose)
+#   }
+#
+#   dt_name <- deparse(substitute(dt))
+#
+#   if(nrow(dt) == 0) {
+#     cnd_msg <- sprintf("%s has no rows.", dt_name)
+#     if (stop_if_empty == TRUE) {
+#       stop(cnd_msg)
+#     } else {
+#       if (verbose == TRUE) warning(cnd_msg)
+#     }
+#   }
+#
+#   # Build a square of id_vars
+#   id_vars               <- lapply(id_varnames, function(x) unique(dt[[x]]))
+#   id_vars_square        <- do.call(data.table::CJ, id_vars)
+#   names(id_vars_square) <- id_varnames
+#
+#   # Identify missing rows
+#   missing_rows <- data.table::fsetdiff(id_vars_square, dt[, ..id_varnames], all = FALSE)
+#   if(nrow(missing_rows) > 0 & verbose == TRUE) {
+#     message(paste0("Missing rows in the data.table, example: ", toString(paste(names(missing_rows), missing_rows[1, ], sep = ":") )))
+#   }
+#
+#   # Identify duplicated rows
+#   duplicated_rows <- dt[duplicated(dt, by = id_varnames), ]
+#   if(nrow(duplicated_rows) > 0 & verbose == TRUE) {
+#     message(paste0("Duplicated rows in the data.table, example: ", toString(paste(names(duplicated_rows), duplicated_rows[1, ], sep = ":") )))
+#   }
+#
+#   # used in production if hard_stop = FALSE, but on.exit bypasses the stop
+#   # functions, so must be nested in a condition >.<
+#   non_square_list <- list(
+#     duplicated_rows = duplicated_rows,
+#     missing_rows    = missing_rows
+#   )
+#   if (hard_stop == FALSE) {
+#     on.exit(return(invisible(non_square_list)))
+#   }
+#
+#   if(any(unlist(lapply(non_square_list, nrow))) > 0 ){
+#
+#     cnd_msg <- sprintf("%s is not square:", dt_name)
+#     if(hard_stop == TRUE) {
+#       message("Example missing/duplicated rows")
+#       message("Missing:")
+#       msg_multiline(head(missing_rows, 1))
+#       message("Duplicated:")
+#       msg_multiline(head(duplicated_rows, 1))
+#       stop(cnd_msg)
+#     } else {
+#       cnd_msg <- sprintf("%s\n   - see returned list (invisible, must assign to an object) for duplicated / missing rows: %s", cnd_msg, dt_name)
+#       if (verbose == TRUE) warning(cnd_msg)
+#     }
+#
+#   }
+#
+#   if (verbose == TRUE) message(dt_name, " is square by: ", toString(id_varnames))
+#
+# }

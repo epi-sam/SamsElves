@@ -359,7 +359,7 @@ draws_year_diff <- function(DT, yr_vec, id_varnames = find_id_varnames(DT, verbo
 
 # ---- Probabilities -----------------------------------------------------------------
 
-#' Calculate probability that compare draws of `comp_var` for `comp_vec[1]` are <,
+#' Calculate probability that draws of `comp_var` for `comp_vec[1]` are <,
 #' <=, >, or >= draws of comp_var for `comp_vec[2]`.
 #'
 #' The comparison is done at the draw level after pivoting wide by comp_var.
