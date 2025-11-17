@@ -181,8 +181,8 @@ save_file <- function(object, f_path, csv_opt = "readr::write_excel_csv", overwr
         # fst are often large, timer is nice to have
         if(verbose) msg_tic()
         fname <- basename(path)
-        if(verbose) fst::write_fst(data, path, compress = compress, ...)
-        msg_toc(prefix = sprintf(" -- fst write (%s): ", fname))
+        fst::write_fst(data, path, compress = compress, ...)
+        if(verbose) msg_toc(prefix = sprintf(" -- fst write (%s): ", fname))
       },
       "csv"  = function(data, path, ...) {
         csv_writer(data, path, ...)
