@@ -128,7 +128,7 @@ draws_wide_to_long <- function(
   vars_draws = find_draws_varnames(DT)
 
   if(verbose == TRUE) {
-    message("wide to long - draw_id columns, e.g. : ", toString(vars_draws[1:5]))
+    message("wide to long - draw_id columns are e.g. : ", toString(vars_draws[1:5]))
     msg_tic()
   }
 
@@ -174,10 +174,11 @@ draws_long_to_wide <- function(
   ex_vars <- order_draws(unique(DT$draw_id))[1:5]
   ex_vars <- c(paste0(names_prefix, ex_vars))
   ex_vars <- gsub("draw_point_estimate", "point_estimate", ex_vars) # handle potential PE
+  ex_vars <- order_draws(ex_vars)
 
   if(verbose == TRUE) {
     message("id_varnames: ", toString(id_varnames))
-    message("long to wide - draw_id columns to e.g. : ", toString(ex_vars))
+    message("long to wide - creating columns from draw_id e.g. : ", toString(ex_vars))
     msg_tic()
   }
 
@@ -269,7 +270,10 @@ draws_to_mean_ci <- function(
 
   vars_draws <- setdiff(vars_draws_pe, "point_estimate")
 
-  if(verbose == TRUE) message("draws to mean/95%CI - draw columns, e.g. : ", toString(vars_draws[1:5]))
+  if(verbose == TRUE) {
+    message("draws to mean/95%CI - draw columns, e.g. : ", toString(vars_draws[1:5]))
+    msg_tic()
+  }
 
   DT <- data.table::as.data.table(DT)
   DT[, mean := base::rowMeans(.SD), .SDcols = vars_draws]
@@ -287,6 +291,8 @@ draws_to_mean_ci <- function(
   if(remove_mean == TRUE) DT[, mean := NULL]
 
   data.table::setorderv(DT, id_varnames)
+
+  if(verbose) msg_toc()
 
   return(DT[])
 }
