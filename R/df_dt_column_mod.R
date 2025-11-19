@@ -24,6 +24,7 @@
 add_column <- function(x, varname, vec){
   checkmate::assert_data_frame(x)
   if(inherits(x, "data.table")){
+    x <- data.table::copy(x) # avoid modifying by reference outside function scope
     x[, (varname) := vec]
   } else {
     x[[varname]] <- vec
@@ -52,6 +53,7 @@ add_column <- function(x, varname, vec){
 drop_column <- function(x, varname){
   checkmate::assert_data_frame(x)
   if(inherits(x, "data.table")){
+    x <- data.table::copy(x) # avoid modifying by reference outside function scope
     x[, (varname) := NULL]
   } else {
     x[[varname]] <- NULL
