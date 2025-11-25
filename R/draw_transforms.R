@@ -171,7 +171,8 @@ draws_long_to_wide <- function(
 
   names_prefix <- "draw_"
 
-  ex_vars <- order_draws(unique(DT$draw_id))[1:5]
+  # draw_id may be integer (draws only) or character (draws + point_estimate)
+  ex_vars <- order_draws(as.character(unique(DT$draw_id)))[1:5]
   ex_vars <- c(paste0(names_prefix, ex_vars))
   ex_vars <- gsub("draw_point_estimate", "point_estimate", ex_vars) # handle potential PE
   ex_vars <- order_draws(ex_vars)
