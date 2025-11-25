@@ -171,13 +171,12 @@ draws_long_to_wide <- function(
 
   names_prefix <- "draw_"
 
-  # draw_id may be integer (draws only) or character (draws + point_estimate)
-  ex_vars <- order_draws(as.character(unique(DT$draw_id)))[1:5]
-  ex_vars <- c(paste0(names_prefix, ex_vars))
-  ex_vars <- gsub("draw_point_estimate", "point_estimate", ex_vars) # handle potential PE
-  ex_vars <- order_draws(ex_vars)
-
   if(verbose == TRUE) {
+    # draw_id may be integer (draws only) or character (draws + point_estimate)
+    ex_vars <- order_draws(as.character(unique(DT$draw_id)))[1:5]
+    ex_vars <- c(paste0(names_prefix, ex_vars))
+    ex_vars <- gsub("draw_point_estimate", "point_estimate", ex_vars) # handle potential PE
+    ex_vars <- order_draws(ex_vars)
     message("id_varnames: ", toString(id_varnames))
     message("long to wide - creating columns from draw_id e.g. : ", toString(ex_vars))
     msg_tic()
