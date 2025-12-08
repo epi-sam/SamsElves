@@ -68,6 +68,12 @@
 #'   filtering. This is due to how jobs are initially queried.  This may
 #'   included unwanted recycled `JobID`s, and it is **_up to the user_** to
 #'   determine which are relevant to their work.
+#' @param break_on_oom [lgl] if _any_ of your jobs run out of memory, should
+#'   this function break?  Failure itself is always determined based on the
+#'   user's filters, but failure _feedback_ always returns JobID, regardless of
+#'   filtering. This is due to how jobs are initially queried.  This may
+#'   included unwanted recycled `JobID`s, and it is **_up to the user_** to
+#'   determine which are relevant to their work.
 #'
 #' @return [std_out/std_err] std_out for sleep cycle duration & successful
 #'   ending, std_err printing failed job ids
@@ -81,6 +87,7 @@ wait_on_slurm_job_id <-
     filter_regex      = NULL,
     break_on_failure  = TRUE,
     break_on_timeout  = TRUE,
+    break_on_oom      = TRUE,
     dryrun            = FALSE,
     batch_size        = 500
   ) {
@@ -189,6 +196,7 @@ wait_on_slurm_job_id <-
       cmd_pass    <- paste0(cmd_base, " | grep -P 'RUNNING|PENDING'")
       cmd_fail    <- paste0(cmd_base, " | grep -P 'FAILED'")
       cmd_timeout <- paste0(cmd_base, " | grep -P 'TIMEOUT'")
+      cmd_oom     <- paste0(cmd_base, " | grep -P 'OUT_OF_MEMORY'")
       # need job_id included for failure feedback
       cmd_fail_feedback <-paste("sacct -j",
                                 job_id_regex_comma_quoted,
@@ -201,6 +209,11 @@ wait_on_slurm_job_id <-
                                 formatting_str,
                                 filter_str_fail_feedback,
                                 "| grep -P 'TIMEOUT'")
+      cmd_oom_feedback <-paste("sacct -j",
+                                job_id_regex_comma_quoted,
+                                formatting_str,
+                                filter_str_fail_feedback,
+                                "| grep -P 'OUT_OF_MEMORY'")
 
       if(dryrun) return(list(cmd_base = cmd_base, cmd_pass = cmd_pass, cmd_fail = cmd_fail, cmd_fail_feedback = cmd_fail_feedback))
       if(!length(suppressWarnings(system(cmd_base, intern = TRUE)))) stop ("No jobs found: ", cmd_base)
@@ -215,8 +228,9 @@ wait_on_slurm_job_id <-
         Sys.sleep(cycle_sleep_sec)
         message(round((proc.time() - start.time)[[3]],0))
         # Stop if any jobs have FAILED State
-        if(break_on_failure) break_for_failed_jobs( cmd_fail,    cmd_fail_feedback,    job_id_regex_raw, filter_by)
-        if(break_on_timeout) break_for_timeout_jobs(cmd_timeout, cmd_timeout_feedback, job_id_regex_raw, filter_by)
+        if(break_on_failure) break_for_failed_jobs("FAILED",        cmd_fail,    cmd_fail_feedback,    job_id_regex_raw, filter_by)
+        if(break_on_timeout) break_for_failed_jobs("TIMEOUT",       cmd_timeout, cmd_timeout_feedback, job_id_regex_raw, filter_by)
+        if(break_on_oom)     break_for_failed_jobs("OUT_OF_MEMORY", cmd_oom,     cmd_oom_feedback,     job_id_regex_raw, filter_by)
       }
 
     }
@@ -226,12 +240,19 @@ wait_on_slurm_job_id <-
     job.runtime <- round(job.runtime[3], 0)
 
     # Complete
-    job_id_msg <- paste(job_id, collapse = ", ")
-    message("Job(s) ", job_id_msg, " no longer PENDING, RUNNING, or FAILED. Time elapsed: ", job.runtime, " seconds")
+    job_id_msg     <- toString(job_id)
+
+    msg_fail       <- ifelse(break_on_failure, "FAILED", "")
+    msg_timeout    <- ifelse(break_on_timeout, "TIMEOUT", "")
+    msg_oom        <- ifelse(break_on_oom, "OUT_OF_MEMORY", "")
+    msg_fail_modes <- toString(na.omit(c(msg_fail, msg_timeout, msg_oom)))
+
+    message("Job(s) no longer PENDING or RUNNING - checked failure modes: ", msg_fail_modes, ". Time elapsed: ", job.runtime, " seconds.\n\n", "JobIDs: ", job_id_msg)
   }
 
 #' Helper function for wait_on_slurm_job_id - how do you want jobs to break and display user messages?
 #'
+#' @param failure_type [chr]
 #' @param cmd_fail [chr]
 #' @param cmd_fail_feedback [chr]
 #' @param job_id_regex_raw [regex]
@@ -240,6 +261,7 @@ wait_on_slurm_job_id <-
 #' @return [none] stop on failure
 break_for_failed_jobs <-
   function(
+    failure_type,
     cmd_fail,
     cmd_fail_feedback,
     job_id_regex_raw,
@@ -249,8 +271,8 @@ break_for_failed_jobs <-
     jobid_present   <- any(grepl("jobidraw", filter_by))
     failure_message <- ifelse(
       jobid_present
-      , "There is a failure among the launched jobs, investigate.\n"
-      , "There is a failure among the launched jobs, investigate. (NOTE! May include recycled JobIDs)\n"
+      , sprintf("There is a failure among the launched jobs (%s), investigate.\n", failure_type)
+      , sprintf("There is a failure among the launched jobs (%s), investigate. (NOTE! May include recycled JobIDs)\n", failure_type)
     )
     cmd_fail_feedback <- ifelse(
       jobid_present,
@@ -263,35 +285,69 @@ break_for_failed_jobs <-
     if(length(fail_chk)) stop(failure_message, failed_jobs)
   }
 
-#' Helper function for wait_on_slurm_job_id - how do you want jobs to break and display user messages?
+# FIXME SB - 2025 Dec 08 - DEPRECATED - combined into break_for_failed_jobs()
+#' #' Helper function for wait_on_slurm_job_id - how do you want jobs to break and display user messages?
+#' #'
+#' #' @param cmd_timeout [chr]
+#' #' @param cmd_timeout_feedback [chr]
+#' #' @param job_id_regex_raw [regex]
+#' #' @param filter_by [chr]
+#' #'
+#' #' @return [none] stop on timeout
+#' break_for_timeout_jobs <-
+#'   function(
+#'     cmd_timeout,
+#'     cmd_timeout_feedback,
+#'     job_id_regex_raw,
+#'     filter_by
+#'   ) {
+#'     # if user is filtering on JobIDRaw, return relevant jobs and feedback, otherwise return all JobIDs found by initial Slurm query
+#'     jobid_present   <- any(grepl("jobidraw", filter_by))
+#'     timeout_message <- ifelse(
+#'       jobid_present
+#'       , "There is a timeout among the launched jobs, investigate.\n"
+#'       , "There is a timeout among the launched jobs, investigate. (NOTE! May include recycled JobIDs)\n"
+#'     )
+#'     cmd_timeout_feedback <- ifelse(
+#'       jobid_present,
+#'       cmd_timeout,
+#'       cmd_timeout_feedback
+#'     )
+#'     timeout_chk      <- suppressWarnings(system(cmd_timeout, intern = TRUE))
+#'     timeout_feedback <- suppressWarnings(system(cmd_timeout_feedback, intern = TRUE))
+#'     timeout_jobs     <- paste(unique(regmatches(timeout_feedback, regexpr(job_id_regex_raw, timeout_feedback))), collapse = ", ")
+#'     if(length(timeout_chk)) stop(timeout_message, timeout_jobs)
+#'   }
 #'
-#' @param cmd_timeout [chr]
-#' @param cmd_timeout_feedback [chr]
-#' @param job_id_regex_raw [regex]
-#' @param filter_by [chr]
-#'
-#' @return [none] stop on timeout
-break_for_timeout_jobs <-
-  function(
-    cmd_timeout,
-    cmd_timeout_feedback,
-    job_id_regex_raw,
-    filter_by
-  ) {
-    # if user is filtering on JobIDRaw, return relevant jobs and feedback, otherwise return all JobIDs found by initial Slurm query
-    jobid_present   <- any(grepl("jobidraw", filter_by))
-    timeout_message <- ifelse(
-      jobid_present
-      , "There is a timeout among the launched jobs, investigate.\n"
-      , "There is a timeout among the launched jobs, investigate. (NOTE! May include recycled JobIDs)\n"
-    )
-    cmd_timeout_feedback <- ifelse(
-      jobid_present,
-      cmd_timeout,
-      cmd_timeout_feedback
-    )
-    timeout_chk      <- suppressWarnings(system(cmd_timeout, intern = TRUE))
-    timeout_feedback <- suppressWarnings(system(cmd_timeout_feedback, intern = TRUE))
-    timeout_jobs     <- paste(unique(regmatches(timeout_feedback, regexpr(job_id_regex_raw, timeout_feedback))), collapse = ", ")
-    if(length(timeout_chk)) stop(timeout_message, timeout_jobs)
-  }
+#' #' Helper function for wait_on_slurm_job_id - how do you want jobs to break and display user messages?
+#' #'
+#' #' @param cmd_oom [chr]
+#' #' @param cmd_oom_feedback [chr]
+#' #' @param job_id_regex_raw [regex]
+#' #' @param filter_by [chr]
+#' #'
+#' #' @return [none] stop on OUT_OF_MEMORY
+#' break_for_oom_jobs <-
+#'   function(
+#'     cmd_oom,
+#'     cmd_oom_feedback,
+#'     job_id_regex_raw,
+#'     filter_by
+#'   ) {
+#'     # if user is filtering on JobIDRaw, return relevant jobs and feedback, otherwise return all JobIDs found by initial Slurm query
+#'     jobid_present   <- any(grepl("jobidraw", filter_by))
+#'     oom_message <- ifelse(
+#'       jobid_present
+#'       , "There is an OUT_OF_MEMORY among the launched jobs, investigate.\n"
+#'       , "There is an OUT_OF_MEMORY among the launched jobs, investigate. (NOTE! May include recycled JobIDs)\n"
+#'     )
+#'     cmd_oom_feedback <- ifelse(
+#'       jobid_present,
+#'       cmd_oom,
+#'       cmd_oom_feedback
+#'     )
+#'     oom_chk      <- suppressWarnings(system(cmd_oom, intern = TRUE))
+#'     oom_feedback <- suppressWarnings(system(cmd_oom_feedback, intern = TRUE))
+#'     oom_jobs     <- paste(unique(regmatches(oom_feedback, regexpr(job_id_regex_raw, oom_feedback))), collapse = ", ")
+#'     if(length(oom_chk)) stop(oom_message, oom_jobs)
+#'   }

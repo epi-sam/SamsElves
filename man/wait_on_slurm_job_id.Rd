@@ -12,6 +12,7 @@ wait_on_slurm_job_id(
   filter_regex = NULL,
   break_on_failure = TRUE,
   break_on_timeout = TRUE,
+  break_on_oom = TRUE,
   dryrun = FALSE,
   batch_size = 500
 )
@@ -40,6 +41,13 @@ determine which are relevant to their work.}
 \item{break_on_timeout}{[lgl] if _any_ of your jobs timeout, should this
 function break?  Failure itself is always determined based on the user's
 filters, but failure _feedback_ always returns JobID, regardless of
+filtering. This is due to how jobs are initially queried.  This may
+included unwanted recycled `JobID`s, and it is **_up to the user_** to
+determine which are relevant to their work.}
+
+\item{break_on_oom}{[lgl] if _any_ of your jobs run out of memory, should
+this function break?  Failure itself is always determined based on the
+user's filters, but failure _feedback_ always returns JobID, regardless of
 filtering. This is due to how jobs are initially queried.  This may
 included unwanted recycled `JobID`s, and it is **_up to the user_** to
 determine which are relevant to their work.}

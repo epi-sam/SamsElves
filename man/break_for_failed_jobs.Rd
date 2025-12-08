@@ -4,9 +4,17 @@
 \alias{break_for_failed_jobs}
 \title{Helper function for wait_on_slurm_job_id - how do you want jobs to break and display user messages?}
 \usage{
-break_for_failed_jobs(cmd_fail, cmd_fail_feedback, job_id_regex_raw, filter_by)
+break_for_failed_jobs(
+  failure_type,
+  cmd_fail,
+  cmd_fail_feedback,
+  job_id_regex_raw,
+  filter_by
+)
 }
 \arguments{
+\item{failure_type}{[chr]}
+
 \item{cmd_fail}{[chr]}
 
 \item{cmd_fail_feedback}{[chr]}
