@@ -219,7 +219,9 @@ wait_on_slurm_job_id <-
       if(!length(suppressWarnings(system(cmd_base, intern = TRUE)))) stop ("No jobs found: ", cmd_base)
 
       # Stop for immediately FAILED jobs
-      if(break_on_failure) break_for_failed_jobs("FAILED", cmd_fail, cmd_fail_feedback, job_id_regex_raw, filter_by)
+      if(break_on_failure) break_for_failed_jobs("FAILED",        cmd_fail,    cmd_fail_feedback,    job_id_regex_raw, filter_by)
+      if(break_on_timeout) break_for_failed_jobs("TIMEOUT",       cmd_timeout, cmd_timeout_feedback, job_id_regex_raw, filter_by)
+      if(break_on_oom)     break_for_failed_jobs("OUT_OF_MEMORY", cmd_oom,     cmd_oom_feedback,     job_id_regex_raw, filter_by)
 
       message("seconds elapsed:")
 
