@@ -379,7 +379,7 @@ draws_year_diff <- function(DT, yr_vec, id_varnames = find_id_varnames(DT, verbo
 #' @param comp_var [chr] variable name to compare - e.g. "year_id"
 #' @param comp_vec [chr] vector of 2 variable levels to compare - e.g. c("1990",
 #'   "2020")
-#' @param operator [chr: {"lt", "lte", "gt", "gte"}] operator for comparison -
+#' @param operator [chr: {"eq", "lt", "lte", "gt", "gte"}] operator for comparison -
 #'   translates to <, <=, >, >= internally
 #' @param by_vars [chr] variable names to group by when calculating probability
 #' - e.g. location_id
@@ -465,6 +465,7 @@ draws_inequal_prob <- function(
 
   operator_fn <- switch(
     operator
+    , "eq"  = `==`
     , "lt"  = `<`
     , "lte" = `<=`
     , "gt"  = `>`
