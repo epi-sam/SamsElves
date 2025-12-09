@@ -454,7 +454,7 @@ draws_inequal_prob <- function(
     , verbose         = TRUE
 ){
   checkmate::assert_data_table(DT)
-  checkmate::assert_choice(operator, choices = c("lt", "lte", "gt", "gte"))
+  checkmate::assert_choice(operator, choices = c("eq", "lt", "lte", "gt", "gte"))
   checkmate::assert_vector(comp_vec, min.len = 2)
   checkmate::assert_choice(comparison_type, choices = c("pairwise", "joint"))
   checkmate::assert_choice(return_type, choices = c("probs", "binary"))
