@@ -379,8 +379,10 @@ draws_year_diff <- function(DT, yr_vec, id_varnames = find_id_varnames(DT, verbo
 #' @param comp_var [chr] variable name to compare - e.g. "year_id"
 #' @param comp_vec [chr] vector of 2 variable levels to compare - e.g. c("1990",
 #'   "2020")
-#' @param operator [chr: {"eq", "lt", "lte", "gt", "gte"}] operator for comparison -
-#'   translates to <, <=, >, >= internally
+#' @param operator [chr: {"lt", "lte", "gt", "gte", "eq", "neq"}] operator for comparison -
+#'   translates to <, <=, >, >=, == or != internally.  Note: == and != should only be applied
+#'   in very select situations (probably only low numbers of counts or binary data)
+#'   where exact equality is possible. Buyer beware.
 #' @param by_vars [chr] variable names to group by when calculating probability
 #' - e.g. location_id
 #' @param comparison_type [chr: {"pairwise", "joint"}] type of comparison to
@@ -454,7 +456,7 @@ draws_inequal_prob <- function(
     , verbose         = TRUE
 ){
   checkmate::assert_data_table(DT)
-  checkmate::assert_choice(operator, choices = c("eq", "lt", "lte", "gt", "gte"))
+  checkmate::assert_choice(operator, choices = c("lt", "lte", "gt", "gte", "eq", "neq"))
   checkmate::assert_vector(comp_vec, min.len = 2)
   checkmate::assert_choice(comparison_type, choices = c("pairwise", "joint"))
   checkmate::assert_choice(return_type, choices = c("probs", "binary"))
@@ -465,12 +467,17 @@ draws_inequal_prob <- function(
 
   operator_fn <- switch(
     operator
-    , "eq"  = `==`
     , "lt"  = `<`
     , "lte" = `<=`
     , "gt"  = `>`
     , "gte" = `>=`
+    , "eq"  = `==`
+    , "neq"  = `!=`
   )
+
+  if(opertaor %in% c("eq", "neq") & isTRUE(verbose)){
+    warning("Using 'eq' or 'neq' operator may lead to unintuitive results unless comparing discrete count or binary data.  Please ensure this is your intention.")
+  }
 
   # Convert to wide format
   DTW <- draws_var_to_wide(DT, varname = comp_var, var_vec = comp_vec, value_varname = value_varname)

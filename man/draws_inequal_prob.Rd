@@ -26,8 +26,10 @@ draws_inequal_prob(
 \item{comp_vec}{[chr] vector of 2 variable levels to compare - e.g. c("1990",
 "2020")}
 
-\item{operator}{[chr: {"eq", "lt", "lte", "gt", "gte"}] operator for comparison -
-translates to <, <=, >, >= internally}
+\item{operator}{[chr: {"lt", "lte", "gt", "gte", "eq", "neq"}] operator for comparison -
+translates to <, <=, >, >=, == or != internally.  Note: == and != should only be applied
+in very select situations (probably only low numbers of counts or binary data)
+where exact equality is possible. Buyer beware.}
 
 \item{by_vars}{[chr] variable names to group by when calculating probability
 - e.g. location_id}
