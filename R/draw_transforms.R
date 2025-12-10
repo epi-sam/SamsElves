@@ -366,7 +366,7 @@ draws_year_diff <- function(
 
   DTW <- DTW[, ..keep_vars]
   DTW[, years := paste0(yr_vec[1], "_", yr_vec[2])]
-  DTW <- draws_long_to_wide(DTW)
+  DTW <- draws_long_to_wide(DTW, , value_varname = value_varname)
   return(draws_to_mean_ci(DTW))
 }
 

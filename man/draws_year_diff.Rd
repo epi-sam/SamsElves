@@ -7,7 +7,8 @@
 draws_year_diff(
   DT,
   yr_vec,
-  id_varnames = find_id_varnames(DT, verbose = FALSE)
+  id_varnames = find_id_varnames(DT, verbose = FALSE),
+  value_varname = "value"
 )
 }
 \arguments{
