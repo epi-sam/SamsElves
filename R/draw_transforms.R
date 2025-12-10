@@ -341,7 +341,12 @@ draws_years_to_wide <- function(DT, yr_vec = NULL, value_varname = "value"){
 #' @returns [data.table] a table of mean and 95% CI for the difference between
 #'   the two years, by id_varnames
 #' @export
-draws_year_diff <- function(DT, yr_vec, id_varnames = find_id_varnames(DT, verbose = FALSE)){
+draws_year_diff <- function(
+    DT
+    , yr_vec
+    , id_varnames = find_id_varnames(DT, verbose = FALSE)
+    , value_varname = "value"
+){
   checkmate::assert_data_table(DT)
   # checkmate::assert_subset(c("year_id", id_varnames), colnames(DT))
   assert_x_in_y(c("year_id", id_varnames), colnames(DT))
@@ -351,10 +356,13 @@ draws_year_diff <- function(DT, yr_vec, id_varnames = find_id_varnames(DT, verbo
   checkmate::assert_set_equal(length(yr_vec), 2)
 
   yr_vec    <- sort(yr_vec)
-  keep_vars <- c(setdiff(id_varnames, "year_id"), "value")
+  # keep_vars <- c(setdiff(id_varnames, "year_id"), "value")
+  keep_vars <- c(setdiff(id_varnames, "year_id"), value_varname)
 
-  DTW <- draws_years_to_wide(DT, yr_vec = yr_vec)
-  DTW[, value := get(paste0("value_", yr_vec[2])) - get(paste0("value_", yr_vec[1]))]
+  # DTW <- draws_years_to_wide(DT, yr_vec = yr_vec)
+  DTW <- draws_years_to_wide(DT, yr_vec = yr_vec, value_varname = value_varname)
+  # DTW[, value := get(paste0("value_", yr_vec[2])) - get(paste0("value_", yr_vec[1]))]
+  DTW[, (value_varname) := get(paste0(value_varname, "_", yr_vec[2])) - get(paste0(value_varname, "_", yr_vec[1]))]
 
   DTW <- DTW[, ..keep_vars]
   DTW[, years := paste0(yr_vec[1], "_", yr_vec[2])]
