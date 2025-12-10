@@ -271,6 +271,23 @@ save_file <- function(
     #   }
     # )
 
+    # Clean character encoding
+    if(!is.null(clean_encoding_on) & is.data.frame(object)){
+
+      if(grepl("readr::write_excel_csv|data.table::fwrite", csv_opt)){
+
+        if(verbose)message("--Cleaning character encodings: ", toString(clean_encoding_on))
+
+        for(col in clean_encoding_on){
+          if(col %in% colnames(object)){
+            object <- add_column(object, col, clean_encoding(object[[col]]))
+          } else {
+            warning("clean_encoding_on column not found: ", col)
+          }
+        }
+      }
+    }
+
     switch(
       ext,
       "fst"  = function(x, path, compress = 80, ...) {
@@ -281,25 +298,6 @@ save_file <- function(
         if(verbose) msg_toc(prefix = sprintf(" -- fst write (%s): ", fname))
       },
       "csv"  = function(x, path, ...) {
-
-        if(!is.null(clean_encoding_on) & is.data.frame(object)){
-
-          if(grepl("readr::write_excel_csv|data.table::fwrite", csv_opt)){
-
-            if(verbose)message("--Cleaning character encodings: ", toString(clean_encoding_on))
-
-            for(col in clean_encoding_on){
-              if(col %in% colnames(x)){
-                x <- add_column(x, col, clean_encoding(x[[col]]))
-              } else {
-                warning("clean_encoding_on column not found in object: ", col)
-              }
-            }
-
-          }
-
-        }
-
         csv_writer(x, path, ...)
       },
       "yaml" = yaml::write_yaml,
