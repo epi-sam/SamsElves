@@ -47,12 +47,22 @@ find_file_extension <- function(f_path){
 #'
 #' Not guaranteed to work in all cases - optimized for common cases
 #'
+#'
 #' @param x [chr] vector of character strings
 #'
 #' @returns [chr] vector of cleaned character strings
 #' @export
 #'
 clean_encoding <- function(x) {
+
+# What it fixes:
+# - Invalid UTF-8 with Latin-1 bytes (C\xf4te → Côte)
+# - Double-encoded mojibake (JosÃ© → José)
+# - Raw Latin-1 sequences
+# - Invalid high codepoints
+# - Works with readr::write_excel_csv for Excel compatibility
+#    - No quote explosions if using readr::write_excel_csv
+
   if (!is.character(x)) return(x)
   result <- character(length(x))
 
@@ -189,17 +199,6 @@ save_file <- function(
 
   if(length(user_msg) > 1) stop("Problem with save msg grid, more than one message selected - inspect")
 
-  if(!is.null(clean_encoding_on) & is.data.frame(object)){
-    if(verbose)message("--Cleaning character encodings: ", toString(clean_encoding_on))
-    for(col in clean_encoding_on){
-      if(col %in% colnames(object)){
-        object <- add_column(object, col, clean_encoding(object[[col]]))
-      } else {
-        warning("clean_encoding_on column not found in object: ", col)
-      }
-    }
-  }
-
   if(flag_file_exists & forbid_overwrite){
 
     msg_prt(user_msg)
@@ -232,6 +231,13 @@ save_file <- function(
       args <- modifyList(defaults, args)
       args$object = object
       args$f_path = f_path
+
+      # If cleaning encoding and using fwrite (presumably for reading in
+      # Excel), add BOM aka UTF-8 signature for Excel compatibility.
+      # - https://en.wikipedia.org/wiki/Byte_order_mark
+      if(!is.null(clean_encoding_on) & csv_opt == "data.table::fwrite"){
+        args <- append(args, list(bom = TRUE))
+      }
 
       names(args)[names(args) == "object"] <- arg_names[1]
       names(args)[names(args) == "f_path"] <- arg_names[2]
@@ -267,15 +273,34 @@ save_file <- function(
 
     switch(
       ext,
-      "fst"  = function(data, path, compress = 80, ...) {
+      "fst"  = function(x, path, compress = 80, ...) {
         # fst are often large, timer is nice to have
         if(verbose) msg_tic()
         fname <- basename(path)
-        fst::write_fst(data, path, compress = compress, ...)
+        fst::write_fst(x, path, compress = compress, ...)
         if(verbose) msg_toc(prefix = sprintf(" -- fst write (%s): ", fname))
       },
-      "csv"  = function(data, path, ...) {
-        csv_writer(data, path, ...)
+      "csv"  = function(x, path, ...) {
+
+        if(!is.null(clean_encoding_on) & is.data.frame(object)){
+
+          if(grepl("readr::write_excel_csv|data.table::fwrite", csv_opt)){
+
+            if(verbose)message("--Cleaning character encodings: ", toString(clean_encoding_on))
+
+            for(col in clean_encoding_on){
+              if(col %in% colnames(x)){
+                x <- add_column(x, col, clean_encoding(x[[col]]))
+              } else {
+                warning("clean_encoding_on column not found in object: ", col)
+              }
+            }
+
+          }
+
+        }
+
+        csv_writer(x, path, ...)
       },
       "yaml" = yaml::write_yaml,
       "rds"  = base::saveRDS,
