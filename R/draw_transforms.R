@@ -476,7 +476,11 @@ draws_inequal_prob <- function(
   )
 
   if(operator %in% c("eq", "neq") & isTRUE(verbose)){
-    message("Using 'eq' or 'neq' operator may lead to unintuitive results unless comparing discrete count or binary data.  Please ensure this is your intention.")
+    warning(
+    "Using 'eq' or 'neq' operator may lead to unintuitive results unless:
+    - comparing discrete counts
+    - comparing binary data"
+    )
   }
 
   # Convert to wide format

@@ -229,3 +229,79 @@ test_that("draws_year_diff works", {
       )
   )
 })
+
+test_that("draws_inequal_prob works", {
+
+
+  DT <- structure(list(
+    adm2_code = c(1001002, 1001002, 1001002, 1001002, 1001002, 1001002),
+    year_id = c(2024L, 2024L, 2024L, 2024L, 2024L, 2024L),
+    draw_id = c("1", "2", "3", "1", "2", "3"),
+    value = c(
+      0.482057501240437,
+      0.308202527733722,
+      0.676617111325191,
+      0.572311786687627,
+      0.7363608834082,
+      0.580730497236642
+    ),
+    me_name = c("dpt3", "dpt3", "dpt3", "polio3", "polio3", "polio3")
+  ), row.names = c(NA, -6L), class = c("data.table", "data.frame"))
+
+  .vax <- c("polio3", "dpt3")
+  expect_warning(
+    chk <- draws_inequal_prob(
+      DT
+      , comp_var        = "me_name"
+      , comp_vec        = .vax
+      , operator        = "neq"
+      , by_vars         = c("adm2_code")
+      , comparison_type = "pairwise"
+      , return_type     = "binary"
+    )
+    , regexp = "Using 'eq' or 'neq' operator may lead to unintuitive results"
+  )
+
+  chk <- draws_inequal_prob(
+    DT
+    , comp_var        = "me_name"
+    , comp_vec        = .vax
+    , operator        = "gt"
+    , by_vars         = c("adm2_code")
+    , comparison_type = "pairwise"
+    , return_type     = "binary"
+  )
+
+  expect_equal(
+    chk
+    , structure(list(
+      adm2_code = c(1001002, 1001002, 1001002),
+      year_id = c(2024L, 2024L, 2024L),
+      draw_id = c("1", "2", "3"),
+      value_dpt3 = c(0.482057501240437, 0.308202527733722, 0.676617111325191),
+      value_polio3 = c(0.572311786687627, 0.7363608834082, 0.580730497236642),
+      polio3_gt_dpt3 = c(1L, 1L, 0L)
+    ),
+    row.names = c(NA, -3L), class = c("data.table", "data.frame"))
+  )
+
+  chk <- draws_inequal_prob(
+    DT
+    , comp_var        = "me_name"
+    , comp_vec        = .vax
+    , operator        = "gt"
+    , by_vars         = c("adm2_code")
+    , comparison_type = "pairwise"
+    , return_type     = "probs"
+  )
+
+  expect_equal(
+    chk
+    , structure(
+      list(adm2_code = 1001002, prob_polio3_gt_dpt3 = 0.666666666666667),
+      row.names = c(NA, -1L),
+      class = c("data.table", "data.frame")
+    )
+  )
+
+})
