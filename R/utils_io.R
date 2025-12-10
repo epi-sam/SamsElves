@@ -43,24 +43,103 @@ find_file_extension <- function(f_path){
 }
 
 
+#' Clean common dirty character encodings
+#'
+#' Not guaranteed to work in all cases - optimized for common cases
+#'
+#' @param x [chr] vector of character strings
+#'
+#' @returns [chr] vector of cleaned character strings
+#' @export
+#'
+clean_encoding <- function(x) {
+  if (!is.character(x)) return(x)
+  result <- character(length(x))
+
+  for (i in seq_along(x)) {
+    if (is.na(x[i])) {
+      result[i] <- NA_character_
+      next
+    }
+
+    str <- x[i]
+    enc <- Encoding(str)
+
+    # For invalid UTF-8, work with raw bytes BEFORE R escapes them
+    if (enc == "UTF-8" && !validUTF8(str)) {
+      # Get raw bytes directly (before R escapes to <f4>)
+      raw_bytes <- charToRaw(str)
+      # Reconstruct as character with latin1 encoding
+      str <- rawToChar(raw_bytes)
+      Encoding(str) <- "latin1"
+      # Now convert latin1 to UTF-8
+      str <- iconv(str, from = "latin1", to = "UTF-8", mark = FALSE)
+    }
+    # Valid UTF-8 mojibake handling
+    else if (enc == "UTF-8") {
+      has_mojibake <- grepl('Ã[©-ÿ]|ï¿½|â€|[À-ÿ]{2,}', str, perl = TRUE)
+
+      if (!has_mojibake) {
+        codepoints <- tryCatch(utf8ToInt(str), error = function(e) integer(0))
+        has_mojibake <- any(codepoints > 0x10FFFF |
+                              (codepoints >= 0xE000 & codepoints <= 0xF8FF) |
+                              codepoints >= 0xF0000,
+                            na.rm = TRUE)
+      }
+
+      if (has_mojibake) {
+        fixed <- tryCatch(
+          iconv(str, from = "UTF-8", to = "latin1", mark = FALSE),
+          error = function(e) NA_character_
+        )
+        if (!is.na(fixed)) {
+          str <- fixed
+          Encoding(str) <- "UTF-8"
+        }
+      }
+    }
+    # Unknown/latin1
+    else if (enc %in% c("unknown", "latin1")) {
+      str <- iconv(str, from = "latin1", to = "UTF-8", mark = FALSE)
+    }
+
+    result[i] <- str
+  }
+
+  Encoding(result) <- "UTF-8"
+  return(result)
+}
+
+
 #' Save file I/O with overwrite and message control
 #'
 #' Defualt behavior is to overwrite
 #'
 #' @param object [obj] an R object
 #' @param f_path [path] a file path to save to
+#' @param csv_opt [chr] optional csv writer, depending on desired behavior e.g.
+#'   default `readr::write_excel_csv` preserves correct diacritics, but
+#'   `data.table::fwrite` is faster if diacritics are not necessary.
+#' @param clean_encoding_on [chr] vector of column names to run
+#'   `clean_encoding()` on
 #' @param overwrite [lgl] default: NULL which overwrites by default until
 #'   forbid_overwrite is deprecated
 #' @param verbose [lgl] default: silent
 #' @param forbid_overwrite [lgl]  DEPRECATED - backward compatibility preserved
 #' @param ... other arguments passed to write functions"
-#' @param csv_opt [chr] optional csv writer, depending on desired behavior e.g.
-#'   default `readr::write_excel_csv` preserves correct diacritics, but
-#'   `data.table::fwrite` is faster if diacritics are not necessary.
 #'
 #' @return [none] Saves to disk
 #' @export
-save_file <- function(object, f_path, csv_opt = "readr::write_excel_csv", overwrite = NULL, verbose = FALSE, forbid_overwrite = NULL, ...){
+save_file <- function(
+    object
+    , f_path
+    , csv_opt = "readr::write_excel_csv"
+    , clean_encoding_on = NULL
+    , overwrite = NULL
+    , verbose = FALSE
+    , forbid_overwrite = NULL
+    , ...
+){
 
   stopifnot(is.logical(verbose))
 
@@ -109,6 +188,17 @@ save_file <- function(object, f_path, csv_opt = "readr::write_excel_csv", overwr
                          msg_grid$forbid_overwrite_bool == forbid_overwrite, ]$user_message
 
   if(length(user_msg) > 1) stop("Problem with save msg grid, more than one message selected - inspect")
+
+  if(!is.null(clean_encoding_on) & is.data.frame(object)){
+    if(verbose)message("--Cleaning character encodings: ", toString(clean_encoding_on))
+    for(col in clean_encoding_on){
+      if(col %in% colnames(object)){
+        object <- add_column(object, col, clean_encoding(object[[col]]))
+      } else {
+        warning("clean_encoding_on column not found in object: ", col)
+      }
+    }
+  }
 
   if(flag_file_exists & forbid_overwrite){
 

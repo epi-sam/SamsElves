@@ -8,6 +8,7 @@ save_file(
   object,
   f_path,
   csv_opt = "readr::write_excel_csv",
+  clean_encoding_on = NULL,
   overwrite = NULL,
   verbose = FALSE,
   forbid_overwrite = NULL,
@@ -22,6 +23,9 @@ save_file(
 \item{csv_opt}{[chr] optional csv writer, depending on desired behavior e.g.
 default `readr::write_excel_csv` preserves correct diacritics, but
 `data.table::fwrite` is faster if diacritics are not necessary.}
+
+\item{clean_encoding_on}{[chr] vector of column names to run
+`clean_encoding()` on}
 
 \item{overwrite}{[lgl] default: NULL which overwrites by default until
 forbid_overwrite is deprecated}
