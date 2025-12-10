@@ -4,14 +4,22 @@
 \alias{read_file}
 \title{Read a file of an arbitrary type}
 \usage{
-read_file(path_to_file, verbose = FALSE, csv_opt = "data.table::fread", ...)
+read_file(
+  path_to_file,
+  verbose = FALSE,
+  csv_opt = "readr::read_csv",
+  return_DT = TRUE,
+  ...
+)
 }
 \arguments{
 \item{path_to_file}{[chr] full path with extension}
 
 \item{verbose}{[lgl] noisy or quiet function?}
 
-\item{csv_opt}{[chr] name spaced function call for csv reads (default `"data.table::fread"`)}
+\item{csv_opt}{[chr: default readr::read_csv] name spaced function call for csv reads}
+
+\item{return_DT}{[lgl: default TRUE] return as.data.table?}
 
 \item{...}{[any] additional arguments to pass to the reader function}
 }

@@ -143,11 +143,11 @@ clean_encoding <- function(x) {
 save_file <- function(
     object
     , f_path
-    , csv_opt = "readr::write_excel_csv"
+    , csv_opt           = "readr::write_excel_csv"
     , clean_encoding_on = NULL
-    , overwrite = NULL
-    , verbose = FALSE
-    , forbid_overwrite = NULL
+    , overwrite         = NULL
+    , verbose           = FALSE
+    , forbid_overwrite  = NULL
     , ...
 ){
 
@@ -155,6 +155,7 @@ save_file <- function(
 
   # TODO SB - 2024 Dec 05 - deprecate, and change internal logic to use `overwrite`
   # backward compatibility, handle all cases
+  # TODO SB - 2025 Dec 09 - time to deprecate
   stopifnot(is.null(overwrite)        || is.logical(overwrite))
   stopifnot(is.null(forbid_overwrite) || is.logical(forbid_overwrite))
   if (is.null(forbid_overwrite) & is.null(overwrite)) {
@@ -239,6 +240,11 @@ save_file <- function(
         args <- append(args, list(bom = TRUE))
       }
 
+      # gracefully handle top level choices for chosen writer
+      if('verbose' %in% names(formals(fun))){
+        args <- append(args, list(verbose = verbose))
+      }
+
       names(args)[names(args) == "object"] <- arg_names[1]
       names(args)[names(args) == "f_path"] <- arg_names[2]
 
@@ -252,24 +258,6 @@ save_file <- function(
       c("csv", "yaml", "rds", "fst"),
       collapse = ", "
     )
-
-    # 2025 Oct 15 - kludge to deal with J: drive in-place overwrite issues
-    # if(file.exists(f_path)){
-    #   if (verbose) message("Removing existing file before re-writing to avoid J: drive issues: ", f_path)
-    #   file.remove(f_path)
-    #   Sys.sleep(1)
-    # }
-    # switch(
-    #   ext,
-    #   "fst"  = {fst::write_fst(object, f_path, compress = 80, ...)},
-    #   "csv"  = {csv_writer(object, f_path, ...)},
-    #   "yaml" = {yaml::write_yaml(object, f_path, ...)},
-    #   "rds"  = {base::saveRDS(object, f_path, ...)},
-    #   {
-    #     stop(glue::glue("This function only supports {valid_file_extensions} file extensions (case-insensitive)."),
-    #          glue::glue(" Update if more options are needed. Submitted extension: {ext}"))
-    #   }
-    # )
 
     # Clean character encoding
     if(!is.null(clean_encoding_on) & is.data.frame(object)){
@@ -321,12 +309,19 @@ save_file <- function(
 #'
 #' @param path_to_file [chr] full path with extension
 #' @param verbose [lgl] noisy or quiet function?
-#' @param csv_opt [chr] name spaced function call for csv reads (default `"data.table::fread"`)
+#' @param csv_opt [chr: default readr::read_csv] name spaced function call for csv reads
+#' @param return_DT [lgl: default TRUE] return as.data.table?
 #' @param ... [any] additional arguments to pass to the reader function
 #'
 #' @return [file] an object of appropriate file type
 #' @export
-read_file <- function(path_to_file, verbose = FALSE, csv_opt = "data.table::fread", ...){
+read_file <- function(
+    path_to_file
+    , verbose   = FALSE
+    , csv_opt   = "readr::read_csv"
+    , return_DT = TRUE
+    , ...
+){
 
   if(verbose) message("Reading file: ", path_to_file)
 
@@ -345,9 +340,19 @@ read_file <- function(path_to_file, verbose = FALSE, csv_opt = "data.table::frea
         x  = strsplit(csv_opt, "::")[[1]][2],
         ns = strsplit(csv_opt, "::")[[1]][1]
       )
-      reader(path, ...)
+
+      # TODO SB - 2025 Dec 09
+      # Don't have time to convert this nicely to the save_file csv_reader
+      # handling right now - do this in the future
+      if(grepl("readr::read_csv", csv_opt)){
+        .file <- reader(path, show_col_types = FALSE, ...)
+      } else {
+        .file <- reader(path, ...)
+      }
+      if(isTRUE(return_DT)) .file <- data.table::as.data.table(.file)
+      return(.file)
     },
-    "fst"  = function(path, as.data.table = TRUE, ...) {
+    "fst"  = function(path, as.data.table = return_DT, ...) {
       # fst are often large, timer is nice to have
       fname <- basename(path)
       if(verbose) msg_tic()

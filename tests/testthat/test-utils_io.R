@@ -229,11 +229,77 @@ test_that("read_file ... works to pass extra args to reader function",
                 read_file(
                   path_to_file     = fpath_csv_ftype
                   , csv_opt        = "readr::read_csv"
-                  , show_col_types = FALSE
+                  # , show_col_types = FALSE # 2025-12-09 hard coded false for now
                   , name_repair    = "minimal"
                 )
               )
             )
+          })
+
+test_that("clean_encoding works",
+          {
+            withr::local_file(dir_full)
+            dir.create(dir_full)
+            test_data <- data.frame(
+              text = c(
+                'She said "hello',           # unmatched opening quote
+                'goodbye" she replied',      # unmatched closing quote
+                'normal "matched" text',     # matched quotes (should work)
+                "It's fine",                 # apostrophes (should work)
+                '"Already quoted"',          # edge case
+                "C\xf4te d'Ivoire",          # diacritics 1
+                "Côte d'Ivoire",             # diacritics 1b
+                "JosÃ©",                     # diacritics 2
+                "José",                       # diacritics 2b
+                "Asunciï¿½n",     # If � is actually multi-byte mojibake
+                "Asunci�n",       # Replacement character (data may be lost)
+                "Asunci\xf3n",      # Should resolve correctly
+                "EspaÃ±a",        # Another common one
+                "MÃ¼ller"         # German umlaut
+              )
+            )
+            cleaned_ref <- c(
+              "She said \"hello",
+              "goodbye\" she replied",
+              "normal \"matched\" text",
+              "It's fine",
+              "\"Already quoted\"",
+              "Côte d'Ivoire",
+              "Côte d'Ivoire",
+              "José",
+              "José",
+              "Asunci�n",
+              "Asunci�n",
+              "Asunción",
+              "España",
+              "Müller"
+            )
+            # test on rds
+            save_file(test_data, file.path(dir_full, "test_data.rds"), clean_encoding_on = 'text')
+            test_read <- read_file(file.path(dir_full, "test_data.rds"))
+            cleaned_text <- clean_encoding(test_data$text)
+            expect_equal(test_read$text, cleaned_text)
+            expect_equal(test_read$text, cleaned_ref)
+            # repeat with csv
+            save_file(test_data, file.path(dir_full, "test_data.csv"), clean_encoding_on = 'text')
+            test_read_csv <- read_file(file.path(dir_full, "test_data.csv"))
+            expect_equal(test_read_csv$text, cleaned_text)
+            expect_equal(test_read_csv$text, cleaned_ref)
+
+            # we have issues here - it's just a fault of the csv format and malformed quotes
+            # - readr somehow magically deals with it
+            # fread has issues with unmatched quotes no matter how you spin it
+            # save_file(test_data, file.path(dir_full, "test_data.csv"), clean_encoding_on = 'text', csv_opt = "data.table::fwrite")
+            # read_file(file.path(dir_full, "test_data.csv"))
+            # readLines(file.path(dir_full, "test_data.csv"))
+            # cat(readLines(file.path(dir_full, "test_data.csv")), sep = "\n")
+            # data.table::fread(file.path(dir_full, "test_data.csv"))
+
+            # repeat with fst
+            save_file(test_data, file.path(dir_full, "test_data.fst"), clean_encoding_on = 'text')
+            test_read_fst <- read_file(file.path(dir_full, "test_data.fst"))
+            expect_equal(test_read_fst$text, cleaned_text)
+            expect_equal(test_read_fst$text, cleaned_ref)
           })
 
 # Last test
