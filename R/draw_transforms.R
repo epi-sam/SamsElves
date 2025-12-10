@@ -357,6 +357,7 @@ draws_year_diff <- function(
 
   yr_vec    <- sort(yr_vec)
   # keep_vars <- c(setdiff(id_varnames, "year_id"), "value")
+  id_varnames <- setdiff(id_varnames, value_varname)
   keep_vars <- c(setdiff(id_varnames, "year_id"), value_varname)
 
   # DTW <- draws_years_to_wide(DT, yr_vec = yr_vec)
