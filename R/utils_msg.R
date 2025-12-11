@@ -68,3 +68,76 @@ msg_toc <- function(prefix = " -- "){
     )
   )
 }
+
+
+#' StdErr section header with nice spacing
+#'
+#' @param ... [chr] passed to message()
+#' @param section [chr] a section header before the message
+#' @param newlines [int: default TRUE] number of newlines to add before and
+#'   after message
+#'
+#' @returns [none] side effect - displays to std_err
+#' @export
+#'
+#' @examples msg_section("/my/file/path", section = "my path")
+msg_section <- function(..., section = "", newlines = 2L){
+  if(nchar(section) > 0) section <- sprintf("%s: ", section)
+  newlines <- as.integer(newlines) # backward compability when newlines was T/F
+  checkmate::assert_integerish(newlines, len = 1, lower = 0)
+  newline_chars <- paste0(rep("\n", newlines), collapse = "")
+  message(
+    sprintf(
+      "%s---- %s%s ----%s"
+      , newline_chars
+      , section
+      , ...
+      , newline_chars
+    )
+  )
+}
+
+
+#' Current Date-Time Stamp
+#'
+#' Wrapper for `Sys.time()`.  Results are formatted as YYYY_MM_DD_hhmmssTZONE.
+#' Allows user to print to stderr and/or stdout, and invisibly returns the stamp.
+#'
+#' @param std_out [sdt_out: default FALSE] using `print()`
+#' @param std_err [std_err: default TRUE] message class
+#'
+#' @return [invisible] date-time stamp
+#' @export
+#'
+#' @examples
+#' datetime_stamp(std_out = TRUE)
+#'
+datetime_stamp <- function(std_out = FALSE, std_err = FALSE, dt_format = "%Y_%m_%d_%H%M%S%Z"){
+  checkmate::assert_logical(std_out, len = 1)
+  checkmate::assert_logical(std_err, len = 1)
+
+  dt_stamp <- format(Sys.time(), format = dt_format)
+  if(std_out) print(dt_stamp)
+  if(std_err) message(dt_stamp)
+  invisible(dt_stamp)
+}
+
+
+#' StdErr timestamp with nice formatting
+#'
+#'
+#' @param dt_format [chr: default "%Y_%m_%d %H:%M:%S %Z"] datetime format string
+#' @param newlines [int: default 2L] number of newlines to add before and
+#'  after message
+#'
+#' @returns [none] side effect - displays to std_err
+#' @export
+#'
+#' @examples
+#' msg_tstamp()
+#'
+#'
+msg_tstamp <- function(dt_format = "%Y_%m_%d %H:%M:%S %Z", newlines = 2L){
+  ts <- datetime_stamp(dt_format = dt_format)
+  msg_section(ts, newlines = newlines)
+}
