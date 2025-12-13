@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils_msg.R
 \name{msg_toc}
 \alias{msg_toc}
-\title{Message tictoc toc time with prefix}
+\title{Message tictoc toc time with prefix for stderr messaging}
 \usage{
 msg_toc(prefix = " -- ")
 }
@@ -13,7 +13,7 @@ msg_toc(prefix = " -- ")
 [none]
 }
 \description{
-Message tictoc toc time with prefix
+Message tictoc toc time with prefix for stderr messaging
 }
 \examples{
 msg_tic()

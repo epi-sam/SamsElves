@@ -29,9 +29,14 @@ msg_multiline <- function(x){
   message(prt_multiline(x))
 }
 
-#' Start tictoc timer
+#' Start tictoc timer for stderr messaging
 #'
 #' Just a wrapper of tictoc::tic() for fun name consistency
+#'
+#' @param msg [chr: default NULL] passsed to tictoc::tic()
+#' @param quiet [lgl: default FALSE] passed to tictoc::tic()
+#' @param func.tic [function: default NULL] passed to tictoc::tic()
+#' @param ... additional arguments passed to tictoc::tic()
 #'
 #' @returns [none]
 #' @export
@@ -41,11 +46,11 @@ msg_multiline <- function(x){
 #' @examples
 #' msg_tic()
 #' msg_toc()
-msg_tic <- function(){
-  tictoc::tic()
+msg_tic <- function(msg = NULL, quiet = FALSE, func.tic = NULL, ...){
+  tictoc::tic(msg = msg, quiet = quiet, func.tic = func.tic, ...)
 }
 
-#' Message tictoc toc time with prefix
+#' Message tictoc toc time with prefix for stderr messaging
 #'
 #' @param prefix [chr: default " -- "] prefix to the message
 #'

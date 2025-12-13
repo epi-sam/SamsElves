@@ -2,9 +2,18 @@
 % Please edit documentation in R/utils_msg.R
 \name{msg_tic}
 \alias{msg_tic}
-\title{Start tictoc timer}
+\title{Start tictoc timer for stderr messaging}
 \usage{
-msg_tic()
+msg_tic(msg = NULL, quiet = FALSE, func.tic = NULL, ...)
+}
+\arguments{
+\item{msg}{[chr: default NULL] passsed to tictoc::tic()}
+
+\item{quiet}{[lgl: default FALSE] passed to tictoc::tic()}
+
+\item{func.tic}{[function: default NULL] passed to tictoc::tic()}
+
+\item{...}{additional arguments passed to tictoc::tic()}
 }
 \value{
 [none]
