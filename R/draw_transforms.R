@@ -238,17 +238,22 @@ draws_var_to_wide <- function(
 #'
 #' @param DT [data.table] input draws in wide format
 #' @param id_varnames [character] columns to keep as is
-#' @param vars_draws_pe [chr] vector of variable names in `DT` that are draws + point_estimate
-#' @param remove_vars_draws [lgl] remove draw columns?
-#' @param remove_point_estimate [lgl] remove point_estimate column?
-#' @param remove_mean [lgl] remove mean column?
-#' @param fix_mean_zero [lgl] Some sets of draws have only a single value,
-#'   leading to a non-zero mean, and zeros in the UI.  This will set the mean to
-#'   zero if mean is > 0 and the upper is 0, or if mean < 0 and lower is 0.
-#' @param verbose [lgl] print debug messages?
+#' @param vars_draws_pe [chr] vector of variable names in `DT` that are draws +
+#'   point_estimate
+#' @param remove_vars_draws [lgl: default TRUE] remove draw columns?
+#' @param remove_point_estimate [lgl: default FALSE] remove point_estimate
+#'   column?
+#' @param remove_mean [lgl: default FALSE] remove mean column?
+#' @param fix_mean_zero [lgl: default FALSE] Some sets of draws have only a
+#'   single value, leading to a non-zero mean, and zeros in the UI.  This will
+#'   set the mean to zero if mean is > 0 and the upper is 0, or if mean < 0 and
+#'   lower is 0.
+#' @param verbose [lgl: default FALSE] print debug messages?
+#' @param na.rm [lgl: default FALSE] remove NAs when calculating mean and
+#'   quantiles?
 #'
-#' @returns [data.table] mean and 95 percent CI of draws (columns: mean, lower, upper),
-#'   with or without draw columns, depending on `remove_vars_draws`
+#' @returns [data.table] mean and 95 percent CI of draws (columns: mean, lower,
+#'   upper), with or without draw columns, depending on `remove_vars_draws`
 #' @export
 draws_to_mean_ci <- function(
     DT
@@ -259,6 +264,7 @@ draws_to_mean_ci <- function(
     , remove_mean           = FALSE
     , fix_mean_zero         = FALSE
     , verbose               = FALSE
+    , na.rm                 = FALSE
 ){
 
   checkmate::assert_data_table(DT)
@@ -276,9 +282,9 @@ draws_to_mean_ci <- function(
   }
 
   DT <- data.table::as.data.table(DT)
-  DT[, mean := base::rowMeans(.SD), .SDcols = vars_draws]
-  DT[, lower := matrixStats::rowQuantiles(as.matrix(.SD), probs = 0.025), .SDcols = vars_draws]
-  DT[, upper := matrixStats::rowQuantiles(as.matrix(.SD), probs = 0.975), .SDcols = vars_draws]
+  DT[, mean := base::rowMeans(.SD, na.rm = na.rm), .SDcols = vars_draws]
+  DT[, lower := matrixStats::rowQuantiles(as.matrix(.SD), probs = 0.025, na.rm = na.rm), .SDcols = vars_draws]
+  DT[, upper := matrixStats::rowQuantiles(as.matrix(.SD), probs = 0.975, na.rm = na.rm), .SDcols = vars_draws]
 
   # post process
   # some sets of draws have only a single value, leading to a non-zero mean, and zeros in the UI
