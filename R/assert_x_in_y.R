@@ -7,7 +7,9 @@
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' assert_x_in_y(c("a", "b"), c("a", "b", "c"))
+#' }
 assert_x_in_y <- function(x, y){
   checkmate::assert_vector(x)
   checkmate::assert_vector(y)
@@ -28,7 +30,9 @@ assert_x_in_y <- function(x, y){
 #' @export
 #'
 #' @examples
+#' \dontrun{
 #' assert_x_not_in_y(c("a", "b"), c("c", "d", "e"))
+#' }
 assert_x_not_in_y <- function(x, y){
   checkmate::assert_vector(x, null.ok = TRUE)
   checkmate::assert_vector(y)

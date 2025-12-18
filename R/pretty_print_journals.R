@@ -938,9 +938,11 @@ fround_mag_clu_lancet <- function(
 #' format_lancet_clu(central = rep(2e6, 2), lower = rep(.5e6, 2), upper = rep(3e6, 2), d_type = "count")
 #' format_lancet_clu(central = c(-0.994, -0.994), upper = c(-0.984, -0.984), lower = c(-0.998, -0.998), d_type = "prop",  digits_round_prop = 4)
 #' format_lancet_clu(central = c(-0.994, -0.994), upper = c(-0.984, -0.984), lower = c(-0.998, -0.998), d_type = "prop",  digits_round_prop = 4, UI_only = T)
+#' \dontrun{
 #' format_lancet_clu(central = c(0.994, 0.994), lower = c(0.984, 0.984), upper = c(0.998), d_type = "prop") # fail
 #' format_lancet_clu(central = c(0.994, 0.999), lower = c(0.984, 0.984), upper = c(0.998, 0.998), d_type = "prop") # fail
 #' format_lancet_clu(central = c(0.994, 0.994), lower = c(0.984, 0.984), upper = c(0.998, 0.998), d_type = "propeller") # fail
+#' }
 format_lancet_clu <- function(
     central
     , lower
@@ -1014,19 +1016,20 @@ format_lancet_clu <- function(
 #'
 #' @return [data.table] with mean_95_UI_formatted column, and
 #'   central/lower/upper columns removed (if specified)
+#'
 #' @examples
 #' DT <- data.table::data.table(
-#' location_did = 1
-#' , location_name = "Global"
-#' , me_name = "vacc_dpt1"
-#' , mean = 55.8e6
-#' , lower = 50.7e6
-#' , upper = 60.7e6
+#'   location_did = 1
+#'   , location_name = "Global"
+#'   , me_name = "vacc_dpt1"
+#'   , mean = 55.8e6
+#'   , lower = 50.7e6
+#'   , upper = 60.7e6
 #' )
 #' format_lancet_dt(dt = DT, d_type = "count", central_var = 'mean')
-#' # location_did location_name   me_name     mean_95_UI_formatted
-#' # <num>        <char>    <char>                   <char>
-#' #   1:            1        Global vacc_dpt1 55·8 million (50·7–60·7)
+#' #> location_did location_name   me_name     mean_95_UI_formatted
+#' #> <num>        <char>    <char>                   <char>
+#' #>   1:            1        Global vacc_dpt1 55·8 million (50·7–60·7)
 format_lancet_dt <- function(
     dt
     , d_type

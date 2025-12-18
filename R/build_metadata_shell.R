@@ -31,16 +31,9 @@
 #' @export
 #'
 #' @examples
-#' # Make metadata shell, and message the function's key arguments to console
-#' (or std_err logs)
-#' metadata_shell <- build_metadata_shell(
-#'   code_root = "/mnt/share/code/hiv_tb_selectid/rt-shared-functions/",
-#'   verbose = TRUE
-#' )
-#'
-#' # Extract readable git diff to see any uncommitted code changes
-#' # (NULL is good - no uncommitted changes, prints nothing)
-#' cat(metadata_shell$GIT$git_uncommitted)
+#' \dontrun{
+#' metadata_shell <- build_metadata_shell()
+#' }
 build_metadata_shell <- function(
     code_root         = here::here(),
     jobname_filter    = "^rst_ide|^vscode",
@@ -392,9 +385,6 @@ extract_sessionInfo <- function(
 #'
 #' @return [chr] Path to the current script, relative to the code_root, NA if
 #'   unable to find
-#'
-#' @examples
-#' extract_script_path(code_root = getwd())
 extract_script_path <- function(code_root){
   tryCatch({
     if(isTRUE(interactive())) {

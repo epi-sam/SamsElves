@@ -50,14 +50,7 @@ function?}
 Defaults currently designed for interactive Rstudio sessions.
 }
 \examples{
-# Make metadata shell, and message the function's key arguments to console
-(or std_err logs)
-metadata_shell <- build_metadata_shell(
-  code_root = "/mnt/share/code/hiv_tb_selectid/rt-shared-functions/",
-  verbose = TRUE
-)
-
-# Extract readable git diff to see any uncommitted code changes
-# (NULL is good - no uncommitted changes, prints nothing)
-cat(metadata_shell$GIT$git_uncommitted)
+\dontrun{
+metadata_shell <- build_metadata_shell()
+}
 }

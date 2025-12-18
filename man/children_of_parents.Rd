@@ -36,6 +36,7 @@ parent ID in the path_to_top_parent column?  Returns logical T/F vector.
 }
 \examples{
 
+\dontrun{
 source(file.path("/ihme/cc_resources/libraries/current/r/get_location_metadata.R"))
 hierarchy <- get_location_metadata(location_set_id = 111, location_set_version_id = 1050, release_id = 9)
 
@@ -43,5 +44,6 @@ hierarchy$children_of_china <- children_of_parents(6, hierarchy)
 hierarchy$china_and_children <- children_of_parents(6, hierarchy, include_parent = TRUE)
 
 child_locs_of_china <- children_of_parents(6, hierarchy, output = "loc_ids")
+}
 
 }

@@ -79,15 +79,15 @@ Assumes a single data-type (d_type) for the whole table (e.g. 'prop', 'pp',
 }
 \examples{
 DT <- data.table::data.table(
-location_did = 1
-, location_name = "Global"
-, me_name = "vacc_dpt1"
-, mean = 55.8e6
-, lower = 50.7e6
-, upper = 60.7e6
+  location_did = 1
+  , location_name = "Global"
+  , me_name = "vacc_dpt1"
+  , mean = 55.8e6
+  , lower = 50.7e6
+  , upper = 60.7e6
 )
 format_lancet_dt(dt = DT, d_type = "count", central_var = 'mean')
-# location_did location_name   me_name     mean_95_UI_formatted
-# <num>        <char>    <char>                   <char>
-#   1:            1        Global vacc_dpt1 55·8 million (50·7–60·7)
+#> location_did location_name   me_name     mean_95_UI_formatted
+#> <num>        <char>    <char>                   <char>
+#>   1:            1        Global vacc_dpt1 55·8 million (50·7–60·7)
 }

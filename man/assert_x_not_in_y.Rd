@@ -18,5 +18,7 @@ assert_x_not_in_y(x, y)
 Assert no elements of x are in y
 }
 \examples{
+\dontrun{
 assert_x_not_in_y(c("a", "b"), c("c", "d", "e"))
+}
 }

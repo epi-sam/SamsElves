@@ -16,7 +16,7 @@
 #'
 #' @examples
 #' # fail
-#' .chk_list <- assert_square(dt = data.table(num = 1:3, let = letters[1:3]), id_varnames = c("num", "let"), verbose = TRUE)
+#' .chk_list <- assert_square(dt = data.table::data.table(num = 1:3, let = letters[1:3]), id_varnames = c("num", "let"), verbose = TRUE, hard_stop = FALSE)
 #' # pass
 #' .chk_list <- assert_square(dt = data.table::CJ(num = 1:3, let = letters[1:3]), id_varnames = c("num", "let"), verbose = TRUE)
 assert_square <- function(

@@ -10,11 +10,14 @@
 #' @return [std_err] console output of missing arguments
 #' @export
 #' @examples
+#' # These cannot be run directly
+#' \dontrun{
 #' test_fun <- function(arg_a){return(5 *arg_a)}
 #' test_fun(NULL) # produces NULL, but maybe you prefer an error
 #' test_fun2 <- function(arg_b){assert_no_null_arguments(); return(5 * arg_b)}
 #' test_fun2(NULL) # produces an error rather than NULL
 #' test_fun2() # informs user of _all_ missing arguments rather than only the first missing arg found (base R behavior)
+#' }
 assert_no_null_arguments <- function(as_list_env = NULL) {
 
   # default to environment one level up the call stack
@@ -75,8 +78,8 @@ assert_named_list = function(x, allow_data_frame = FALSE){
 #' @export
 #'
 #' @examples
-#' assert_list_element_and_type(list(a = 1, b = "2"), list(a = "double", b = "character"))
-#' assert_list_element_and_type(mtcars, list(mpg = "double", cyl = "double"), allow_data_frame = TRUE)
+#' assert_list_elements_and_types(list(a = 1, b = "2"), list(a = "double", b = "character"))
+#' assert_list_elements_and_types(mtcars, list(mpg = "double", cyl = "double"), allow_data_frame = TRUE)
 assert_list_elements_and_types <- function(check_list, truth_list, allow_data_frame = FALSE){
   assert_named_list(check_list, allow_data_frame = allow_data_frame)
   assert_named_list(truth_list)

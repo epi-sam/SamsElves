@@ -18,5 +18,7 @@ assert_x_in_y(x, y)
 Assert all elements of x are in y
 }
 \examples{
+\dontrun{
 assert_x_in_y(c("a", "b"), c("a", "b", "c"))
+}
 }

@@ -17,9 +17,9 @@ Facilitates arg-parsing at the command line.
 }
 \examples{
 apply_comma_string_to_list(list(1:5, c("a")))
-[[1]]
-[1] "1,2,3,4,5"
+#> [[1]]
+#> [1] "1,2,3,4,5"
 
-[[2]]
-[1] "a"
+#> [[2]]
+#> [1] "a"
 }

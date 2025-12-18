@@ -14,11 +14,11 @@
 #'
 #' @examples
 #' df <- data.frame(a = 1:3, b = letters[1:3])
-#' df <- add_new_column(df, "c", c(TRUE, FALSE, TRUE))
+#' df <- add_column(df, "c", c(TRUE, FALSE, TRUE))
 #' print(df)
 #' class(df)
 #' dt <- data.table::data.table(a = 1:3, b = letters[1:3])
-#' add_new_column(dt, "c", c(TRUE, FALSE, TRUE)) # modified in place
+#' add_column(dt, "c", c(TRUE, FALSE, TRUE)) # modified in place
 #' print(dt)
 #' class(dt)
 add_column <- function(x, varname, vec){

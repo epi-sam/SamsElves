@@ -16,6 +16,3 @@ extract_script_path(code_root)
 \description{
 Extract the path to the current script
 }
-\examples{
-extract_script_path(code_root = getwd())
-}

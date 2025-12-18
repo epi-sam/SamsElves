@@ -30,6 +30,6 @@ that the corresponding `check_list` element should be. If you don't wish to
 check data type, save as `NA` e.g. `list(arg1 = NA)`.
 }
 \examples{
-assert_list_element_and_type(list(a = 1, b = "2"), list(a = "double", b = "character"))
-assert_list_element_and_type(mtcars, list(mpg = "double", cyl = "double"), allow_data_frame = TRUE)
+assert_list_elements_and_types(list(a = 1, b = "2"), list(a = "double", b = "character"))
+assert_list_elements_and_types(mtcars, list(mpg = "double", cyl = "double"), allow_data_frame = TRUE)
 }
