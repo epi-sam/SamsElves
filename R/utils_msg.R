@@ -62,7 +62,7 @@ msg_tic <- function(msg = NULL, quiet = FALSE, func.tic = NULL, ...){
 #' @examples
 #' msg_tic()
 #' msg_toc()
-msg_toc <- function(prefix = " -- "){
+msg_toc <- function(prefix = "-- "){
   checkmate::assert_character(prefix, len = 1)
   message(
     prefix
@@ -91,17 +91,33 @@ msg_section <- function(..., section = "", newlines = 2L){
   newlines <- as.integer(newlines) # backward compability when newlines was T/F
   checkmate::assert_integerish(newlines, len = 1, lower = 0)
   newline_chars <- paste0(rep("\n", newlines), collapse = "")
+  # message(
+  #   sprintf(
+  #     "%s---- %s%s ----%s"
+  #     , newline_chars
+  #     , section
+  #     , ...
+  #     , newline_chars
+  #   )
+  # )
   message(
-    sprintf(
-      "%s---- %s%s ----%s"
-      , newline_chars
-      , section
-      , ...
-      , newline_chars
-    )
+    newline_chars
+    , "---- "
+    , section
+    , ...
+    , " ----"
+    , newline_chars
   )
 }
 
+function(..., section = "", newlines = TRUE){
+  if(nchar(section) > 0) section <- sprintf("%s: ", section)
+  if(isTRUE(newlines)){
+    message("\n\n ---- ", section, ..., " ---- \n\n")
+  } else {
+    message(" ---- ", section, ..., " ---- ")
+  }
+}
 
 #' Current Date-Time Stamp
 #'
