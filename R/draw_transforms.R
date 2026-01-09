@@ -137,7 +137,7 @@ draws_wide_to_long <- function(
   # faster than melt()
   DT <- tidyr::pivot_longer(data = DT, cols = all_of(vars_draws), names_to = "draw_id", values_to = "value") %>%
     # dplyr::mutate(draw = as.integer(sub("^draw_", "", draw))) %>% turns point-estimates to NA
-    dplyr::mutate(draw_id = as.integer(sub("^draw_", "", draw_id))) %>%
+    dplyr::mutate(draw_id = sub("^draw_", "", draw_id)) %>%
     data.table::as.data.table()
 
   data.table::setorderv(DT, id_varnames)
