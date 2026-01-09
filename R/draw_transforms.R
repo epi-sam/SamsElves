@@ -135,7 +135,12 @@ draws_wide_to_long <- function(
   }
 
   # faster than melt()
-  DT <- tidyr::pivot_longer(data = DT, cols = all_of(vars_draws), names_to = "draw_id", values_to = "value") %>%
+  DT <- tidyr::pivot_longer(
+    data        = DT
+    , cols      = tidyr::all_of(vars_draws)
+    , names_to  = "draw_id"
+    , values_to = "value"
+  ) %>%
     # dplyr::mutate(draw = as.integer(sub("^draw_", "", draw))) %>% turns point-estimates to NA
     dplyr::mutate(draw_id = sub("^draw_", "", draw_id)) %>%
     data.table::as.data.table()
@@ -162,7 +167,7 @@ draws_wide_to_long <- function(
 draws_long_to_wide <- function(
     DT
     , value_varname = "value"
-    , id_varnames   = find_id_varnames(DT, removals = c(value_varname), verbose = FALSE)
+    , id_varnames   = tidyr::all_of(find_id_varnames(DT, removals = c(value_varname), verbose = FALSE))
     , verbose       = FALSE
     , chk_square    = TRUE
 ){
@@ -230,7 +235,12 @@ draws_var_to_wide <- function(
   DT %>%
     # allow all levels of the variable to pivot
     { if(!is.null(var_vec)) dplyr::filter(., get(varname) %in% var_vec) else . } %>%
-    tidyr::pivot_wider(., names_from = varname, values_from = value_varname, names_prefix = sprintf("%s_", value_varname)) %>%
+    tidyr::pivot_wider(
+      .
+      , names_from   = tidyr::all_of(varname)
+      , values_from  = tidyr::all_of(value_varname)
+      , names_prefix = sprintf("%s_", value_varname)
+    ) %>%
     data.table::as.data.table()
 }
 

@@ -381,4 +381,10 @@ test_that(
       )
     )
 
+    # ensure reversal is equivalent to original
+    DT_w <- draws_long_to_wide(DT_l, chk_square = FALSE)
+    data.table::setcolorder(DT_w, names(DT_ragged))
+    data.table::setkey(DT_ragged, NULL)
+    expect_equal(DT_w, DT_ragged)
+
   })
