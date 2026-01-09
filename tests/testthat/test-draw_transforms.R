@@ -305,3 +305,80 @@ test_that("draws_inequal_prob works", {
   )
 
 })
+
+test_that(
+  "Squarness bypass works"
+  , {
+
+    # First makes sure we're actually not square
+    DT_ragged <- DT[-1, ]  # remove one row to make it non-square
+    DT2 <- data.table::copy(DT)
+    DT2[, location_id := 10]
+    DT_ragged <- rbind(DT_ragged, DT2)
+    id_vars <- c("location_id", "year_id")
+
+    expect_error(
+      expect_message(
+        assert_square(DT_ragged, id_vars, hard_stop = TRUE)
+        , "Missing:\nKey: <location_id, year_id>"
+      )
+      , "DT_ragged is not square."
+    )
+
+    # Then test defaults still work
+    expect_error(
+      expect_message(
+        draws_wide_to_long(DT_ragged, id_vars)
+        , "Missing:\nKey: <location_id, year_id>"
+      )
+      , "DT is not square."
+    )
+
+    # Now test bypass works
+    expect_no_error(
+      DT_l <- draws_wide_to_long(DT_ragged, id_vars, chk_square = FALSE)
+    )
+    assert_no_na(DT_l)
+    chk <- assert_square(DT_l, c("location_id", "year_id", "draw_id"), hard_stop = FALSE)
+    # dput(chk$missing_rows)
+    expect_equal(
+      chk$missing
+      , structure(
+        list(
+          location_id = c(8L, 8L, 8L, 8L, 8L, 8L, 8L, 8L, 8L, 8L, 8L, 8L),
+          year_id = c(
+            1980L,
+            1980L,
+            1980L,
+            1980L,
+            1980L,
+            1980L,
+            1980L,
+            1980L,
+            1980L,
+            1980L,
+            1980L,
+            1980L
+          ),
+          draw_id = c(
+            "0",
+            "1",
+            "10",
+            "2",
+            "3",
+            "4",
+            "5",
+            "6",
+            "7",
+            "8",
+            "9",
+            "point_estimate"
+          )
+        ),
+        row.names = c(NA, -12L),
+        class = c("data.table", "data.frame"),
+        sorted = c("location_id", "year_id", "draw_id")
+      )
+    )
+
+  })

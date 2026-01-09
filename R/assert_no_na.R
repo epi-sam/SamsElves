@@ -8,7 +8,7 @@
 #' @export
 #'
 assert_no_na <- function(dt, varnames = names(dt), verbose = TRUE){
-  if(!is.data.table(dt)) stop("dt must be a data.table")
+  if(!data.table::is.data.table(dt)) stop("dt must be a data.table")
   if(!is.character(varnames)) stop("varnames must be a character vector")
   if(!all(varnames %in% names(dt))) stop("Not all varnames are present in the data.table")
 

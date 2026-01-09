@@ -1,14 +1,14 @@
 if(FALSE){ # for debugging - tests use a different folder structure
   DT   <- read_file("tests/testthat/fixtures/agg_data.csv")
-  HIER <- read_file("tests/testthat/fixtures/agg_hier.csv")
+  HIER <- read_file("tests/testthat/fixtures/agg_hier.csv", csv_opt = "data.table::fread") # for comma-separated strings
 }
 
 library(data.table)
 DT   <- read_file("fixtures/agg_data.csv")
-HIER <- read_file("fixtures/agg_hier.csv")
+HIER <- read_file("fixtures/agg_hier.csv", csv_opt = "data.table::fread")
 ccroot <- Sys.getenv("CCROOT")
 tryCatch(source(file.path(ccroot, "get_regional_scalars.R")), warning = function(cnd){
-  warning("get_regional_scalars not sourced - check .Renviron for CCROOT - some tests will be skipped")
+  warning("get_regional_scalars not sourced - check .Renviron for CCROOT - some tests will be skipped") # for comma-separated strings
 })
 
 # NOTE! - aggregating upper/lower is mathematically wrong - it is only done here
