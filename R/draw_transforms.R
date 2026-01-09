@@ -196,7 +196,7 @@ draws_long_to_wide <- function(
     tidyr::pivot_wider(
       data           = DT
       , names_from   = "draw_id"
-      , values_from  = value_varname
+      , values_from  = tidyr::all_of(value_varname)
       , names_prefix = names_prefix
     )
   )

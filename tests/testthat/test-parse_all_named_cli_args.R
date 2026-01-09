@@ -24,6 +24,7 @@ test_that("parse_all_named_cli_args works and submit_job produces the correct st
               , std_err_root          = std_err_root
               , send_email            = TRUE
               , arg_vecs_to_comma_str = TRUE
+              , console_style_log_tf  = TRUE
               , dry_runTF             = FALSE
               , args_list             = list(
                 root_code = root_code
