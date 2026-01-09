@@ -167,7 +167,7 @@ draws_wide_to_long <- function(
 draws_long_to_wide <- function(
     DT
     , value_varname = "value"
-    , id_varnames   = tidyr::all_of(find_id_varnames(DT, removals = c(value_varname), verbose = FALSE))
+    , id_varnames   = find_id_varnames(DT, removals = c(value_varname), verbose = FALSE)
     , verbose       = FALSE
     , chk_square    = TRUE
 ){
