@@ -8,7 +8,8 @@ draws_year_diff(
   DT,
   yr_vec,
   id_varnames = find_id_varnames(DT, verbose = FALSE),
-  value_varname = "value"
+  value_varname = "value",
+  chk_square = TRUE
 )
 }
 \arguments{
@@ -17,6 +18,10 @@ draws_year_diff(
 \item{yr_vec}{[int] 2 years to compare}
 
 \item{id_varnames}{[character] columns to keep as id columns}
+
+\item{value_varname}{[chr: default "value"] name of value variable in DT}
+
+\item{chk_square}{[lgl: default TRUE] passed to draws_long_to_wide()}
 }
 \value{
 [data.table] a table of mean and 95% CI for the difference between

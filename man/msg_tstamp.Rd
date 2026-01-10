@@ -7,7 +7,7 @@
 msg_tstamp(dt_format = "\%Y_\%m_\%d \%H:\%M:\%S \%Z", newlines = 2L)
 }
 \arguments{
-\item{dt_format}{[chr: default "%Y_%m_%d %H:%M:%S %Z"] datetime format string}
+\item{dt_format}{[chr] datetime format string : default "\%Y_\%m_\%d \%H:\%M:\%S \%Z"}
 
 \item{newlines}{[int: default 2L] number of newlines to add before and
 after message}
@@ -20,6 +20,5 @@ StdErr timestamp with nice formatting
 }
 \examples{
 msg_tstamp()
-
 
 }

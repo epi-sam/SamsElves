@@ -91,15 +91,6 @@ msg_section <- function(..., section = "", newlines = 2L){
   newlines <- as.integer(newlines) # backward compability when newlines was T/F
   checkmate::assert_integerish(newlines, len = 1, lower = 0)
   newline_chars <- paste0(rep("\n", newlines), collapse = "")
-  # message(
-  #   sprintf(
-  #     "%s---- %s%s ----%s"
-  #     , newline_chars
-  #     , section
-  #     , ...
-  #     , newline_chars
-  #   )
-  # )
   message(
     newline_chars
     , "---- "
@@ -110,22 +101,14 @@ msg_section <- function(..., section = "", newlines = 2L){
   )
 }
 
-function(..., section = "", newlines = TRUE){
-  if(nchar(section) > 0) section <- sprintf("%s: ", section)
-  if(isTRUE(newlines)){
-    message("\n\n ---- ", section, ..., " ---- \n\n")
-  } else {
-    message(" ---- ", section, ..., " ---- ")
-  }
-}
-
 #' Current Date-Time Stamp
 #'
 #' Wrapper for `Sys.time()`.  Results are formatted as YYYY_MM_DD_hhmmssTZONE.
 #' Allows user to print to stderr and/or stdout, and invisibly returns the stamp.
 #'
-#' @param std_out [sdt_out: default FALSE] using `print()`
+#' @param std_out [std_out: default FALSE] using `print()`
 #' @param std_err [std_err: default TRUE] message class
+#' @param dt_format [chr] datetime format string default "\%Y_\%m_\%d_\%H\%M\%S\%Z"
 #'
 #' @return [invisible] date-time stamp
 #' @export
@@ -147,7 +130,7 @@ datetime_stamp <- function(std_out = FALSE, std_err = FALSE, dt_format = "%Y_%m_
 #' StdErr timestamp with nice formatting
 #'
 #'
-#' @param dt_format [chr: default "%Y_%m_%d %H:%M:%S %Z"] datetime format string
+#' @param dt_format [chr] datetime format string : default "\%Y_\%m_\%d \%H:\%M:\%S \%Z"
 #' @param newlines [int: default 2L] number of newlines to add before and
 #'  after message
 #'
@@ -156,7 +139,6 @@ datetime_stamp <- function(std_out = FALSE, std_err = FALSE, dt_format = "%Y_%m_
 #'
 #' @examples
 #' msg_tstamp()
-#'
 #'
 msg_tstamp <- function(dt_format = "%Y_%m_%d %H:%M:%S %Z", newlines = 2L){
   ts <- datetime_stamp(dt_format = dt_format)

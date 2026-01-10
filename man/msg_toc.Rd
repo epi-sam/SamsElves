@@ -4,7 +4,7 @@
 \alias{msg_toc}
 \title{Message tictoc toc time with prefix for stderr messaging}
 \usage{
-msg_toc(prefix = " -- ")
+msg_toc(prefix = "-- ")
 }
 \arguments{
 \item{prefix}{[chr: default " -- "] prefix to the message}

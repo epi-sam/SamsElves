@@ -8,7 +8,8 @@ draws_long_to_wide(
   DT,
   value_varname = "value",
   id_varnames = find_id_varnames(DT, removals = c(value_varname), verbose = FALSE),
-  verbose = FALSE
+  verbose = FALSE,
+  chk_square = TRUE
 )
 }
 \arguments{
@@ -18,7 +19,9 @@ draws_long_to_wide(
 
 \item{id_varnames}{[character] columns to keep as is}
 
-\item{verbose}{[lgl] print debug messages?}
+\item{verbose}{[lgl: default FALSE] print debug messages?}
+
+\item{chk_square}{[lgl: default TRUE] assert that DT is square before transforming?}
 }
 \value{
 [data.frame] draws in wide format
