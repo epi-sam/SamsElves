@@ -1,11 +1,13 @@
 if(FALSE){ # for debugging - tests use a different folder structure
   DT   <- read_file("tests/testthat/fixtures/agg_data.csv")
-  HIER <- read_file("tests/testthat/fixtures/agg_hier.csv")
+  # HIER <- read_file("tests/testthat/fixtures/agg_hier.csv", csv_opt = "data.table::fread") # for comma-separated strings
+  HIER <- read_file("tests/testthat/fixtures/agg_hier.csv") # fixed with new internal default
 }
 
 library(data.table)
 DT   <- read_file("fixtures/agg_data.csv")
-HIER <- read_file("fixtures/agg_hier.csv")
+# HIER <- read_file("fixtures/agg_hier.csv", csv_opt = "data.table::fread") # for comma-separated strings
+HIER <- read_file("fixtures/agg_hier.csv") # fixed with new internal default
 ccroot <- Sys.getenv("CCROOT")
 tryCatch(source(file.path(ccroot, "get_regional_scalars.R")), warning = function(cnd){
   warning("get_regional_scalars not sourced - check .Renviron for CCROOT - some tests will be skipped")

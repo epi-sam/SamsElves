@@ -345,7 +345,23 @@ read_file <- function(
       # Don't have time to convert this nicely to the save_file csv_reader
       # handling right now - do this in the future
       if(grepl("readr::read_csv", csv_opt)){
-        .file <- reader(path, show_col_types = FALSE, ...)
+
+        withCallingHandlers(
+          .file <- reader(
+            path
+            , show_col_types = FALSE
+            # common comma-separated int field that readr::read_csv converts to numeric
+            , col_types = readr::cols(path_to_top_parent = readr::col_character())
+            , ...
+          )
+          # I don't need to see this if the column isn't present
+          , warning = function(w){
+            if(grepl("The following named parsers don't match the column names: path_to_top_parent", w)){
+              invokeRestart("muffleWarning")
+            }
+          }
+        )
+
       } else {
         .file <- reader(path, ...)
       }

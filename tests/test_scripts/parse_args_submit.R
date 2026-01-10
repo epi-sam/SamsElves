@@ -18,7 +18,7 @@ message("code_root from per-parser: ", root_code)
 rm(pre_parser, args)
 
 message("Sourcing arg-parsing functions from user's code repo: ", root_code)
-lapply(list.files(file.path(root_code, "R"), full.names = TRUE, recursive = FALSE, pattern = "\\.[Rr]"), source)
+lapply(list.files(file.path(root_code, "R"), full.names = TRUE, recursive = FALSE, pattern = "\\.[Rr]$"), source)
 
 # Test binding unlock/relock
 lockBinding('root_code', .GlobalEnv)

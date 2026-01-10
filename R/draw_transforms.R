@@ -108,7 +108,8 @@ find_id_varnames <- function(
 #'
 #' @param DT [data.table] input draws
 #' @param id_varnames [character] columns to keep as is
-#' @param verbose [lgl] print debug messages?
+#' @param verbose [lgl: default FALSE] print debug messages?
+#' @param chk_square [lgl: default TRUE] assert that DT is square before transforming?
 #'
 #' @returns [data.frame] draws in long format
 #' @export
@@ -116,6 +117,7 @@ draws_wide_to_long <- function(
     DT
     , id_varnames = find_id_varnames(DT, verbose = FALSE)
     , verbose     = FALSE
+    , chk_square  = TRUE
 ){
   checkmate::assert_data_table(DT)
   checkmate::assert_character(id_varnames, any.missing = FALSE, min.len = 1)
@@ -123,7 +125,7 @@ draws_wide_to_long <- function(
   # checkmate::assert_subset(id_varnames, choices = colnames(DT))
   assert_x_in_y(id_varnames, colnames(DT))
 
-  assert_square(DT, id_varnames = id_varnames)
+  if (chk_square == TRUE) assert_square(DT, id_varnames = id_varnames)
 
   vars_draws = find_draws_varnames(DT)
 
@@ -133,7 +135,12 @@ draws_wide_to_long <- function(
   }
 
   # faster than melt()
-  DT <- tidyr::pivot_longer(data = DT, cols = all_of(vars_draws), names_to = "draw_id", values_to = "value") %>%
+  DT <- tidyr::pivot_longer(
+    data        = DT
+    , cols      = tidyr::all_of(vars_draws)
+    , names_to  = "draw_id"
+    , values_to = "value"
+  ) %>%
     # dplyr::mutate(draw = as.integer(sub("^draw_", "", draw))) %>% turns point-estimates to NA
     dplyr::mutate(draw_id = sub("^draw_", "", draw_id)) %>%
     data.table::as.data.table()
@@ -150,9 +157,10 @@ draws_wide_to_long <- function(
 #' Draw columns will be ordered as c("point_estimate", "draw_0", "draw_1", "draw_2", ..., "draw_n")
 #'
 #' @param DT [data.table] input draws with columns `draw_id` and value_varname
-#' @param id_varnames [character] columns to keep as is
-#' @param verbose [lgl] print debug messages?
 #' @param value_varname [chr: default "value"] name of value variable in DT
+#' @param id_varnames [character] columns to keep as is
+#' @param verbose [lgl: default FALSE] print debug messages?
+#' @param chk_square [lgl: default TRUE] assert that DT is square before transforming?
 #'
 #' @returns [data.frame] draws in wide format
 #' @export
@@ -161,13 +169,14 @@ draws_long_to_wide <- function(
     , value_varname = "value"
     , id_varnames   = find_id_varnames(DT, removals = c(value_varname), verbose = FALSE)
     , verbose       = FALSE
+    , chk_square    = TRUE
 ){
 
   checkmate::assert_data_table(DT)
   assert_x_in_y(c(value_varname, id_varnames), colnames(DT))
   checkmate::assert_logical(verbose, len = 1)
 
-  assert_square(DT, id_varnames = id_varnames)
+  if (chk_square == TRUE) assert_square(DT, id_varnames = id_varnames)
 
   names_prefix <- "draw_"
 
@@ -187,7 +196,7 @@ draws_long_to_wide <- function(
     tidyr::pivot_wider(
       data           = DT
       , names_from   = "draw_id"
-      , values_from  = value_varname
+      , values_from  = tidyr::all_of(value_varname)
       , names_prefix = names_prefix
     )
   )
@@ -226,7 +235,12 @@ draws_var_to_wide <- function(
   DT %>%
     # allow all levels of the variable to pivot
     { if(!is.null(var_vec)) dplyr::filter(., get(varname) %in% var_vec) else . } %>%
-    tidyr::pivot_wider(., names_from = varname, values_from = value_varname, names_prefix = sprintf("%s_", value_varname)) %>%
+    tidyr::pivot_wider(
+      .
+      , names_from   = tidyr::all_of(varname)
+      , values_from  = tidyr::all_of(value_varname)
+      , names_prefix = sprintf("%s_", value_varname)
+    ) %>%
     data.table::as.data.table()
 }
 
@@ -343,6 +357,8 @@ draws_years_to_wide <- function(DT, yr_vec = NULL, value_varname = "value"){
 #' @param DT [data.table] a table of (long) draws
 #' @param yr_vec [int] 2 years to compare
 #' @param id_varnames [character] columns to keep as id columns
+#' @param value_varname [chr: default "value"] name of value variable in DT
+#' @param chk_square [lgl: default TRUE] passed to draws_long_to_wide()
 #'
 #' @returns [data.table] a table of mean and 95% CI for the difference between
 #'   the two years, by id_varnames
@@ -352,6 +368,7 @@ draws_year_diff <- function(
     , yr_vec
     , id_varnames = find_id_varnames(DT, verbose = FALSE)
     , value_varname = "value"
+    , chk_square = TRUE
 ){
   checkmate::assert_data_table(DT)
   # checkmate::assert_subset(c("year_id", id_varnames), colnames(DT))
@@ -373,7 +390,7 @@ draws_year_diff <- function(
 
   DTW <- DTW[, ..keep_vars]
   DTW[, years := paste0(yr_vec[1], "_", yr_vec[2])]
-  DTW <- draws_long_to_wide(DTW, , value_varname = value_varname)
+  DTW <- draws_long_to_wide(DTW, value_varname = value_varname, chk_square = chk_square)
   return(draws_to_mean_ci(DTW))
 }
 

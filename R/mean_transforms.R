@@ -46,7 +46,7 @@ means_year_compare <- function(
     tidyr::pivot_wider(
       data           = DT[year_id %in% yr_vec]
       , names_from   = "year_id"
-      , values_from  = central_varname
+      , values_from  = tidyr::all_of(central_varname)
       , names_prefix = names_prefix
     )
   )
