@@ -6,7 +6,7 @@ dir_parent  <- tempdir()
 dir_child   <- 'temp_directory_1'
 dir_full    <- file.path(dir_parent, dir_child)
 # objects to read and write
-save_object             <- list(a = 1, b = 2, c = 3)
+save_object             <- data.frame(a = 1, b = 2, c = 3)
 fname_supported_ftype   <- 'save_object.rds'
 fname_unsupported_ftype <- 'save_object.rdata'
 fname_csv_ftype         <- 'save_object.csv'

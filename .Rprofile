@@ -15,4 +15,5 @@ if(interactive()){
   # used to include NCH libary in .libPaths()
   # - used for data_raw structures
   if(file.exists('~/.Rprofile')) source('~/.Rprofile')
+  .libPaths(c("/mnt/team/nch/pub/packages", .libPaths()))
 }

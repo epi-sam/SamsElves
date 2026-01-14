@@ -268,10 +268,25 @@ save_file <- function(
         if(verbose) msg_toc(prefix = sprintf(" -- fst write (%s): ", fname))
       },
       "csv"  = function(x, path, ...) {
+        fname <- basename(path)
+        if(verbose) msg_tic()
         csv_writer(x, path, ...)
+        if(verbose) msg_toc(prefix = sprintf(" -- csv write (%s): ", fname))
       },
-      "yaml" = yaml::write_yaml,
-      "rds"  = base::saveRDS,
+      # "yaml" = yaml::write_yaml,
+      "yaml" = function(x, path, ...) {
+        fname <- basename(path)
+        if(verbose) msg_tic()
+        yaml::write_yaml(x, path, ...)
+        if(verbose) msg_toc(prefix = sprintf(" -- yaml write (%s): ", fname))
+      },
+      # "rds"  = base::saveRDS,
+      "rds"  = function(x, path, ...) {
+        fname <- basename(path)
+        if(verbose) msg_tic()
+        base::saveRDS(x, path, ...)
+        if(verbose) msg_toc(prefix = sprintf(" -- rds write (%s): ", fname))
+      },
       {
         stop(
           glue::glue(
@@ -328,24 +343,52 @@ read_file <- function(
       # handling right now - do this in the future
       if(grepl("readr::read_csv", csv_opt)){
 
-        withCallingHandlers(
+        fname <- basename(path)
+        if(verbose) msg_tic()
+        .file <- reader(path, show_col_types = FALSE, ...)
+        if(verbose) msg_toc(prefix = sprintf(" -- csv read (%s): ", fname))
+        if(any(grepl("path_to_top_parent", names(.file)))) {
+          # re-read with correct col type
           .file <- reader(
             path
             , show_col_types = FALSE
-            # common comma-separated int field that readr::read_csv converts to numeric
-            , col_types = readr::cols(path_to_top_parent = readr::col_character())
+            , col_types = readr::cols(
+              path_to_top_parent = readr::col_character()
+            )
             , ...
           )
-          # I don't need to see this if the column isn't present
-          , warning = function(w){
-            if(grepl("The following named parsers don't match the column names: path_to_top_parent", w)){
-              invokeRestart("muffleWarning")
-            }
-          }
-        )
+        }
+
+          # this is all broken
+        # browser()
+        # withCallingHandlers(
+        #   .file <- reader(
+        #     path
+        #     , show_col_types = FALSE
+        #     # common comma-separated int field that readr::read_csv converts to numeric
+        #     , col_types = {
+        #       tryCatch(
+        #         readr::cols(path_to_top_parent = readr::col_character())
+        #         , warning = function(w){
+        #           readr::cols()
+        #         }
+        #       )
+        #     }
+        #     , ...
+        #   )
+        #   # I don't need to see this if the column isn't present
+        #   , warning = function(w){
+        #     if(grepl("The following named parsers don't match the column names: path_to_top_parent", w)){
+        #       invokeRestart("muffleWarning")
+        #     }
+        #   }
+        # )
 
       } else {
+        fname <- basename(path)
+        if(verbose) msg_tic()
         .file <- reader(path, ...)
+        if(verbose) msg_toc(prefix = sprintf(" -- csv read (%s): ", fname))
       }
       if(isTRUE(return_DT)) .file <- data.table::as.data.table(.file)
       return(.file)
@@ -358,9 +401,30 @@ read_file <- function(
       if(verbose) msg_toc(prefix = sprintf(" -- fst read (%s): ", fname))
       return(.file)
     },
-    "yaml" = yaml::read_yaml,
-    "rds"  = base::readRDS,
-    "json" = jsonlite::fromJSON,
+    # "yaml" = yaml::read_yaml,
+    "yaml" = function(path, ...) {
+      fname <- basename(path)
+      if(verbose) msg_tic()
+      .file <- yaml::read_yaml(path, ...)
+      if(verbose) msg_toc(prefix = sprintf(" -- yaml read (%s): ", basename(path)))
+      return(.file)
+    },
+    # "rds"  = base::readRDS,
+    "rds"  = function(path, ...) {
+      fname <- basename(path)
+      if(verbose) msg_tic()
+      .file <- base::readRDS(path, ...)
+      if(verbose) msg_toc(prefix = sprintf(" -- rds read (%s): ", basename(path)))
+      return(.file)
+    },
+    # "json" = jsonlite::fromJSON,
+    "json" = function(path, simplifyDataFrame = return_DT, ...) {
+      fname <- basename(path)
+      if(verbose) msg_tic()
+      .file <- jsonlite::fromJSON(path, simplifyDataFrame = simplifyDataFrame, ...)
+      if(verbose) msg_toc(prefix = sprintf(" -- json read (%s): ", basename(path)))
+      return(.file)
+    },
     {
       stop(
         sprintf(
