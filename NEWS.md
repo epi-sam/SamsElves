@@ -1,3 +1,13 @@
+# SamsElves 0.9.18
+
+Fixes
+
+- readr read_csv debug
+- added titoc times for all sub-functions
+- added ... passthrough to all sub-functions
+- draw_transforms 
+  - wide_to_long keeps draws as int if PE is absent
+
 # SamsElves 0.9.17
 
 Fixes
