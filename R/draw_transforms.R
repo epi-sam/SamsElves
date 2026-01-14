@@ -127,7 +127,9 @@ draws_wide_to_long <- function(
 
   if (chk_square == TRUE) assert_square(DT, id_varnames = id_varnames)
 
+  draws_to_int <- FALSE # by default, needs to remain character due to PE as a 'draw'
   vars_draws = find_draws_varnames(DT)
+  if(!any(grepl("point_estimate", vars_draws))) draws_to_int <- TRUE
 
   if(verbose == TRUE) {
     message("wide to long - draw_id columns are e.g. : ", toString(vars_draws[1:5]))
@@ -144,6 +146,8 @@ draws_wide_to_long <- function(
     # dplyr::mutate(draw = as.integer(sub("^draw_", "", draw))) %>% turns point-estimates to NA
     dplyr::mutate(draw_id = sub("^draw_", "", draw_id)) %>%
     data.table::as.data.table()
+
+  if (isTRUE(draws_to_int)) DT[, draw_id := as.integer(draw_id)]
 
   data.table::setorderv(DT, id_varnames)
 
