@@ -9,8 +9,9 @@
 #'
 #' @examples
 #' vec_to_comma_string(1:10) # '1,2,3,4,5,6,7,8,9,10'
-vec_to_comma_string <- function(vec){
-  return(paste(vec, collapse = ","))
+vec_to_comma_string <- function(vec, delim = ","){
+  assert_scalar(delim)
+  return(paste(vec, collapse = delim))
 }
 
 #' Convert a comma-separated string to a vector
